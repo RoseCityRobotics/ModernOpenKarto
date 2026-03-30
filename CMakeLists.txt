@@ -1,94 +1,103 @@
-cmake_minimum_required (VERSION 2.6)
-project (OpenKarto)
+cmake_minimum_required(VERSION 3.16)
+project(OpenKarto VERSION 1.0.0 LANGUAGES CXX)
 
-include_directories(source)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-SET(KARTO_SOURCE_FILES
-  source/Any.cpp
-  source/Event.cpp
-  source/Exception.cpp
-  source/Geometry.cpp
-  source/Grid.cpp
-  source/GridIndexLookup.cpp
-  source/Identifier.cpp
-  source/Logger.cpp
-  source/Meta.cpp
-  source/MetaAttribute.cpp
-  source/MetaClass.cpp
-  source/MetaClassManager.cpp
-  source/MetaEnum.cpp
-  source/MetaEnumHelper.cpp
-  source/MetaEnumManager.cpp
-  source/Module.cpp
-  source/Mutex.cpp
-  source/Object.cpp
-  source/Objects.cpp
-  source/OccupancyGrid.cpp
-  source/OpenKarto.cpp
-  source/OpenMapper.cpp
-  source/Parameter.cpp
-  source/PoseTransform.cpp
-  source/RangeTransform.cpp
-  source/Referenced.cpp
-  source/RigidBodyTransform.cpp
-  source/Sensor.cpp
-  source/SensorData.cpp
-  source/SensorRegistry.cpp
-  source/String.cpp
-  source/StringHelper.cpp
+set(KARTO_SOURCE_FILES
+  src/Any.cpp
+  src/Event.cpp
+  src/Exception.cpp
+  src/Geometry.cpp
+  src/Grid.cpp
+  src/GridIndexLookup.cpp
+  src/Identifier.cpp
+  src/Logger.cpp
+  src/Meta.cpp
+  src/MetaAttribute.cpp
+  src/MetaClass.cpp
+  src/MetaClassManager.cpp
+  src/MetaEnum.cpp
+  src/MetaEnumHelper.cpp
+  src/MetaEnumManager.cpp
+  src/Module.cpp
+  src/Mutex.cpp
+  src/Object.cpp
+  src/Objects.cpp
+  src/OccupancyGrid.cpp
+  src/OpenKarto.cpp
+  src/OpenMapper.cpp
+  src/Parameter.cpp
+  src/PoseTransform.cpp
+  src/RangeTransform.cpp
+  src/Referenced.cpp
+  src/RigidBodyTransform.cpp
+  src/Sensor.cpp
+  src/SensorData.cpp
+  src/SensorRegistry.cpp
+  src/String.cpp
+  src/StringHelper.cpp
 )
 
-SET(KARTO_INCLUDE_FILES
-  source/OpenKarto/AbstractGpsEstimationManager.h
-  source/OpenKarto/Event.h
-  source/OpenKarto/Identifier.h
-  source/OpenKarto/MetaAttribute.h
-  source/OpenKarto/MetaEnumHelper.h
-  source/OpenKarto/Mutex.h
-  source/OpenKarto/OpenMapper.h
-  source/OpenKarto/Referenced.h
-  source/OpenKarto/SmartPointer.h
-  source/OpenKarto/Any.h
-  source/OpenKarto/Exception.h
-  source/OpenKarto/List.h
-  source/OpenKarto/MetaClass.h
-  source/OpenKarto/MetaEnumManager.h
-  source/OpenKarto/Object.h
-  source/OpenKarto/Pair.h
-  source/OpenKarto/RigidBodyTransform.h
-  source/OpenKarto/String.h
-  source/OpenKarto/CoordinateConverter.h
-  source/OpenKarto/Geometry.h
-  source/OpenKarto/Logger.h
-  source/OpenKarto/MetaClassHelper.h
-  source/OpenKarto/Meta.h
-  source/OpenKarto/Objects.h
-  source/OpenKarto/Parameter.h
-  source/OpenKarto/SensorData.h
-  source/OpenKarto/StringHelper.h
-  source/OpenKarto/Grid.h
-  source/OpenKarto/Macros.h
-  source/OpenKarto/MetaClassManager.h
-  source/OpenKarto/MetaType.h
-  source/OpenKarto/OccupancyGrid.h
-  source/OpenKarto/PoseTransform.h
-  source/OpenKarto/Sensor.h
-  source/OpenKarto/TypeCasts.h
-  source/OpenKarto/Deprecated.h
-  source/OpenKarto/GridIndexLookup.h
-  source/OpenKarto/Math.h
-  source/OpenKarto/MetaEnum.h
-  source/OpenKarto/Module.h
-  source/OpenKarto/OpenKarto.h
-  source/OpenKarto/RangeTransform.h
-  source/OpenKarto/SensorRegistry.h
-  source/OpenKarto/Types.h
+add_library(${PROJECT_NAME} ${KARTO_SOURCE_FILES})
+
+target_include_directories(${PROJECT_NAME}
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
 
-add_definitions(-DUSE_TBB)
+# TBB intentionally removed — target platform is ARM (Jetson Orin).
+# Single-threaded fallbacks are used; Phase 8 will add std::thread parallelism.
 
-add_library(${PROJECT_NAME} SHARED ${KARTO_SOURCE_FILES})
-target_link_libraries(${PROJECT_NAME} tbb)
+# Install
+include(GNUInstallDirs)
 
-install(FILES ${KARTO_INCLUDE_FILES} DESTINATION include/${PROJECT_NAME})
-install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib)
+install(TARGETS ${PROJECT_NAME}
+  EXPORT OpenKartoTargets
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+install(DIRECTORY include/
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  FILES_MATCHING PATTERN "*.h"
+)
+
+install(EXPORT OpenKartoTargets
+  FILE OpenKartoTargets.cmake
+  NAMESPACE OpenKarto::
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/OpenKarto
+)
+
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/OpenKartoConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/OpenKartoConfig.cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/OpenKarto
+)
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/OpenKartoConfigVersion.cmake
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY SameMajorVersion
+)
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/OpenKartoConfig.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/OpenKartoConfigVersion.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/OpenKarto
+)
+
+# Tests
+option(OPENKARTO_BUILD_TESTS "Build unit tests" ON)
+if(OPENKARTO_BUILD_TESTS)
+  include(FetchContent)
+  FetchContent_Declare(googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG v1.16.0
+  )
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  FetchContent_MakeAvailable(googletest)
+  enable_testing()
+  add_subdirectory(test)
+endif()
