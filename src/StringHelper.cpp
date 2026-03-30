@@ -106,15 +106,13 @@ namespace karto
     return converter.str().c_str();
   }
 
-#if defined(__APPLE__) && !defined(__LP64__)
   String StringHelper::ToString(kt_size_t value)
   {
     std::stringstream converter;
     converter.precision(std::numeric_limits<double>::digits10);
     converter << value;
     return converter.str().c_str();
-  }	
-#endif
+  }
 
   String StringHelper::ToString(kt_float value)
   {
@@ -563,14 +561,12 @@ namespace karto
     return *this;
   }
 
-#if defined(__APPLE__) && !defined(__LP64__)
   StringBuilder& StringBuilder::operator << (kt_size_t value)
   {
     m_String.Append(karto::StringHelper::ToString(value));
 
     return *this;
   }
-#endif
 
   StringBuilder& StringBuilder::operator << (kt_float value)
   {
