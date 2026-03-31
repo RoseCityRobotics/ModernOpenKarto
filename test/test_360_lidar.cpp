@@ -322,7 +322,7 @@ TEST(FrameRoundTrip, GetSensorAtAndGetCorrectedAtAreInverses) {
     // With zero offset, GetSensorAt and GetCorrectedAt should be identity-like
     karto::LaserRangeFinder* laser = Create180Laser("laser_roundtrip_zero");
 
-    karto::RangeReadingsList readings(181, 5.0);
+    const karto::RangeReadingsList readings(181, 5.0);
     karto::LocalizedRangeScan* scan =
         new karto::LocalizedRangeScan(laser->GetIdentifier(), readings);
     scan->SetOdometricPose(karto::Pose2(0.0, 0.0, 0.0));
@@ -347,7 +347,7 @@ TEST(FrameRoundTrip, GetSensorAtAndGetCorrectedAtWithOffset) {
     // Set a sensor offset: 0.1m forward, 0.05m left, rotated 10 degrees
     laser->SetOffsetPose(karto::Pose2(0.1, 0.05, karto::math::DegreesToRadians(10.0)));
 
-    karto::RangeReadingsList readings(181, 5.0);
+    const karto::RangeReadingsList readings(181, 5.0);
     karto::LocalizedRangeScan* scan =
         new karto::LocalizedRangeScan(laser->GetIdentifier(), readings);
     scan->SetOdometricPose(karto::Pose2(0.0, 0.0, 0.0));
@@ -370,7 +370,7 @@ TEST(FrameRoundTrip, GetSensorAtAndGetCorrectedAtWithOffset) {
 TEST(FrameRoundTrip, SetCorrectedPoseAndUpdateRefreshesPoints) {
     karto::LaserRangeFinder* laser = Create180Laser("laser_update_test");
 
-    karto::RangeReadingsList readings(181, 5.0);
+    const karto::RangeReadingsList readings(181, 5.0);
     karto::LocalizedRangeScan* scan =
         new karto::LocalizedRangeScan(laser->GetIdentifier(), readings);
     scan->SetOdometricPose(karto::Pose2(0.0, 0.0, 0.0));
@@ -406,7 +406,7 @@ TEST(FrameRoundTrip, ScanMatchingWithSensorOffset) {
 
     double angRes = karto::math::DegreesToRadians(1.0);
 
-    karto::RangeReadingsList r1 = GenerateRoomScan(0.0, 0.0, 0.0, 10.0, 10.0,
+    const karto::RangeReadingsList r1 = GenerateRoomScan(0.0, 0.0, 0.0, 10.0, 10.0,
         -karto::KT_PI_2, karto::KT_PI_2, angRes, 50.0);
     karto::LocalizedRangeScan* scan1 =
         new karto::LocalizedRangeScan(laser->GetIdentifier(), r1);
@@ -414,7 +414,7 @@ TEST(FrameRoundTrip, ScanMatchingWithSensorOffset) {
     scan1->SetCorrectedPose(karto::Pose2(0.0, 0.0, 0.0));
     EXPECT_TRUE(mapper.Process(scan1));
 
-    karto::RangeReadingsList r2 = GenerateRoomScan(1.0, 0.0, 0.0, 10.0, 10.0,
+    const karto::RangeReadingsList r2 = GenerateRoomScan(1.0, 0.0, 0.0, 10.0, 10.0,
         -karto::KT_PI_2, karto::KT_PI_2, angRes, 50.0);
     karto::LocalizedRangeScan* scan2 =
         new karto::LocalizedRangeScan(laser->GetIdentifier(), r2);
