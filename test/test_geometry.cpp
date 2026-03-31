@@ -92,7 +92,7 @@ TEST(Geometry, BoundingBox2AddPoints) {
     EXPECT_DOUBLE_EQ(bbox.GetMaximum().GetY(), 5.0);
 }
 
-// --- RangeReadingsList (was List<kt_double>) ---
+// --- RangeReadingsList (was List<double>) ---
 
 TEST(SensorData, RangeReadingsListIsVector) {
     karto::RangeReadingsList readings;
@@ -108,12 +108,12 @@ TEST(SensorData, RangeReadingsListIsVector) {
     EXPECT_DOUBLE_EQ(*it, 0.3);
 }
 
-// --- IdPoseVector (was List<Pair<kt_int32s, Pose2>>) ---
+// --- IdPoseVector (was List<Pair<int32_t, Pose2>>) ---
 
 TEST(OpenMapper, IdPoseVectorUsesStdPair) {
     karto::ScanSolver::IdPoseVector corrections;
-    corrections.push_back(std::make_pair(kt_int32s(1), karto::Pose2(1.0, 2.0, 0.0)));
-    corrections.push_back({kt_int32s(2), karto::Pose2(3.0, 4.0, 1.0)});
+    corrections.push_back(std::make_pair(int32_t(1), karto::Pose2(1.0, 2.0, 0.0)));
+    corrections.push_back({int32_t(2), karto::Pose2(3.0, 4.0, 1.0)});
 
     EXPECT_EQ(corrections.size(), 2u);
     EXPECT_EQ(corrections[0].first, 1);

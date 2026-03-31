@@ -6,26 +6,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(KARTO_SOURCE_FILES
-  src/Event.cpp
-  src/Exception.cpp
   src/Geometry.cpp
   src/Grid.cpp
   src/GridIndexLookup.cpp
-  src/Identifier.cpp
-  src/Logger.cpp
-  src/Module.cpp
-  src/Object.cpp
-  src/Objects.cpp
   src/OccupancyGrid.cpp
   src/OpenMapper.cpp
-  src/Parameter.cpp
   src/PoseTransform.cpp
-  src/RangeTransform.cpp
   src/RigidBodyTransform.cpp
   src/Sensor.cpp
   src/SensorData.cpp
-  src/SensorRegistry.cpp
-  src/StringHelper.cpp
 )
 
 add_library(${PROJECT_NAME} ${KARTO_SOURCE_FILES})

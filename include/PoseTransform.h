@@ -31,7 +31,7 @@ namespace karto
   /**
    * Implementation of a Pose2 transform
    */
-  class KARTO_EXPORT Transform
+  class Transform
   {
   public:
     /**
@@ -61,7 +61,7 @@ namespace karto
     inline Pose2 TransformPose(const Pose2& rSourcePose) const
     {
       Pose2 newPosition = m_Transform + m_Rotation * rSourcePose;
-      kt_double angle = math::NormalizeAngle(rSourcePose.GetHeading() + m_Transform.GetHeading());
+      double angle = NormalizeAngle(rSourcePose.GetHeading() + m_Transform.GetHeading());
 
       return Pose2(newPosition.GetPosition(), angle);
     }
@@ -74,7 +74,7 @@ namespace karto
     inline Pose2 InverseTransformPose(const Pose2& rSourcePose) const
     {
       Pose2 newPosition = m_InverseRotation * (rSourcePose - m_Transform);
-      kt_double angle = math::NormalizeAngle(rSourcePose.GetHeading() - m_Transform.GetHeading());
+      double angle = NormalizeAngle(rSourcePose.GetHeading() - m_Transform.GetHeading());
 
       // components of transform
       return Pose2(newPosition.GetPosition(), angle);

@@ -67,12 +67,12 @@ karto::RangeReadingsList GenerateRoomScan(
 karto::LaserRangeFinder* Create360Laser(const char* name) {
     karto::LaserRangeFinder* laser =
         karto::LaserRangeFinder::CreateLaserRangeFinder(
-            karto::LaserRangeFinder_Custom, karto::Identifier(name));
+            karto::LaserRangeFinder_Custom, name);
     laser->SetMinimumRange(0.1);
     laser->SetMaximumRange(50.0);
-    laser->SetMinimumAngle(-karto::KT_PI);
-    laser->SetMaximumAngle(karto::KT_PI);
-    laser->SetAngularResolution(karto::math::DegreesToRadians(1.0));
+    laser->SetMinimumAngle(-M_PI);
+    laser->SetMaximumAngle(M_PI);
+    laser->SetAngularResolution(karto::DegreesToRadians(1.0));
     laser->SetRangeThreshold(12.0);
     return laser;
 }
@@ -81,12 +81,12 @@ karto::LaserRangeFinder* Create360Laser(const char* name) {
 karto::LaserRangeFinder* Create180Laser(const char* name) {
     karto::LaserRangeFinder* laser =
         karto::LaserRangeFinder::CreateLaserRangeFinder(
-            karto::LaserRangeFinder_Custom, karto::Identifier(name));
+            karto::LaserRangeFinder_Custom, name);
     laser->SetMinimumRange(0.1);
     laser->SetMaximumRange(50.0);
-    laser->SetMinimumAngle(-karto::KT_PI_2);
-    laser->SetMaximumAngle(karto::KT_PI_2);
-    laser->SetAngularResolution(karto::math::DegreesToRadians(1.0));
+    laser->SetMinimumAngle(-M_PI_2);
+    laser->SetMaximumAngle(M_PI_2);
+    laser->SetAngularResolution(karto::DegreesToRadians(1.0));
     laser->SetRangeThreshold(12.0);
     return laser;
 }
@@ -102,9 +102,9 @@ TEST(Lidar360, SingleScanProcessing) {
 
     karto::LaserRangeFinder* laser = Create360Laser("laser_360_single");
 
-    const double minAngle = -karto::KT_PI;
-    const double maxAngle = karto::KT_PI;
-    const double angularRes = karto::math::DegreesToRadians(1.0);
+    const double minAngle = -M_PI;
+    const double maxAngle = M_PI;
+    const double angularRes = karto::DegreesToRadians(1.0);
 
     // Generate a scan at origin in a 10x10 room
     const karto::RangeReadingsList readings = GenerateRoomScan(
@@ -112,11 +112,12 @@ TEST(Lidar360, SingleScanProcessing) {
         minAngle, maxAngle, angularRes, 50.0);
 
     karto::LocalizedRangeScan* scan =
-        new karto::LocalizedRangeScan(laser->GetIdentifier(), readings);
+        new karto::LocalizedRangeScan(laser->GetName(), readings);
+    scan->SetLaserRangeFinder(laser);
     scan->SetOdometricPose(karto::Pose2(0.0, 0.0, 0.0));
     scan->SetCorrectedPose(karto::Pose2(0.0, 0.0, 0.0));
 
-    kt_bool result = mapper.Process(scan);
+    bool result = mapper.Process(scan);
     EXPECT_TRUE(result);
 
     karto::Pose2 corrected = scan->GetCorrectedPose();
@@ -131,9 +132,9 @@ TEST(Lidar360, MultipleScansProduceReasonablePoses) {
 
     karto::LaserRangeFinder* laser = Create360Laser("laser_360_multi");
 
-    const double minAngle = -karto::KT_PI;
-    const double maxAngle = karto::KT_PI;
-    const double angularRes = karto::math::DegreesToRadians(1.0);
+    const double minAngle = -M_PI;
+    const double maxAngle = M_PI;
+    const double angularRes = karto::DegreesToRadians(1.0);
 
     // Feed several scans along a straight line inside a 10x10 room
     const double step = 0.5;
@@ -146,11 +147,12 @@ TEST(Lidar360, MultipleScansProduceReasonablePoses) {
             minAngle, maxAngle, angularRes, 50.0);
 
         karto::LocalizedRangeScan* scan =
-            new karto::LocalizedRangeScan(laser->GetIdentifier(), readings);
+            new karto::LocalizedRangeScan(laser->GetName(), readings);
+        scan->SetLaserRangeFinder(laser);
         scan->SetOdometricPose(karto::Pose2(x, 0.0, 0.0));
         scan->SetCorrectedPose(karto::Pose2(x, 0.0, 0.0));
 
-        kt_bool result = mapper.Process(scan);
+        bool result = mapper.Process(scan);
         EXPECT_TRUE(result);
 
         // Corrected pose should be reasonably close to the odometric pose
@@ -167,27 +169,29 @@ TEST(Lidar360, ScanMatchingWithRotation) {
 
     karto::LaserRangeFinder* laser = Create360Laser("laser_360_rot");
 
-    const double minAngle = -karto::KT_PI;
-    const double maxAngle = karto::KT_PI;
-    const double angularRes = karto::math::DegreesToRadians(1.0);
+    const double minAngle = -M_PI;
+    const double maxAngle = M_PI;
+    const double angularRes = karto::DegreesToRadians(1.0);
 
     // First scan at origin, no rotation
     const karto::RangeReadingsList readings1 = GenerateRoomScan(
         0.0, 0.0, 0.0, 10.0, 10.0,
         minAngle, maxAngle, angularRes, 50.0);
     karto::LocalizedRangeScan* scan1 =
-        new karto::LocalizedRangeScan(laser->GetIdentifier(), readings1);
+        new karto::LocalizedRangeScan(laser->GetName(), readings1);
+    scan1->SetLaserRangeFinder(laser);
     scan1->SetOdometricPose(karto::Pose2(0.0, 0.0, 0.0));
     scan1->SetCorrectedPose(karto::Pose2(0.0, 0.0, 0.0));
     EXPECT_TRUE(mapper.Process(scan1));
 
     // Second scan with a small translation and rotation
-    double heading = karto::math::DegreesToRadians(15.0);
+    double heading = karto::DegreesToRadians(15.0);
     const karto::RangeReadingsList readings2 = GenerateRoomScan(
         1.0, 0.5, heading, 10.0, 10.0,
         minAngle, maxAngle, angularRes, 50.0);
     karto::LocalizedRangeScan* scan2 =
-        new karto::LocalizedRangeScan(laser->GetIdentifier(), readings2);
+        new karto::LocalizedRangeScan(laser->GetName(), readings2);
+    scan2->SetLaserRangeFinder(laser);
     scan2->SetOdometricPose(karto::Pose2(1.0, 0.5, heading));
     scan2->SetCorrectedPose(karto::Pose2(1.0, 0.5, heading));
     EXPECT_TRUE(mapper.Process(scan2));
@@ -207,14 +211,14 @@ TEST(Lidar360, ScanMatchingWithRotation) {
 
 TEST(SensorRegistryFix, DirectLaserPointerOnLaserRangeScan) {
     // Verify that LaserRangeScan::SetLaserRangeFinder / GetLaserRangeFinder
-    // returns the direct pointer when set, falling back to registry otherwise.
+    // returns the direct pointer when set.
     karto::LaserRangeFinder* laser = Create180Laser("laser_direct_lrs");
 
     const karto::RangeReadingsList readings(181, 5.0);
-    karto::LaserRangeScan scan(laser->GetIdentifier(), readings);
+    karto::LaserRangeScan scan(laser->GetName(), readings);
 
-    // Without setting direct pointer, should fall back to registry
-    EXPECT_EQ(scan.GetLaserRangeFinder(), laser);
+    // Without setting direct pointer, returns nullptr
+    EXPECT_EQ(scan.GetLaserRangeFinder(), nullptr);
 
     // Set direct pointer
     scan.SetLaserRangeFinder(laser);
@@ -230,12 +234,12 @@ TEST(SensorRegistryFix, DirectLaserPointerOnLocalizedLaserScan) {
 
     const karto::RangeReadingsList readings(181, 5.0);
     karto::LocalizedRangeScan* scan =
-        new karto::LocalizedRangeScan(laser->GetIdentifier(), readings);
+        new karto::LocalizedRangeScan(laser->GetName(), readings);
     scan->SetOdometricPose(karto::Pose2(0.0, 0.0, 0.0));
     scan->SetCorrectedPose(karto::Pose2(0.0, 0.0, 0.0));
 
-    // Without direct pointer, falls back to registry
-    EXPECT_EQ(scan->GetLaserRangeFinder(), laser);
+    // Without direct pointer, returns nullptr
+    EXPECT_EQ(scan->GetLaserRangeFinder(), nullptr);
 
     // Set direct pointer explicitly
     scan->SetLaserRangeFinder(laser);
@@ -248,17 +252,12 @@ TEST(SensorRegistryFix, DirectLaserPointerOnLocalizedLaserScan) {
 TEST(SensorRegistryFix, TwoMappersWithSameSensorName) {
     // This test verifies that two independent mapper instances can each work
     // with their own LaserRangeFinder, even when the logical sensor name is
-    // the same. The direct pointer on scans bypasses the global SensorRegistry.
-    //
-    // Because the SensorRegistry still throws on duplicate names, we simulate
-    // the scenario by: creating laser1, processing with mapper1, destroying
-    // laser1, then creating laser2 with the same name for mapper2. Old scans
-    // still work because they carry their own direct pointer.
+    // the same. Each scan carries a direct pointer to its laser.
 
     const char* sensorName = "laser_shared_name";
-    const double minAngle = -karto::KT_PI_2;
-    const double maxAngle = karto::KT_PI_2;
-    const double angularRes = karto::math::DegreesToRadians(1.0);
+    const double minAngle = -M_PI_2;
+    const double maxAngle = M_PI_2;
+    const double angularRes = karto::DegreesToRadians(1.0);
 
     // --- Mapper 1 with laser1 ---
     karto::OpenMapper mapper1("mapper_dual_1");
@@ -269,7 +268,7 @@ TEST(SensorRegistryFix, TwoMappersWithSameSensorName) {
         minAngle, maxAngle, angularRes, 50.0);
 
     karto::LocalizedRangeScan* scan1 =
-        new karto::LocalizedRangeScan(laser1->GetIdentifier(), readings1);
+        new karto::LocalizedRangeScan(laser1->GetName(), readings1);
     scan1->SetOdometricPose(karto::Pose2(0.0, 0.0, 0.0));
     scan1->SetCorrectedPose(karto::Pose2(0.0, 0.0, 0.0));
     // Set direct pointer so scan1 doesn't depend on the registry
@@ -297,7 +296,7 @@ TEST(SensorRegistryFix, TwoMappersWithSameSensorName) {
         minAngle, maxAngle, angularRes, 50.0);
 
     karto::LocalizedRangeScan* scan2 =
-        new karto::LocalizedRangeScan(laser2->GetIdentifier(), readings2);
+        new karto::LocalizedRangeScan(laser2->GetName(), readings2);
     scan2->SetOdometricPose(karto::Pose2(0.0, 0.0, 0.0));
     scan2->SetCorrectedPose(karto::Pose2(0.0, 0.0, 0.0));
     scan2->SetLaserRangeFinder(laser2);
@@ -324,7 +323,8 @@ TEST(FrameRoundTrip, GetSensorAtAndGetCorrectedAtAreInverses) {
 
     const karto::RangeReadingsList readings(181, 5.0);
     karto::LocalizedRangeScan* scan =
-        new karto::LocalizedRangeScan(laser->GetIdentifier(), readings);
+        new karto::LocalizedRangeScan(laser->GetName(), readings);
+    scan->SetLaserRangeFinder(laser);
     scan->SetOdometricPose(karto::Pose2(0.0, 0.0, 0.0));
     scan->SetCorrectedPose(karto::Pose2(1.0, 2.0, 0.5));
 
@@ -345,11 +345,12 @@ TEST(FrameRoundTrip, GetSensorAtAndGetCorrectedAtWithOffset) {
     karto::LaserRangeFinder* laser = Create180Laser("laser_roundtrip_offset");
 
     // Set a sensor offset: 0.1m forward, 0.05m left, rotated 10 degrees
-    laser->SetOffsetPose(karto::Pose2(0.1, 0.05, karto::math::DegreesToRadians(10.0)));
+    laser->SetOffsetPose(karto::Pose2(0.1, 0.05, karto::DegreesToRadians(10.0)));
 
     const karto::RangeReadingsList readings(181, 5.0);
     karto::LocalizedRangeScan* scan =
-        new karto::LocalizedRangeScan(laser->GetIdentifier(), readings);
+        new karto::LocalizedRangeScan(laser->GetName(), readings);
+    scan->SetLaserRangeFinder(laser);
     scan->SetOdometricPose(karto::Pose2(0.0, 0.0, 0.0));
     scan->SetCorrectedPose(karto::Pose2(3.0, 4.0, 1.0));
 
@@ -372,7 +373,8 @@ TEST(FrameRoundTrip, SetCorrectedPoseAndUpdateRefreshesPoints) {
 
     const karto::RangeReadingsList readings(181, 5.0);
     karto::LocalizedRangeScan* scan =
-        new karto::LocalizedRangeScan(laser->GetIdentifier(), readings);
+        new karto::LocalizedRangeScan(laser->GetName(), readings);
+    scan->SetLaserRangeFinder(laser);
     scan->SetOdometricPose(karto::Pose2(0.0, 0.0, 0.0));
     scan->SetCorrectedPose(karto::Pose2(0.0, 0.0, 0.0));
 
@@ -404,20 +406,22 @@ TEST(FrameRoundTrip, ScanMatchingWithSensorOffset) {
 
     karto::OpenMapper mapper("mapper_offset");
 
-    double angRes = karto::math::DegreesToRadians(1.0);
+    double angRes = karto::DegreesToRadians(1.0);
 
     const karto::RangeReadingsList r1 = GenerateRoomScan(0.0, 0.0, 0.0, 10.0, 10.0,
-        -karto::KT_PI_2, karto::KT_PI_2, angRes, 50.0);
+        -M_PI_2, M_PI_2, angRes, 50.0);
     karto::LocalizedRangeScan* scan1 =
-        new karto::LocalizedRangeScan(laser->GetIdentifier(), r1);
+        new karto::LocalizedRangeScan(laser->GetName(), r1);
+    scan1->SetLaserRangeFinder(laser);
     scan1->SetOdometricPose(karto::Pose2(0.0, 0.0, 0.0));
     scan1->SetCorrectedPose(karto::Pose2(0.0, 0.0, 0.0));
     EXPECT_TRUE(mapper.Process(scan1));
 
     const karto::RangeReadingsList r2 = GenerateRoomScan(1.0, 0.0, 0.0, 10.0, 10.0,
-        -karto::KT_PI_2, karto::KT_PI_2, angRes, 50.0);
+        -M_PI_2, M_PI_2, angRes, 50.0);
     karto::LocalizedRangeScan* scan2 =
-        new karto::LocalizedRangeScan(laser->GetIdentifier(), r2);
+        new karto::LocalizedRangeScan(laser->GetName(), r2);
+    scan2->SetLaserRangeFinder(laser);
     scan2->SetOdometricPose(karto::Pose2(1.0, 0.0, 0.0));
     scan2->SetCorrectedPose(karto::Pose2(1.0, 0.0, 0.0));
     EXPECT_TRUE(mapper.Process(scan2));

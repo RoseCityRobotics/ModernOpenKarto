@@ -28,65 +28,19 @@
 
 #include <utility>
 #include <algorithm>
-#include <Event.h>
 #include <Geometry.h>
-#include <StringHelper.h>
+#include <sstream>
 #include <SensorData.h>
 #include <Grid.h>
 #include <GridIndexLookup.h>
-#include <Module.h>
+#include <Sensor.h>
 #include <OccupancyGrid.h>
-#include <TypeCasts.h>
 
 namespace karto
 {
 
   ///** \addtogroup OpenKarto */
   //@{
-
-  /** 
-   * Event arguments for the events in the Mapper
-   */
-  class MapperEventArguments : public EventArguments
-  {
-  public:
-    /**
-     * Mapper event arguments with the provided message
-     * @param rMessage message
-     */
-    MapperEventArguments(const std::string& rMessage)
-      : m_Message(rMessage)
-    {
-    }
-
-    /**
-     * Destructor
-     */
-    virtual ~MapperEventArguments()
-    {
-    }
-
-  public:
-    /**
-     * Gets the event message
-     * @return event message
-     */
-    const std::string& GetEventMessage() const
-    {
-      return m_Message;
-    }
-
-  private:
-    std::string m_Message;
-  };
-
-#ifdef WIN32
-  EXPORT_KARTO_EVENT(KARTO_EXPORT, MapperEventArguments)
-#endif
-
-  ////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////
 
   /**
    * Base class to tag edge labels
@@ -391,7 +345,7 @@ namespace karto
      * @param pVertex
      * @return true if the visitor accepted the vertex, false otherwise
      */
-    virtual kt_bool Visit(Vertex<T>* pVertex) = 0;
+    virtual bool Visit(Vertex<T>* pVertex) = 0;
   }; // Visitor<T>
 
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -558,7 +512,7 @@ namespace karto
   /**
    * Graph for graph SLAM algorithm
    */
-  class KARTO_EXPORT MapperGraph : public Graph<LocalizedObject*>
+  class MapperGraph : public Graph<LocalizedObject*>
   {
   public:
     /**
@@ -566,7 +520,7 @@ namespace karto
      * @param pOpenMapper mapper
      * @param rangeThreshold range threshold
      */
-    MapperGraph(OpenMapper* pOpenMapper, kt_double rangeThreshold);
+    MapperGraph(OpenMapper* pOpenMapper, double rangeThreshold);
     
     /**
      * Destructor
@@ -588,7 +542,7 @@ namespace karto
      * @param rIsNewEdge set to true if the edge is new
      * @return edge between source and target vertices
      */
-    Edge<LocalizedObject*>* AddEdge(LocalizedObject* pSourceObject, LocalizedObject* pTargetObject, kt_bool& rIsNewEdge);
+    Edge<LocalizedObject*>* AddEdge(LocalizedObject* pSourceObject, LocalizedObject* pTargetObject, bool& rIsNewEdge);
 
     /**
      * Links object to last scan
@@ -609,7 +563,7 @@ namespace karto
      * @param rSensorName name of sensor
      * @return true if a loop was closed
      */
-    kt_bool TryCloseLoop(LocalizedLaserScan* pScan, const Identifier& rSensorName);
+    bool TryCloseLoop(LocalizedLaserScan* pScan, const std::string& rSensorName);
     
     /**
      * Finds "nearby" (no further than given distance away) scans through graph links
@@ -617,7 +571,7 @@ namespace karto
      * @param maxDistance maximum distance
      * @return "nearby" scans that have a path of links to given scan
      */
-    LocalizedLaserScanList FindNearLinkedScans(LocalizedLaserScan* pScan, kt_double maxDistance);
+    LocalizedLaserScanList FindNearLinkedScans(LocalizedLaserScan* pScan, double maxDistance);
 
     /**
      * Finds scans that overlap the given scan (based on bounding boxes)
@@ -702,7 +656,7 @@ namespace karto
      * @param rStartScanIndex start index
      * @return chain that can possibly close a loop with given scan
      */
-    LocalizedLaserScanList FindPossibleLoopClosure(LocalizedLaserScan* pScan, const Identifier& rSensorName, kt_int32u& rStartScanIndex);
+    LocalizedLaserScanList FindPossibleLoopClosure(LocalizedLaserScan* pScan, const std::string& rSensorName, uint32_t& rStartScanIndex);
     
     /**
      * Optimizes scan poses
@@ -744,7 +698,7 @@ namespace karto
     /**
      * Vector of id-pose pairs
      */
-    using IdPoseVector = std::vector<std::pair<kt_int32s, Pose2> >;
+    using IdPoseVector = std::vector<std::pair<int32_t, Pose2> >;
 
     /**
      * Default constructor
@@ -782,7 +736,7 @@ namespace karto
     /**
      * Removes a node from the solver
      */
-    virtual void RemoveNode(kt_int32s /*id*/)
+    virtual void RemoveNode(int32_t /*id*/)
     {
     }
 
@@ -796,7 +750,7 @@ namespace karto
     /**
      * Removes a constraint from the solver
      */
-    virtual void RemoveConstraint(kt_int32s /*sourceId*/, kt_int32s /*targetId*/)
+    virtual void RemoveConstraint(int32_t /*sourceId*/, int32_t /*targetId*/)
     {
     }
     
@@ -813,7 +767,7 @@ namespace karto
   /**
    * Correlation grid used for scan matching
    */
-  class CorrelationGrid : public Grid<kt_int8u>
+  class CorrelationGrid : public Grid<uint8_t>
   {
   public:
     /**
@@ -833,12 +787,12 @@ namespace karto
      * @param smearDeviation amount to smear when adding scans to grid
      * @return correlation grid
      */
-    [[nodiscard]] static CorrelationGrid* CreateGrid(kt_int32s width, kt_int32s height, kt_double resolution, kt_double smearDeviation)
+    [[nodiscard]] static CorrelationGrid* CreateGrid(int32_t width, int32_t height, double resolution, double smearDeviation)
     {
       assert(resolution != 0.0);
       
       // +1 in case of roundoff
-      kt_int32u borderSize = GetHalfKernelSize(smearDeviation, resolution) + 1;
+      uint32_t borderSize = GetHalfKernelSize(smearDeviation, resolution) + 1;
       
       CorrelationGrid* pGrid = new CorrelationGrid(width, height, borderSize, resolution, smearDeviation);
       
@@ -851,19 +805,19 @@ namespace karto
      * @param boundaryCheck whether to check the boundary of the grid
      * @return grid index
      */
-    virtual kt_int32s GridIndex(const Vector2i& rGrid, kt_bool boundaryCheck = true) const
+    virtual int32_t GridIndex(const Vector2i& rGrid, bool boundaryCheck = true) const
     {
-      kt_int32s x = rGrid.GetX() + m_Roi.GetX();
-      kt_int32s y = rGrid.GetY() + m_Roi.GetY();
+      int32_t x = rGrid.GetX() + m_Roi.GetX();
+      int32_t y = rGrid.GetY() + m_Roi.GetY();
       
-      return Grid<kt_int8u>::GridIndex(Vector2i(x, y), boundaryCheck);
+      return Grid<uint8_t>::GridIndex(Vector2i(x, y), boundaryCheck);
     }
     
     /**
      * Get the region of interest (ROI)
      * @return region of interest
      */
-    inline const Rectangle2<kt_int32s>& GetROI() const
+    inline const Rectangle2<int32_t>& GetROI() const
     {
       return m_Roi;
     }
@@ -872,7 +826,7 @@ namespace karto
      * Sets the region of interest (ROI)
      * @param roi location of the ROI
      */
-    inline void SetROI(const Rectangle2<kt_int32s>& roi)
+    inline void SetROI(const Rectangle2<int32_t>& roi)
     {
       m_Roi = roi;
     }
@@ -891,14 +845,14 @@ namespace karto
         return;
       }
       
-      kt_int32s halfKernel = m_KernelSize / 2;
+      int32_t halfKernel = m_KernelSize / 2;
       
       // apply kernel
-      for (kt_int32s j = -halfKernel; j <= halfKernel; j++)
+      for (int32_t j = -halfKernel; j <= halfKernel; j++)
       {
-        kt_int8u* pGridAdr = GetDataPointer(Vector2i(rGridPoint.GetX(), rGridPoint.GetY() + j));
+        uint8_t* pGridAdr = GetDataPointer(Vector2i(rGridPoint.GetX(), rGridPoint.GetY() + j));
         
-        kt_int32s kernelConstant = (halfKernel) + m_KernelSize * (j + halfKernel);
+        int32_t kernelConstant = (halfKernel) + m_KernelSize * (j + halfKernel);
         
         // if a point is on the edge of the grid, there is no problem
         // with running over the edge of allowable memory, because
@@ -916,15 +870,15 @@ namespace karto
      * @param resolution resolution
      * @param smearDeviation amount to smear when adding scans to grid
      */
-    CorrelationGrid(kt_int32u width, kt_int32u height, kt_int32u borderSize, kt_double resolution, kt_double smearDeviation)
-      : Grid<kt_int8u>(width + borderSize * 2, height + borderSize * 2)
+    CorrelationGrid(uint32_t width, uint32_t height, uint32_t borderSize, double resolution, double smearDeviation)
+      : Grid<uint8_t>(width + borderSize * 2, height + borderSize * 2)
       , m_SmearDeviation(smearDeviation)
       , m_pKernel(nullptr)
     {            
       GetCoordinateConverter()->SetScale(1.0 / resolution);
 
       // setup region of interest
-      m_Roi = Rectangle2<kt_int32s>(borderSize, borderSize, width, height);
+      m_Roi = Rectangle2<int32_t>(borderSize, borderSize, width, height);
       
       // calculate kernel
       CalculateKernel();
@@ -935,22 +889,22 @@ namespace karto
      */
     virtual void CalculateKernel()
     {
-      kt_double resolution = GetResolution();
+      double resolution = GetResolution();
 
       assert(resolution != 0.0);
       assert(m_SmearDeviation != 0.0);      
       
       // min and max distance deviation for smearing;
       // will smear for two standard deviations, so deviation must be at least 1/2 of the resolution
-      const kt_double MIN_SMEAR_DISTANCE_DEVIATION = 0.5 * resolution;
-      const kt_double MAX_SMEAR_DISTANCE_DEVIATION = 10 * resolution;
+      const double MIN_SMEAR_DISTANCE_DEVIATION = 0.5 * resolution;
+      const double MAX_SMEAR_DISTANCE_DEVIATION = 10 * resolution;
       
       // check if given value too small or too big
-      if (!math::InRange(m_SmearDeviation, MIN_SMEAR_DISTANCE_DEVIATION, MAX_SMEAR_DISTANCE_DEVIATION))
+      if (!InRange(m_SmearDeviation, MIN_SMEAR_DISTANCE_DEVIATION, MAX_SMEAR_DISTANCE_DEVIATION))
       {
-        StringBuilder error;
+        std::ostringstream error;
         error << "Mapper Error:  Smear deviation too small:  Must be between " << MIN_SMEAR_DISTANCE_DEVIATION << " and " << MAX_SMEAR_DISTANCE_DEVIATION;
-        throw Exception(error.ToString());
+        throw std::runtime_error(error.str());
       }
       
       // NOTE:  Currently assumes a two-dimensional kernel
@@ -959,30 +913,30 @@ namespace karto
       m_KernelSize = 2 * GetHalfKernelSize(m_SmearDeviation, resolution) + 1;
       
       // allocate kernel
-      m_pKernel = new kt_int8u[m_KernelSize * m_KernelSize];
+      m_pKernel = new uint8_t[m_KernelSize * m_KernelSize];
       if (m_pKernel == nullptr)
       {
-        throw Exception("Unable to allocate memory for kernel!");
+        throw std::runtime_error("Unable to allocate memory for kernel!");
       }
       
       // calculate kernel
-      kt_int32s halfKernel = m_KernelSize / 2;
-      for (kt_int32s i = -halfKernel; i <= halfKernel; i++)
+      int32_t halfKernel = m_KernelSize / 2;
+      for (int32_t i = -halfKernel; i <= halfKernel; i++)
       {
-        for (kt_int32s j = -halfKernel; j <= halfKernel; j++)
+        for (int32_t j = -halfKernel; j <= halfKernel; j++)
         {
 #ifdef WIN32
-          kt_double distanceFromMean = _hypot(i * resolution, j * resolution);
+          double distanceFromMean = _hypot(i * resolution, j * resolution);
 #else
-          kt_double distanceFromMean = hypot(i * resolution, j * resolution);
+          double distanceFromMean = hypot(i * resolution, j * resolution);
 #endif
-          kt_double z = exp(-0.5 * pow(distanceFromMean / m_SmearDeviation, 2));
+          double z = exp(-0.5 * pow(distanceFromMean / m_SmearDeviation, 2));
           
-          kt_int32u kernelValue = static_cast<kt_int32u>(math::Round(z * GridStates_Occupied));
-          assert(math::IsUpTo(kernelValue, static_cast<kt_int32u>(255)));
+          uint32_t kernelValue = static_cast<uint32_t>(std::round(z * GridStates_Occupied));
+          assert(IsUpTo(kernelValue, static_cast<uint32_t>(255)));
           
           int kernelArrayIndex = (i + halfKernel) + m_KernelSize * (j + halfKernel);
-          m_pKernel[kernelArrayIndex] = static_cast<kt_int8u>(kernelValue);
+          m_pKernel[kernelArrayIndex] = static_cast<uint8_t>(kernelValue);
         }
       }
     }
@@ -994,20 +948,20 @@ namespace karto
      * @param resolution resolution
      * @return kernel half-size based on the parameters
      */
-    static kt_int32s GetHalfKernelSize(kt_double smearDeviation, kt_double resolution)
+    static int32_t GetHalfKernelSize(double smearDeviation, double resolution)
     {
       assert(resolution != 0.0);
       
-      return static_cast<kt_int32s>(math::Round(2.0 * smearDeviation / resolution));
+      return static_cast<int32_t>(std::round(2.0 * smearDeviation / resolution));
     }
     
   private:
     // \todo 1/5/2011: was this separated from SmearPoint in preparation for optimization?
-    inline void SmearInternal(kt_int32s halfKernel, kt_int32s kernelConstant, kt_int8u* pGridAdr)
+    inline void SmearInternal(int32_t halfKernel, int32_t kernelConstant, uint8_t* pGridAdr)
     {
-      kt_int8u kernelValue;
-      kt_int32s kernelArrayIndex;
-      kt_int32s i;
+      uint8_t kernelValue;
+      int32_t kernelArrayIndex;
+      int32_t i;
       
       for (i = -halfKernel; i <= halfKernel; i++)
       {
@@ -1026,16 +980,16 @@ namespace karto
      * The point readings are smeared by this value in X and Y to create a smoother response.
      * Default value is 0.03 meters.
      */
-    kt_double m_SmearDeviation;
+    double m_SmearDeviation;
     
     // Size of one side of the kernel
-    kt_int32s m_KernelSize;
+    int32_t m_KernelSize;
     
     // Cached kernel for smearing
-    kt_int8u* m_pKernel;
+    uint8_t* m_pKernel;
     
     // Region of interest
-    Rectangle2<kt_int32s> m_Roi;
+    Rectangle2<int32_t> m_Roi;
   }; // CorrelationGrid
   
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -1046,10 +1000,10 @@ namespace karto
   {
   public:
     ScanMatcherGridSet(CorrelationGrid* pCorrelationGrid,
-      Grid<kt_double>* pSearchSpaceProbs,
-      GridIndexLookup<kt_int8u>* pGridLookup)
+      Grid<double>* pSearchSpaceProbs,
+      GridIndexLookup<uint8_t>* pGridLookup)
       : m_pCorrelationGrid(std::shared_ptr<CorrelationGrid>(pCorrelationGrid))
-      , m_pSearchSpaceProbs(std::shared_ptr<Grid<kt_double>>(pSearchSpaceProbs))
+      , m_pSearchSpaceProbs(std::shared_ptr<Grid<double>>(pSearchSpaceProbs))
       , m_pGridLookup(pGridLookup)
     {
     }
@@ -1060,8 +1014,8 @@ namespace karto
     }
 
     std::shared_ptr<CorrelationGrid> m_pCorrelationGrid;
-    std::shared_ptr<Grid<kt_double>> m_pSearchSpaceProbs;
-    GridIndexLookup<kt_int8u>* m_pGridLookup;
+    std::shared_ptr<Grid<double>> m_pSearchSpaceProbs;
+    GridIndexLookup<uint8_t>* m_pGridLookup;
   };
 
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -1073,7 +1027,7 @@ namespace karto
   /**
    * Scan matcher
    */
-  class KARTO_EXPORT ScanMatcher
+  class ScanMatcher
   {
   public:
     /**
@@ -1091,7 +1045,7 @@ namespace karto
      * @param rangeThreshold cutoff for range readings
      * @return scan matcher
      */
-    static ScanMatcher* Create(OpenMapper* pOpenMapper, kt_double searchSize, kt_double resolution, kt_double smearDeviation, kt_double rangeThreshold);
+    static ScanMatcher* Create(OpenMapper* pOpenMapper, double searchSize, double resolution, double smearDeviation, double rangeThreshold);
     
     /**
      * Matches given scan against set of scans
@@ -1103,8 +1057,8 @@ namespace karto
      * @param doRefineMatch whether to do finer-grained matching if coarse match is good
      * @return strength of response
      */
-    kt_double MatchScan(LocalizedLaserScan* pScan, const LocalizedLaserScanList& rBaseScans, Pose2& rMean, Matrix3& rCovariance,
-                        kt_bool doPenalize = true, kt_bool doRefineMatch = true);
+    double MatchScan(LocalizedLaserScan* pScan, const LocalizedLaserScanList& rBaseScans, Pose2& rMean, Matrix3& rCovariance,
+                        bool doPenalize = true, bool doRefineMatch = true);
     
     /**
      * Finds the best pose for the scan centering the search in the correlation grid
@@ -1123,8 +1077,8 @@ namespace karto
      * @param doingFineMatch whether to do a finer search after coarse search
      * @return strength of response
      */
-    kt_double CorrelateScan(ScanMatcherGridSet* pScanMatcherGridSet, LocalizedLaserScan* pScan, const Pose2& rSearchCenter, const Vector2d& rSearchSpaceOffset, const Vector2d& rSearchSpaceResolution,
-                            kt_double searchAngleOffset, kt_double searchAngleResolution,	kt_bool doPenalize, Pose2& rMean, Matrix3& rCovariance, kt_bool doingFineMatch);
+    double CorrelateScan(ScanMatcherGridSet* pScanMatcherGridSet, LocalizedLaserScan* pScan, const Pose2& rSearchCenter, const Vector2d& rSearchSpaceOffset, const Vector2d& rSearchSpaceResolution,
+                            double searchAngleOffset, double searchAngleResolution,	bool doPenalize, Pose2& rMean, Matrix3& rCovariance, bool doingFineMatch);
     
     /**
      * Computes the positional covariance of the best pose
@@ -1137,9 +1091,9 @@ namespace karto
      * @param searchAngleResolution angular resolution of search
      * @param rCovariance output parameter covariance
      */
-    static void ComputePositionalCovariance(Grid<kt_double>* pSearchSpaceProbs, const Pose2& rBestPose, kt_double bestResponse, const Pose2& rSearchCenter,
+    static void ComputePositionalCovariance(Grid<double>* pSearchSpaceProbs, const Pose2& rBestPose, double bestResponse, const Pose2& rSearchCenter,
                                             const Vector2d& rSearchSpaceOffset, const Vector2d& rSearchSpaceResolution,
-                                            kt_double searchAngleResolution, Matrix3& rCovariance);
+                                            double searchAngleResolution, Matrix3& rCovariance);
     
     /**
      * Computes the angular covariance of the best pose
@@ -1151,8 +1105,8 @@ namespace karto
      * @param searchAngleResolution angular resolution of search
      * @param rCovariance output parameter covariance
      */
-    static void ComputeAngularCovariance(ScanMatcherGridSet* pScanMatcherGridSet, const Pose2& rBestPose, kt_double bestResponse, const Pose2& rSearchCenter,
-                                         kt_double searchAngleOffset, kt_double searchAngleResolution, Matrix3& rCovariance);
+    static void ComputeAngularCovariance(ScanMatcherGridSet* pScanMatcherGridSet, const Pose2& rBestPose, double bestResponse, const Pose2& rSearchCenter,
+                                         double searchAngleOffset, double searchAngleResolution, Matrix3& rCovariance);
 
     /**
      * Gets the correlation grid data (for debugging).
@@ -1168,7 +1122,7 @@ namespace karto
      * @throws Exception if not in single-threaded mode.
      * @return search grid
      */
-    Grid<kt_double>* GetSearchGrid() const;
+    Grid<double>* GetSearchGrid() const;
     
     /**
      * Gets response at given position for given rotation (only look up valid points)
@@ -1177,7 +1131,7 @@ namespace karto
      * @param gridPositionIndex index of grid position
      * @return response
      */
-    static kt_double GetResponse(ScanMatcherGridSet* pScanMatcherGridSet, kt_int32u angleIndex, kt_int32s gridPositionIndex);    
+    static double GetResponse(ScanMatcherGridSet* pScanMatcherGridSet, uint32_t angleIndex, int32_t gridPositionIndex);    
     
   private:
     /**
@@ -1196,8 +1150,8 @@ namespace karto
      * @param viewPoint do not add points that belong to scans "opposite" the view point
      * @param doSmear whether the points will be smeared
      */
-    static void AddScan(CorrelationGrid* pCorrelationGrid, LocalizedLaserScan* pScan, const Vector2d& rViewPoint, kt_bool doSmear = true);
-    static void AddScanNew(CorrelationGrid* pCorrelationGrid, const Vector2dList& rValidPoints, kt_bool doSmear = true);
+    static void AddScan(CorrelationGrid* pCorrelationGrid, LocalizedLaserScan* pScan, const Vector2d& rViewPoint, bool doSmear = true);
+    static void AddScanNew(CorrelationGrid* pCorrelationGrid, const Vector2dList& rValidPoints, bool doSmear = true);
     
     /**
      * Computes which points in a scan are on the same side as the given viewpoint
@@ -1235,7 +1189,7 @@ namespace karto
   /**
    * Manages the sensors for the mapper
    */
-  class KARTO_EXPORT MapperSensorManager
+  class MapperSensorManager
   {    
   public:
     /**
@@ -1243,7 +1197,7 @@ namespace karto
      * @param runningBufferMaximumSize maximum size for the running buffer used in scan-matching
      * @param runningBufferMaximumDistance maximum distance between first and last scan in the running buffer
      */
-    MapperSensorManager(kt_int32u runningBufferMaximumSize, kt_double runningBufferMaximumDistance);
+    MapperSensorManager(uint32_t runningBufferMaximumSize, double runningBufferMaximumDistance);
     
     /**
      * Destructor
@@ -1256,28 +1210,28 @@ namespace karto
      * nothing if sensor already registered
      * @param rSensorName name of sensor
      */
-    void RegisterSensor(const Identifier& rSensorName);
-    
+    void RegisterSensor(const std::string& rSensorName);
+
     /**
      * Gets object from given sensor with given ID
      * @param rSensorName name of sensor
      * @param stateId state id
      * @return localized object
      */
-    LocalizedObject* GetLocalizedObject(const Identifier& rSensorName, kt_int32s stateId);
-    
+    LocalizedObject* GetLocalizedObject(const std::string& rSensorName, int32_t stateId);
+
     /**
      * Gets names of all sensors
      * @return list of sensor names
      */
-    std::vector<Identifier> GetSensorNames();
-    
+    std::vector<std::string> GetSensorNames();
+
     /**
      * Gets last scan of given sensor
      * @param rSensorName name of sensor
      * @return last localized laser scan of sensor
      */
-    LocalizedLaserScan* GetLastScan(const Identifier& rSensorName);
+    LocalizedLaserScan* GetLastScan(const std::string& rSensorName);
     
     /**
      * Sets the last scan of sensor to the given scan
@@ -1289,14 +1243,14 @@ namespace karto
      * Resets the last scan of the given sensor
      * @param rSensorName name of sensor
      */
-    void ClearLastScan(const Identifier& rSensorName);
+    void ClearLastScan(const std::string& rSensorName);
     
     /**
      * Gets the object with the given unique id
      * @param uniqueId unique id
      * @return object with given id
      */
-    LocalizedObject* GetLocalizedObject(kt_int32s uniqueId);
+    LocalizedObject* GetLocalizedObject(int32_t uniqueId);
     
     /**
      * Adds localized object to object list of sensor that recorded the object
@@ -1315,7 +1269,7 @@ namespace karto
      * @param rSensorName name of sensor
      * @return scans of sensor
      */
-    LocalizedLaserScanList& GetScans(const Identifier& rSensorName);
+    LocalizedLaserScanList& GetScans(const std::string& rSensorName);
     
     /**
      * Gets the index of this scan in the sensor's list of scans; useful when
@@ -1323,14 +1277,14 @@ namespace karto
      * @param pScan scan
      * @return index of scan into sensor's list of scans; -1 if not found
      */
-    kt_int32s GetScanIndex(LocalizedLaserScan* pScan);
+    int32_t GetScanIndex(LocalizedLaserScan* pScan);
     
     /**
      * Gets running scans of sensor
      * @param rSensorName name of sensor
      * @return running scans of sensor
      */
-    LocalizedLaserScanList& GetRunningScans(const Identifier& rSensorName);
+    LocalizedLaserScanList& GetRunningScans(const std::string& rSensorName);
     
     /**
      * Gets all scans of all sensors
@@ -1356,15 +1310,15 @@ namespace karto
      */
     inline SensorDataManager* GetSensorDataManager(LocalizedObject* pObject)
     {
-      return GetSensorDataManager(pObject->GetSensorIdentifier());
+      return GetSensorDataManager(pObject->GetSensorName());
     }
-    
+
     /**
      * Gets the sensor data manager for the given id
      * @param rSensorName name of sensor
      * @return sensor data manager
      */
-    SensorDataManager* GetSensorDataManager(const Identifier& rSensorName);
+    SensorDataManager* GetSensorDataManager(const std::string& rSensorName);
     
   private:
     MapperSensorManagerPrivate* m_pMapperSensorManagerPrivate;    
@@ -1386,7 +1340,7 @@ namespace karto
    *
    * The following parameters can be set on the Mapper.
    *
-   *  \a UseScanMatching (Parameter\<kt_bool>)\n
+   *  \a UseScanMatching (Parameter\<bool>)\n
    *     When set to true, the mapper will use a scan-matching algorithm. In most real-world situations
    *     this should be set to true so that the mapper algorithm can correct for noise and errors in
    *     odometry and scan data. In some simulator environments where the simulated scan and odometry
@@ -1394,13 +1348,13 @@ namespace karto
    *     set to false to improve results.
    *     Default value is true.
    *
-   *  \a UseScanBarycenter (Parameter\<kt_bool>)\n
+   *  \a UseScanBarycenter (Parameter\<bool>)\n
    *     When set to true, the mapper will use the scan's barycenter (the centroid of the point readings)
    *     as the position of the scan when calculating distances between scans when determining if scans
    *     are far (or near) "enough" to each other.
    *     Default value is true.
    *
-   *  \a MinimumTravelDistance (Parameter\<kt_double> - meters)\n
+   *  \a MinimumTravelDistance (Parameter\<double> - meters)\n
    *     Sets the minimum travel distance between scans.  If a new scan's position is more than this value
    *     from the previous scan, the mapper will use the data from the new scan. Otherwise, it will discard the
    *     new scan if it also does not meet the minimum change in heading requirement.
@@ -1408,7 +1362,7 @@ namespace karto
    *     has moved a reasonable amount.
    *     Default value is 0.2 (meters).
    *
-   *  \a MinimumTravelHeading (Parameter\<kt_double> - radians)\n
+   *  \a MinimumTravelHeading (Parameter\<double> - radians)\n
    *     Sets the minimum heading change between scans. If a new scan's heading is more than this value
    *     from the previous scan, the mapper will use the data from the new scan.  Otherwise, it will discard the
    *     new scan if it also does not meet the minimum travel distance requirement.
@@ -1416,7 +1370,7 @@ namespace karto
    *     has moved a reasonable amount.
    *     Default value is the equivalent value in radians of 20 degrees.
    *
-   *  \a ScanBufferSize (Parameter\<kt_int32u> - size)\n
+   *  \a ScanBufferSize (Parameter\<uint32_t> - size)\n
    *     Scan buffer size is the length of the scan chain stored for scan matching.
    *     This value should be set to approximately "scanBufferMaximumScanDistance" / "minimumTravelDistance".
    *     The idea is to get an area approximately 20 meters long for scan matching.
@@ -1424,109 +1378,164 @@ namespace karto
    *     should be 20 / 0.3 = 67.)
    *     Default value is 70.
    *
-   *  \a ScanBufferMaximumScanDistance (Parameter\<kt_double> - meters)\n
+   *  \a ScanBufferMaximumScanDistance (Parameter\<double> - meters)\n
    *     Scan buffer maximum scan distance is the maximum distance between the first and last scans
    *     in the scan chain stored for matching.
    *     Default value is 20.0.
    *
-   *  \a UseResponseExpansion (Parameter\<kt_bool>)\n
+   *  \a UseResponseExpansion (Parameter\<bool>)\n
    *     Whether to increase the search space if no good matches are initially found.  Default value is false.   
    *
-   *  \a DistanceVariancePenalty (Parameter\<kt_double> - meters^2)\n
+   *  \a DistanceVariancePenalty (Parameter\<double> - meters^2)\n
    *     Variance of penalty for deviating from odometry when scan-matching.  Use lower values if the robot's
    *     odometer is more accurate.
    *     Default value is 0.3.
    *
-   *  \a MinimumDistancePenalty (Parameter\<kt_double>)\n
+   *  \a MinimumDistancePenalty (Parameter\<double>)\n
    *     Minimum value of the penalty multiplier so scores do not become too small.
    *     Default value is 0.5.
    *
-   *  \a AngleVariancePenalty (Parameter\<kt_double> - radians^2)\n
+   *  \a AngleVariancePenalty (Parameter\<double> - radians^2)\n
    *     Variance of penalty for deviating from odometry when scan-matching.  Use lower values if the robot's
    *     odometer is more accurate.
    *     Default value is the equivalent value in radians of 20 degrees^2.
    *
-   *  \a MinimumAnglePenalty (Parameter\<kt_double>)\n
+   *  \a MinimumAnglePenalty (Parameter\<double>)\n
    *     Minimum value of the penalty multiplier so scores do not become too small.  Angles are not very accurate
    *     and thus deviations from the odometer should not cause scores to drop precipitously.
    *     Default value is 0.9.
    *
-   *  \a LinkMatchMinimumResponseFine (Parameter\<kt_double> - probability (>= 0.0, <= 1.0))\n
+   *  \a LinkMatchMinimumResponseFine (Parameter\<double> - probability (>= 0.0, <= 1.0))\n
    *     Scans are linked only if the correlation response value is greater than this value.
    *     Default value is 0.6
    *
-   *  \a LinkScanMaximumDistance (Parameter\<kt_double> - meters)\n
+   *  \a LinkScanMaximumDistance (Parameter\<double> - meters)\n
    *     Maximum distance between linked scans.  Scans that are farther apart will not be linked
    *     regardless of the correlation response value.  If this number is large, many scans
    *     will be considered "near".  This can cause the mapper to aggressively try to close loops
    *     with scans that aren't linked to the current scan even though they aren't that close.
    *     Default value is 5.0 meters.
    *
-   *  \a CorrelationSearchSpaceDimension (Parameter\<kt_double> - meters)\n
+   *  \a CorrelationSearchSpaceDimension (Parameter\<double> - meters)\n
    *     The size of the search grid used by the matcher when matching sequential scans.
    *     Default value is 0.3 meters which tells the matcher to use a 30cm x 30cm grid.
    *
-   *  \a CorrelationSearchSpaceResolution (Parameter\<kt_double> - meters)\n
+   *  \a CorrelationSearchSpaceResolution (Parameter\<double> - meters)\n
    *     The resolution (size of a grid cell) of the correlation grid.
    *     Default value is 0.01 meters.
    *
-   *  \a CorrelationSearchSpaceSmearDeviation (Parameter\<kt_double> - meters)\n
+   *  \a CorrelationSearchSpaceSmearDeviation (Parameter\<double> - meters)\n
    *     The point readings are smeared by this value in X and Y to create a smoother response.  Use higher values
    *     for environments that do not have crisp outlines (e.g., outdoor environments with bushes) or where the
    *     ground is uneven and rough (but flat overall).
    *     Default value is 0.03 meters.
    *
-   *  \a CoarseSearchAngleOffset (Parameter\<kt_double> - radians)\n
+   *  \a CoarseSearchAngleOffset (Parameter\<double> - radians)\n
    *     The range of angles to search in each direction from the robot's heading during a coarse search.
    *     Default value is the equivalent value in radians of 20 degrees.
    *
-   *  \a FineSearchAngleOffset (Parameter\<kt_double> - radians)\n
+   *  \a FineSearchAngleOffset (Parameter\<double> - radians)\n
    *     The range of angles to search in each direction from the robot's heading during a finer search.
    *     Default value is the equivalent value in radians of 0.2 degrees.
    *
-   *  \a CoarseAngleResolution (Parameter\<kt_double> - meters)\n
+   *  \a CoarseAngleResolution (Parameter\<double> - meters)\n
    *     Resolution of angles to search during a coarse search
    *     Default value is the equivalent value in radians of 2 degrees.
    *
-   *  \a LoopSearchSpaceDimension (Parameter\<kt_double> - meters)\n
+   *  \a LoopSearchSpaceDimension (Parameter\<double> - meters)\n
    *     The size of the search grid used by the matcher when detecting loop closures.
    *     Default value is 8.0 meters which tells the matcher to use a 8m x 8m grid.
    *
-   *  \a LoopSearchSpaceResolution (Parameter\<kt_double> - meters)\n
+   *  \a LoopSearchSpaceResolution (Parameter\<double> - meters)\n
    *     The resolution (size of a grid cell) of the correlation grid used by the matcher to
    *     determine a possible loop closure.
    *     Default value is 0.05 meters.
    *
-   *  \a LoopSearchSpaceSmearDeviation (Parameter\<kt_double> - meters)\n
+   *  \a LoopSearchSpaceSmearDeviation (Parameter\<double> - meters)\n
    *     The point readings are smeared by this value in X and Y to create a smoother response.
    *     Used by the matcher to determine a possible loop closure match.
    *     Default value is 0.03 meters.
    *
-   *  \a LoopSearchMaximumDistance (Parameter\<kt_double> - meters)\n
+   *  \a LoopSearchMaximumDistance (Parameter\<double> - meters)\n
    *     Scans less than this distance from the current position will be considered for a match
    *     in loop closure.
    *     Default value is 4.0 meters.
    *
-   *  \a LoopMatchMinimumChainSize (Parameter\<kt_int32u>)\n
+   *  \a LoopMatchMinimumChainSize (Parameter\<uint32_t>)\n
    *     When the loop closure detection finds a candidate it must be part of a large
    *     set of linked scans. If the chain of scans is less than this value, we do not attempt
    *     to close the loop.
    *     Default value is 10.
    *
-   *  \a LoopMatchMaximumVarianceCoarse (Parameter\<kt_double>)\n
+   *  \a LoopMatchMaximumVarianceCoarse (Parameter\<double>)\n
    *     The co-variance values for a possible loop closure have to be less than this value
    *     to consider a viable solution. This applies to the coarse search.
    *     Default value is 0.16.
    *
-   *  \a LoopMatchMinimumResponseCoarse (Parameter\<kt_double> - probability (>= 0.0, <= 1.0))\n
+   *  \a LoopMatchMinimumResponseCoarse (Parameter\<double> - probability (>= 0.0, <= 1.0))\n
    *     If response is larger then this, then initiate loop closure search at the coarse resolution.
    *     Default value is 0.7.
    *
-   *  \a LoopMatchMinimumResponseFine (Parameter\<kt_double> - probability (>= 0.0, <= 1.0))\n
+   *  \a LoopMatchMinimumResponseFine (Parameter\<double> - probability (>= 0.0, <= 1.0))\n
    *     If response is larger then this, then initiate loop closure search at the fine resolution.
    *     Default value is 0.7.
    */
-  class KARTO_EXPORT OpenMapper : public Module
+  ////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Configuration struct for OpenMapper parameters.
+   * All mapper tuning parameters are collected here with their default values.
+   * Access via OpenMapper::GetConfig().
+   */
+  struct MapperConfig
+  {
+    bool useScanMatching = true;
+    bool useScanBarycenter = true;
+    double minimumTravelDistance = 0.2;
+    double minimumTravelHeading = DegreesToRadians(20);
+
+    uint32_t scanBufferSize = 70;
+    double scanBufferMaximumScanDistance = 20.0;
+    bool useResponseExpansion = false;
+
+    double distanceVariancePenalty = Square(0.3);
+    double minimumDistancePenalty = 0.5;
+    double angleVariancePenalty = Square(DegreesToRadians(20));
+    double minimumAnglePenalty = 0.9;
+
+    double linkMatchMinimumResponseFine = 0.6;
+    double linkScanMaximumDistance = 5.0;
+
+    double correlationSearchSpaceDimension = 0.3;
+    double correlationSearchSpaceResolution = 0.01;
+    double correlationSearchSpaceSmearDeviation = 0.03;
+    double coarseSearchAngleOffset = DegreesToRadians(20);
+    double fineSearchAngleOffset = DegreesToRadians(0.2);
+    double coarseAngleResolution = DegreesToRadians(2);
+
+    double loopSearchSpaceDimension = 8.0;
+    double loopSearchSpaceResolution = 0.05;
+    double loopSearchSpaceSmearDeviation = 0.03;
+
+    double loopSearchMaximumDistance = 4.0;
+    uint32_t loopMatchMinimumChainSize = 10;
+    double loopMatchMaximumVarianceCoarse = Square(0.4);
+    double loopMatchMinimumResponseCoarse = 0.7;
+    double loopMatchMinimumResponseFine = 0.7;
+  };
+
+  /**
+   * Graph SLAM mapper. Creates a map given a set of localized laser scans.
+   * The current Karto implementation is a high-performance
+   * scan-matching algorithm that constructs a map from individual scans and corrects for
+   * errors in the range and odometry data.
+   *
+   * The mapper supports multi-robot mapping from a common starting point.
+   * NOTE: When using multiple sensors, the range thresholds of all sensors must be the same.
+   */
+  class OpenMapper
   {
     friend class MapperGraph;
     friend class ScanMatcher;
@@ -1536,40 +1545,43 @@ namespace karto
      * Default constructor
      * @param multiThreaded
      */
-    OpenMapper(kt_bool multiThreaded = true);
+    OpenMapper(bool multiThreaded = true);
 
     /**
      * Create a Mapper with a name
-     * @param pName mapper name
+     * @param rName mapper name
      * @param multiThreaded
      */
-    OpenMapper(const char* pName, kt_bool multiThreaded = true);
+    OpenMapper(const std::string& rName, bool multiThreaded = true);
 
   public:
+    using MapperCallback = std::function<void(const std::string&)>;
+    using EventCallback = std::function<void()>;
+
     /**
-     * Event for generic mapper message. 
-     * The mapper currently posts Message events when calculating possible loop 
+     * Register a callback for generic mapper messages.
+     * The mapper currently posts messages when calculating possible loop
      * closures and when rejecting a possible loop close.
      */
-    BasicEvent<MapperEventArguments> Message;
+    void OnMessage(MapperCallback cb) { m_MessageCallbacks.push_back(std::move(cb)); }
 
     /**
-     * Event fires before a loop closure is about to happen.
+     * Register a callback that fires before a loop closure is about to happen.
      * Calculating loop closure can be a CPU intensive task and the Mapper is blocking all Process calls.
-     * If mapper is running on "real" robot please either pause the robot or stop adding scans to the mapper. 
+     * If mapper is running on "real" robot please either pause the robot or stop adding scans to the mapper.
      */
-    BasicEvent<MapperEventArguments> PreLoopClosed;
+    void OnPreLoopClosed(MapperCallback cb) { m_PreLoopClosedCallbacks.push_back(std::move(cb)); }
 
     /**
-     * Event fires after a loop was closed. 
+     * Register a callback that fires after a loop was closed.
      */
-    BasicEvent<MapperEventArguments> PostLoopClosed;
-    
+    void OnPostLoopClosed(MapperCallback cb) { m_PostLoopClosedCallbacks.push_back(std::move(cb)); }
+
     /**
-     * Event fires when the scans have been changed. 
+     * Register a callback that fires when scans have been changed.
      * Scans are changed after a loop closure and after any translation, rotation or transform.
-     */    
-    BasicEvent<EventArguments> ScansUpdated;
+     */
+    void OnScansUpdated(EventCallback cb) { m_ScansUpdatedCallbacks.push_back(std::move(cb)); }
 
   public:
     /**
@@ -1582,7 +1594,7 @@ namespace karto
      * Is mapper multi threaded
      * @return true if multi threaded, false otherwise
      */
-    inline kt_bool IsMultiThreaded()
+    inline bool IsMultiThreaded()
     {
       return m_MultiThreaded;
     }
@@ -1592,7 +1604,7 @@ namespace karto
      * finder is changed after the mapper is initialized.
      * @param rangeThreshold range threshold
      */
-    void Initialize(kt_double rangeThreshold);
+    void Initialize(double rangeThreshold);
     
     /**
      * Resets the mapper.
@@ -1601,13 +1613,41 @@ namespace karto
     void Reset();
 
     /**
-     * Processes an object.  If the object is a scan, the scan must be identified with a range finder sensor.
-     * Once added to a map, the corrected pose information in the localized object will be updated to the
-     * correct pose as determined by the mapper.
-     * @param pObject object
-     * @return true if the object was processed successfully, false otherwise
+     * Gets the name of this mapper
+     * @return mapper name
      */
-    virtual kt_bool Process(Object* pObject);
+    inline const std::string& GetName() const
+    {
+      return m_Name;
+    }
+
+    /**
+     * Gets the mapper configuration
+     * @return mapper configuration
+     */
+    inline MapperConfig& GetConfig()
+    {
+      return m_Config;
+    }
+
+    /**
+     * Gets the mapper configuration (const version)
+     * @return mapper configuration
+     */
+    inline const MapperConfig& GetConfig() const
+    {
+      return m_Config;
+    }
+
+    /**
+     * Processes a localized laser scan.
+     * The scan must be identified with a range finder sensor (via SetLaserRangeFinder).
+     * Once added to a map, the corrected pose information in the scan will be updated to the
+     * correct pose as determined by the mapper.
+     * @param pScan localized laser scan
+     * @return true if the scan was processed successfully, false otherwise
+     */
+    virtual bool Process(LocalizedLaserScan* pScan);
     
     /**
      * Returns all processed scans added to the mapper.
@@ -1670,7 +1710,7 @@ namespace karto
      * @param rSensorName name of sensor
      * @return true if a loop was closed
      */
-    inline kt_bool TryCloseLoop(LocalizedLaserScan* pScan, const Identifier& rSensorName)
+    inline bool TryCloseLoop(LocalizedLaserScan* pScan, const std::string& rSensorName)
     {
       return m_pGraph->TryCloseLoop(pScan, rSensorName);
     }
@@ -1689,8 +1729,6 @@ namespace karto
     virtual void ScanMatchingEnd(LocalizedLaserScan* pScan) {};
 
   private:
-    void InitializeParameters();
-
     /**
      * Tests if the scan is "sufficiently far" from the last scan added.
      * @param pScan scan to be checked
@@ -1698,7 +1736,7 @@ namespace karto
      * @return true if the scan is "sufficiently far" from the last scan added or
      * the scan is the first scan to be added
      */
-    kt_bool HasMovedEnough(LocalizedLaserScan* pScan, LocalizedLaserScan* pLastScan) const;
+    bool HasMovedEnough(LocalizedLaserScan* pScan, LocalizedLaserScan* pLastScan) const;
 
   public:
     /////////////////////////////////////////////
@@ -1707,7 +1745,7 @@ namespace karto
     /**
      * Returns initialized flag for mapper
      */
-    kt_bool IsInitialized()
+    bool IsInitialized()
     {
       return m_Initialized;
     }
@@ -1724,8 +1762,9 @@ namespace karto
     std::shared_ptr<ScanSolver> m_pScanSolver;
 
   private:
-    kt_bool m_Initialized;
-    kt_bool m_MultiThreaded;
+    std::string m_Name;
+    bool m_Initialized;
+    bool m_MultiThreaded;
 
     ScanMatcher* m_pSequentialScanMatcher;
 
@@ -1733,56 +1772,14 @@ namespace karto
 
     MapperGraph* m_pGraph;
 
-    /////////////////////////////////////////////////////////////////////////////////////////
-    // Parameters
-    // NOTE: Maintain the descriptions to these parameters in the comment above the class!
-    /////////////////////////////////////////////////////////////////////////////////////////
+    MapperConfig m_Config;
 
-    Parameter<kt_bool>* m_pUseScanMatching;
-    Parameter<kt_bool>* m_pUseScanBarycenter;    
-    Parameter<kt_double>* m_pMinimumTravelDistance;
-    Parameter<kt_double>* m_pMinimumTravelHeading;
+    SensorList m_Sensors;
 
-    //////////////////////////////////////////////////////////////////////////////
-    // scan matcher parameters
-    
-    Parameter<kt_int32u>* m_pScanBufferSize;
-    Parameter<kt_double>* m_pScanBufferMaximumScanDistance;
-    Parameter<kt_bool>* m_pUseResponseExpansion;
-
-    Parameter<kt_double>* m_pDistanceVariancePenalty;
-    Parameter<kt_double>* m_pMinimumDistancePenalty;
-    Parameter<kt_double>* m_pAngleVariancePenalty;
-    Parameter<kt_double>* m_pMinimumAnglePenalty;
-    
-    Parameter<kt_double>* m_pLinkMatchMinimumResponseFine;
-    Parameter<kt_double>* m_pLinkScanMaximumDistance;
-
-    //////////////////////////////////////////////////////////////////////////////
-    // correlation parameters
-
-    Parameter<kt_double>* m_pCorrelationSearchSpaceDimension;
-    Parameter<kt_double>* m_pCorrelationSearchSpaceResolution;
-    Parameter<kt_double>* m_pCorrelationSearchSpaceSmearDeviation;
-    Parameter<kt_double>* m_pCoarseSearchAngleOffset;
-    Parameter<kt_double>* m_pFineSearchAngleOffset;
-    Parameter<kt_double>* m_pCoarseAngleResolution;
-
-    //////////////////////////////////////////////////////////////////////////////
-    // loop correlation parameters
-
-    Parameter<kt_double>* m_pLoopSearchSpaceDimension;
-    Parameter<kt_double>* m_pLoopSearchSpaceResolution;
-    Parameter<kt_double>* m_pLoopSearchSpaceSmearDeviation;
-
-    //////////////////////////////////////////////////////////////////////////////
-    // loop detection parameters
-    
-    Parameter<kt_double>* m_pLoopSearchMaximumDistance;    
-    Parameter<kt_int32u>* m_pLoopMatchMinimumChainSize;    
-    Parameter<kt_double>* m_pLoopMatchMaximumVarianceCoarse;    
-    Parameter<kt_double>* m_pLoopMatchMinimumResponseCoarse;    
-    Parameter<kt_double>* m_pLoopMatchMinimumResponseFine;
+    std::vector<MapperCallback> m_MessageCallbacks;
+    std::vector<MapperCallback> m_PreLoopClosedCallbacks;
+    std::vector<MapperCallback> m_PostLoopClosedCallbacks;
+    std::vector<EventCallback> m_ScansUpdatedCallbacks;
   };
 
   //@}

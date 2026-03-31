@@ -16,13 +16,11 @@
  */
 
 #include <iostream>
+#include <sstream>
 
-#include <StringHelper.h>
 #include <CoordinateConverter.h>
 #include <Sensor.h>
 #include <SensorData.h>
-#include <SensorRegistry.h>
-#include <Logger.h>
 
 namespace karto
 {
@@ -31,51 +29,37 @@ namespace karto
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
 
-  Sensor::Sensor(const Identifier& rIdentifier)
-    : Object(rIdentifier)
+  Sensor::Sensor(const std::string& rName)
+    : m_Name(rName)
   {
-    m_pOffsetPose = new Parameter< karto::Pose2 >(GetParameterSet(), "OffsetPose", "Offset", "", karto::Pose2());
-
-    SensorRegistry::GetInstance()->RegisterSensor(this);
   }
 
   Sensor::~Sensor()
   {
-    SensorRegistry::GetInstance()->UnregisterSensor(this);
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
 
-  LaserRangeFinder::LaserRangeFinder(const Identifier& rName)
+  LaserRangeFinder::LaserRangeFinder(const std::string& rName)
     : Sensor(rName)
+    , m_MinimumAngle(-M_PI_2)
+    , m_MaximumAngle(M_PI_2)
+    , m_AngularResolution(DegreesToRadians(1))
+    , m_MinimumRange(0.0)
+    , m_MaximumRange(80.0)
+    , m_RangeThreshold(12.0)
+    , m_Type(LaserRangeFinder_Custom)
     , m_NumberOfRangeReadings(0)
   {
-    m_pMinimumRange = new Parameter<kt_double>(GetParameterSet(), "MinimumRange", "Minimum Range", "", 0.0);
-    m_pMaximumRange = new Parameter<kt_double>(GetParameterSet(), "MaximumRange", "Maximum Range", "", 80.0);
-
-    m_pMinimumAngle = new Parameter<kt_double>(GetParameterSet(), "MinimumAngle", "Minimum Angle", "", -KT_PI_2);
-    m_pMaximumAngle = new Parameter<kt_double>(GetParameterSet(), "MaximumAngle", "Minimum Angle", "", KT_PI_2);
-
-    m_pAngularResolution = new Parameter<kt_double>(GetParameterSet(), "AngularResolution", "Angular Resolution", "", math::DegreesToRadians(1));
-
-    m_pRangeThreshold = new Parameter<kt_double>(GetParameterSet(), "RangeThreshold", "Range Threshold", "", 12.0);
-
-    m_pType = new ParameterEnum(GetParameterSet(), "Type", "Type", "", (kt_int64s)karto::LaserRangeFinder_Custom);
-    m_pType->DefineEnumValue("Custom", LaserRangeFinder_Custom);
-    m_pType->DefineEnumValue("Sick_LMS100", LaserRangeFinder_Sick_LMS100);
-    m_pType->DefineEnumValue("Sick_LMS200", LaserRangeFinder_Sick_LMS200);
-    m_pType->DefineEnumValue("Sick_LMS291", LaserRangeFinder_Sick_LMS291);
-    m_pType->DefineEnumValue("Hokuyo_UTM_30LX", LaserRangeFinder_Hokuyo_UTM_30LX);
-    m_pType->DefineEnumValue("Hokuyo_URG_04LX", LaserRangeFinder_Hokuyo_URG_04LX);
   }
 
   LaserRangeFinder::~LaserRangeFinder()
   {
   }
 
-  const Vector2dList LaserRangeFinder::GetPointReadings(LocalizedLaserScan* pLocalizedLaserScan, CoordinateConverter* pCoordinateConverter, kt_bool ignoreThresholdPoints, kt_bool flipY) const
+  const Vector2dList LaserRangeFinder::GetPointReadings(LocalizedLaserScan* pLocalizedLaserScan, CoordinateConverter* pCoordinateConverter, bool ignoreThresholdPoints, bool flipY) const
   {
     Vector2dList pointReadings;
 
@@ -83,15 +67,15 @@ namespace karto
 
     // compute point readings
     const Vector2dList& rPoints = pLocalizedLaserScan->GetPointReadings(ignoreThresholdPoints);
-    for (kt_int32u i = 0; i < rPoints.size(); i++)
+    for (uint32_t i = 0; i < rPoints.size(); i++)
     {
       Vector2d point = rPoints[i];
 
-      kt_double range = scanPosition.Distance(point);
-      kt_double clippedRange = math::Clip(range, GetMinimumRange(), GetRangeThreshold());
-      if (karto::math::DoubleEqual(range, clippedRange) == false)
+      double range = scanPosition.Distance(point);
+      double clippedRange = std::clamp(range, GetMinimumRange(), GetRangeThreshold());
+      if (karto::DoubleEqual(range, clippedRange) == false)
       {
-        kt_double ratio = clippedRange / range;
+        double ratio = clippedRange / range;
         point.SetX(scanPosition.GetX() + ratio * (point.GetX() - scanPosition.GetX()));
         point.SetY(scanPosition.GetY() + ratio * (point.GetY() - scanPosition.GetY()));
       }
@@ -109,66 +93,61 @@ namespace karto
     return pointReadings;
   }
 
-  void LaserRangeFinder::SetRangeThreshold(kt_double rangeThreshold)
+  void LaserRangeFinder::SetRangeThreshold(double rangeThreshold)
   {
     // make sure rangeThreshold is within laser range finder range
-    m_pRangeThreshold->SetValue(math::Clip(rangeThreshold, GetMinimumRange(), GetMaximumRange()));
-
-    if (math::DoubleEqual(GetRangeThreshold(), rangeThreshold) == false)
-    {
-      Log(LOG_INFORMATION, "Info: clipped range threshold to be within minimum and maximum range!");
-    }
+    m_RangeThreshold = std::clamp(rangeThreshold, GetMinimumRange(), GetMaximumRange());
   }
 
-  void LaserRangeFinder::SetAngularResolution(kt_double angularResolution)
+  void LaserRangeFinder::SetAngularResolution(double angularResolution)
   {
-    if (m_pType->GetValue() == LaserRangeFinder_Custom)
+    if (m_Type == LaserRangeFinder_Custom)
     {
-      m_pAngularResolution->SetValue(angularResolution);
+      m_AngularResolution = angularResolution;
     }
-    else if (m_pType->GetValue() == LaserRangeFinder_Sick_LMS100)
+    else if (m_Type == LaserRangeFinder_Sick_LMS100)
     {
-      if (math::DoubleEqual(angularResolution, math::DegreesToRadians(0.25)))
+      if (DoubleEqual(angularResolution, DegreesToRadians(0.25)))
       {
-        m_pAngularResolution->SetValue(math::DegreesToRadians(0.25));
+        m_AngularResolution = DegreesToRadians(0.25);
       }
-      else if (math::DoubleEqual(angularResolution, math::DegreesToRadians(0.50)))
+      else if (DoubleEqual(angularResolution, DegreesToRadians(0.50)))
       {
-        m_pAngularResolution->SetValue(math::DegreesToRadians(0.50));
+        m_AngularResolution = DegreesToRadians(0.50);
       }
       else
       {
         std::string errorMessage;
         errorMessage.append("Invalid resolution for Sick LMS100: ");
-        errorMessage.append(karto::StringHelper::ToString(angularResolution));
-        throw Exception(errorMessage);
+        errorMessage.append(karto::ToString(angularResolution));
+        throw std::runtime_error(errorMessage);
       }
     }
-    else if (m_pType->GetValue() == LaserRangeFinder_Sick_LMS200 || m_pType->GetValue() == LaserRangeFinder_Sick_LMS291)
+    else if (m_Type == LaserRangeFinder_Sick_LMS200 || m_Type == LaserRangeFinder_Sick_LMS291)
     {
-      if (math::DoubleEqual(angularResolution, math::DegreesToRadians(0.25)))
+      if (DoubleEqual(angularResolution, DegreesToRadians(0.25)))
       {
-        m_pAngularResolution->SetValue(math::DegreesToRadians(0.25));
+        m_AngularResolution = DegreesToRadians(0.25);
       }
-      else if (math::DoubleEqual(angularResolution, math::DegreesToRadians(0.50)))
+      else if (DoubleEqual(angularResolution, DegreesToRadians(0.50)))
       {
-        m_pAngularResolution->SetValue(math::DegreesToRadians(0.50));
+        m_AngularResolution = DegreesToRadians(0.50);
       }
-      else if (math::DoubleEqual(angularResolution, math::DegreesToRadians(1.00)))
+      else if (DoubleEqual(angularResolution, DegreesToRadians(1.00)))
       {
-        m_pAngularResolution->SetValue(math::DegreesToRadians(1.00));
+        m_AngularResolution = DegreesToRadians(1.00);
       }
       else
       {
         std::string errorMessage;
         errorMessage.append("Invalid resolution for Sick LMS291: ");
-        errorMessage.append(karto::StringHelper::ToString(angularResolution));
-        throw Exception(errorMessage);
+        errorMessage.append(karto::ToString(angularResolution));
+        throw std::runtime_error(errorMessage);
       }
     }
     else
     {
-      throw Exception("Can't set angular resolution, please create a LaserRangeFinder of type Custom");
+      throw std::runtime_error("Can't set angular resolution, please create a LaserRangeFinder of type Custom");
     }
 
     Update();
@@ -182,14 +161,13 @@ namespace karto
     if (GetMinimumRange() >= GetMaximumRange())
     {
       assert(false);
-      throw Exception("LaserRangeFinder::Validate() - MinimumRange must be less than MaximumRange.  Please set MinimumRange and MaximumRange to valid values.");
+      throw std::runtime_error("LaserRangeFinder::Validate() - MinimumRange must be less than MaximumRange.  Please set MinimumRange and MaximumRange to valid values.");
     }
 
     // set range threshold to valid value
-    if (math::InRange(GetRangeThreshold(), GetMinimumRange(), GetMaximumRange()) == false)
+    if (InRange(GetRangeThreshold(), GetMinimumRange(), GetMaximumRange()) == false)
     {
-      kt_double newValue = karto::math::Clip(GetRangeThreshold(), GetMinimumRange(), GetMaximumRange());
-      Log(LOG_INFORMATION, std::string("Updating RangeThreshold from ") + StringHelper::ToString(GetRangeThreshold()) + " to " + StringHelper::ToString(newValue));
+      double newValue = std::clamp(GetRangeThreshold(), GetMinimumRange(), GetMaximumRange());
       SetRangeThreshold(newValue);
     }
   }
@@ -203,15 +181,15 @@ namespace karto
     // variable number of readings)
     if (pScan != nullptr && (pScan->GetNumberOfRangeReadings() != GetNumberOfRangeReadings()))
     {
-      StringBuilder errorMessage;
+      std::ostringstream errorMessage;
       errorMessage << "LaserRangeFinder::Validate() - LocalizedRangeScan contains " << pScan->GetNumberOfRangeReadings() << " range readings, expected " << GetNumberOfRangeReadings();
 
       //      assert(false);
-      throw Exception(errorMessage.ToString());
+      throw std::runtime_error(errorMessage.str());
     }
   }
 
-  LaserRangeFinder* LaserRangeFinder::CreateLaserRangeFinder(LaserRangeFinderType type, const Identifier& rName)
+  LaserRangeFinder* LaserRangeFinder::CreateLaserRangeFinder(LaserRangeFinderType type, const std::string& rName)
   {
     LaserRangeFinder* pLrf = nullptr;
 
@@ -221,18 +199,18 @@ namespace karto
       // set range threshold to 18m
     case LaserRangeFinder_Sick_LMS100:
       {
-        pLrf = new LaserRangeFinder((rName.ToString() != "") ? rName : "Sick LMS 100");
+        pLrf = new LaserRangeFinder((!rName.empty()) ? rName : "Sick LMS 100");
 
         // Sensing range is 18 meters (at 10% reflectivity, max range of 20 meters), with an error of about 20mm
-        pLrf->m_pMinimumRange->SetValue(0.0);
-        pLrf->m_pMaximumRange->SetValue(20.0);
+        pLrf->m_MinimumRange = 0.0;
+        pLrf->m_MaximumRange = 20.0;
 
-        // 270 degree range, 50 Hz 
-        pLrf->m_pMinimumAngle->SetValue(math::DegreesToRadians(-135)); 
-        pLrf->m_pMaximumAngle->SetValue(math::DegreesToRadians(135)); 
+        // 270 degree range, 50 Hz
+        pLrf->m_MinimumAngle = DegreesToRadians(-135);
+        pLrf->m_MaximumAngle = DegreesToRadians(135);
 
         // 0.25 degree angular resolution
-        pLrf->m_pAngularResolution->SetValue(math::DegreesToRadians(0.25)); 
+        pLrf->m_AngularResolution = DegreesToRadians(0.25);
 
         pLrf->m_NumberOfRangeReadings = 1081;
       }
@@ -242,18 +220,18 @@ namespace karto
       // set range threshold to 10m
     case LaserRangeFinder_Sick_LMS200:
       {
-        pLrf = new LaserRangeFinder((rName.ToString() != "") ? rName : "Sick LMS 200");
+        pLrf = new LaserRangeFinder((!rName.empty()) ? rName : "Sick LMS 200");
 
         // Sensing range is 80 meters
-        pLrf->m_pMinimumRange->SetValue(0.0);
-        pLrf->m_pMaximumRange->SetValue(80.0);
+        pLrf->m_MinimumRange = 0.0;
+        pLrf->m_MaximumRange = 80.0;
 
-        // 180 degree range, 75 Hz 
-        pLrf->m_pMinimumAngle->SetValue(math::DegreesToRadians(-90)); 
-        pLrf->m_pMaximumAngle->SetValue(math::DegreesToRadians(90)); 
+        // 180 degree range, 75 Hz
+        pLrf->m_MinimumAngle = DegreesToRadians(-90);
+        pLrf->m_MaximumAngle = DegreesToRadians(90);
 
         // 0.5 degree angular resolution
-        pLrf->m_pAngularResolution->SetValue(math::DegreesToRadians(0.5)); 
+        pLrf->m_AngularResolution = DegreesToRadians(0.5);
 
         pLrf->m_NumberOfRangeReadings = 361;
       }
@@ -263,18 +241,18 @@ namespace karto
       // set range threshold to 30m
     case LaserRangeFinder_Sick_LMS291:
       {
-        pLrf = new LaserRangeFinder((rName.ToString() != "") ? rName : "Sick LMS 291");
+        pLrf = new LaserRangeFinder((!rName.empty()) ? rName : "Sick LMS 291");
 
         // Sensing range is 80 meters
-        pLrf->m_pMinimumRange->SetValue(0.0);
-        pLrf->m_pMaximumRange->SetValue(80.0);
+        pLrf->m_MinimumRange = 0.0;
+        pLrf->m_MaximumRange = 80.0;
 
-        // 180 degree range, 75 Hz 
-        pLrf->m_pMinimumAngle->SetValue(math::DegreesToRadians(-90)); 
-        pLrf->m_pMaximumAngle->SetValue(math::DegreesToRadians(90)); 
+        // 180 degree range, 75 Hz
+        pLrf->m_MinimumAngle = DegreesToRadians(-90);
+        pLrf->m_MaximumAngle = DegreesToRadians(90);
 
         // 0.5 degree angular resolution
-        pLrf->m_pAngularResolution->SetValue(math::DegreesToRadians(0.5)); 
+        pLrf->m_AngularResolution = DegreesToRadians(0.5);
 
         pLrf->m_NumberOfRangeReadings = 361;
       }
@@ -284,18 +262,18 @@ namespace karto
       // set range threshold to 30m
     case LaserRangeFinder_Hokuyo_UTM_30LX:
       {
-        pLrf = new LaserRangeFinder((rName.ToString() != "") ? rName : "Hokuyo UTM-30LX");
+        pLrf = new LaserRangeFinder((!rName.empty()) ? rName : "Hokuyo UTM-30LX");
 
         // Sensing range is 30 meters
-        pLrf->m_pMinimumRange->SetValue(0.1);
-        pLrf->m_pMaximumRange->SetValue(30.0);
+        pLrf->m_MinimumRange = 0.1;
+        pLrf->m_MaximumRange = 30.0;
 
-        // 270 degree range, 40 Hz 
-        pLrf->m_pMinimumAngle->SetValue(math::DegreesToRadians(-135));
-        pLrf->m_pMaximumAngle->SetValue(math::DegreesToRadians(135)); 
+        // 270 degree range, 40 Hz
+        pLrf->m_MinimumAngle = DegreesToRadians(-135);
+        pLrf->m_MaximumAngle = DegreesToRadians(135);
 
         // 0.25 degree angular resolution
-        pLrf->m_pAngularResolution->SetValue(math::DegreesToRadians(0.25)); 
+        pLrf->m_AngularResolution = DegreesToRadians(0.25);
 
         pLrf->m_NumberOfRangeReadings = 1081;
       }
@@ -305,18 +283,18 @@ namespace karto
       // set range threshold to 3.5m
     case LaserRangeFinder_Hokuyo_URG_04LX:
       {
-        pLrf = new LaserRangeFinder((rName.ToString() != "") ? rName : "Hokuyo URG-04LX");
+        pLrf = new LaserRangeFinder((!rName.empty()) ? rName : "Hokuyo URG-04LX");
 
-        // Sensing range is 4 meters. It has detection problems when scanning absorptive surfaces (such as black trimming). 
-        pLrf->m_pMinimumRange->SetValue(0.02);
-        pLrf->m_pMaximumRange->SetValue(4.0);
+        // Sensing range is 4 meters. It has detection problems when scanning absorptive surfaces (such as black trimming).
+        pLrf->m_MinimumRange = 0.02;
+        pLrf->m_MaximumRange = 4.0;
 
-        // 240 degree range, 10 Hz 
-        pLrf->m_pMinimumAngle->SetValue(math::DegreesToRadians(-120)); 
-        pLrf->m_pMaximumAngle->SetValue(math::DegreesToRadians(120));
+        // 240 degree range, 10 Hz
+        pLrf->m_MinimumAngle = DegreesToRadians(-120);
+        pLrf->m_MaximumAngle = DegreesToRadians(120);
 
         // 0.352 degree angular resolution
-        pLrf->m_pAngularResolution->SetValue(math::DegreesToRadians(0.352)); 
+        pLrf->m_AngularResolution = DegreesToRadians(0.352);
 
         pLrf->m_NumberOfRangeReadings = 751;
       }
@@ -324,18 +302,18 @@ namespace karto
 
     case LaserRangeFinder_Custom:
       {
-        pLrf = new LaserRangeFinder((rName.ToString() != "") ? rName : "User-Defined LaserRangeFinder");
+        pLrf = new LaserRangeFinder((!rName.empty()) ? rName : "User-Defined LaserRangeFinder");
 
         // Sensing range is 80 meters.
-        pLrf->m_pMinimumRange->SetValue(0.0);
-        pLrf->m_pMaximumRange->SetValue(80.0);
+        pLrf->m_MinimumRange = 0.0;
+        pLrf->m_MaximumRange = 80.0;
 
         // 180 degree range
-        pLrf->m_pMinimumAngle->SetValue(math::DegreesToRadians(-90)); 
-        pLrf->m_pMaximumAngle->SetValue(math::DegreesToRadians(90));
+        pLrf->m_MinimumAngle = DegreesToRadians(-90);
+        pLrf->m_MaximumAngle = DegreesToRadians(90);
 
         // 1.0 degree angular resolution
-        pLrf->m_pAngularResolution->SetValue(math::DegreesToRadians(1.0));
+        pLrf->m_AngularResolution = DegreesToRadians(1.0);
 
         pLrf->m_NumberOfRangeReadings = 181;
       }
@@ -344,7 +322,7 @@ namespace karto
 
     if (pLrf != nullptr)
     {
-      pLrf->m_pType->SetValue(type);
+      pLrf->m_Type = type;
 
       Pose2 defaultOffset;
       pLrf->SetOffsetPose(defaultOffset);
@@ -354,4 +332,3 @@ namespace karto
   }
 
 }
-

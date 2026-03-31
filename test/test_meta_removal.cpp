@@ -1,55 +1,26 @@
 #include <gtest/gtest.h>
 
-#include <Meta.h>
-#include <Object.h>
 #include <Sensor.h>
 #include <SensorData.h>
-#include <Objects.h>
 #include <OccupancyGrid.h>
-#include <TypeCasts.h>
 
-// Phase 3: Verify KARTO_RTTI / dynamic_cast type checks still work
-// after removing the meta/reflection system.
+// Phase F: Verify dynamic_cast type checks still work
+// after removing Object base class, Identifier, and Parameter systems.
 
 namespace {
 
-// Verify KARTO_TYPE macro still generates KartoTypeId specializations
-TEST(MetaRemoval, KartoTypeProducesTypeNames) {
-    const char* sensorName = karto::GetKartoTypeIdTemplate<karto::Sensor>();
-    EXPECT_STREQ(sensorName, "Sensor");
-
-    const char* laserName = karto::GetKartoTypeIdTemplate<karto::LaserRangeFinder>();
-    EXPECT_STREQ(laserName, "LaserRangeFinder");
-}
-
-// Verify KARTO_RTTI virtual dispatch works via GetKartoClassId
-TEST(MetaRemoval, KartoRttiReturnsCorrectType) {
-    karto::Identifier id("test_laser");
-    karto::LaserRangeFinder* laser = karto::LaserRangeFinder::CreateLaserRangeFinder(
-        karto::LaserRangeFinder_Custom, id);
-
-    // GetKartoClassId should return the derived type via KARTO_RTTI virtual dispatch
-    const char* classId = laser->GetKartoClassId();
-    EXPECT_STREQ(classId, "LaserRangeFinder");
-
-    // Verify via base pointer — virtual dispatch returns derived type
-    karto::Sensor* sensorPtr = laser;
-    const char* baseClassId = sensorPtr->GetKartoClassId();
-    EXPECT_STREQ(baseClassId, "LaserRangeFinder");
-}
-
-// Verify KARTO_TYPECHECKCAST macros (dynamic_cast-based) still work
+// Verify dynamic_cast type checks work on Sensor hierarchy
 TEST(MetaRemoval, TypeCheckCastsWork) {
-    karto::Identifier id("test_laser_casts");
     karto::LaserRangeFinder* laser = karto::LaserRangeFinder::CreateLaserRangeFinder(
-        karto::LaserRangeFinder_Custom, id);
+        karto::LaserRangeFinder_Custom, "test_laser_casts");
 
-    karto::Object* obj = laser;
+    karto::Sensor* sensor = laser;
 
-    EXPECT_TRUE(karto::IsSensor(obj));
-    EXPECT_TRUE(karto::IsLaserRangeFinder(obj));
-    EXPECT_FALSE(karto::IsDrive(obj));
-    EXPECT_FALSE(karto::IsOccupancyGrid(obj));
+    EXPECT_TRUE(dynamic_cast<karto::Sensor*>(laser) != nullptr);
+    EXPECT_TRUE(dynamic_cast<karto::LaserRangeFinder*>(sensor) != nullptr);
+    EXPECT_TRUE(dynamic_cast<karto::Drive*>(sensor) == nullptr);
+
+    delete laser;
 }
 
 // Verify LaserRangeFinderType enum still works after removing MetaEnum registration
@@ -60,6 +31,33 @@ TEST(MetaRemoval, LaserRangeFinderTypeEnumExists) {
     EXPECT_EQ(karto::LaserRangeFinder_Sick_LMS291, 3);
     EXPECT_EQ(karto::LaserRangeFinder_Hokuyo_UTM_30LX, 4);
     EXPECT_EQ(karto::LaserRangeFinder_Hokuyo_URG_04LX, 5);
+}
+
+// Verify sensor name works after replacing Identifier with std::string
+TEST(MetaRemoval, SensorNameWorks) {
+    karto::LaserRangeFinder* laser = karto::LaserRangeFinder::CreateLaserRangeFinder(
+        karto::LaserRangeFinder_Custom, "my_laser");
+    EXPECT_EQ(laser->GetName(), "my_laser");
+    delete laser;
+}
+
+// Verify direct fields work on LaserRangeFinder after removing Parameter<T>
+TEST(MetaRemoval, LaserDirectFieldsWork) {
+    karto::LaserRangeFinder* laser = karto::LaserRangeFinder::CreateLaserRangeFinder(
+        karto::LaserRangeFinder_Custom, "field_test");
+
+    laser->SetMinimumRange(0.5);
+    EXPECT_NEAR(laser->GetMinimumRange(), 0.5, 1e-10);
+
+    laser->SetMaximumRange(30.0);
+    EXPECT_NEAR(laser->GetMaximumRange(), 30.0, 1e-10);
+
+    laser->SetRangeThreshold(12.0);
+    EXPECT_NEAR(laser->GetRangeThreshold(), 12.0, 1e-10);
+
+    EXPECT_EQ(laser->GetType(), karto::LaserRangeFinder_Custom);
+
+    delete laser;
 }
 
 } // anonymous namespace
