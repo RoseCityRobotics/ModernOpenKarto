@@ -256,7 +256,19 @@ namespace karto
      */
     inline LaserRangeFinder* GetLaserRangeFinder() const
     {
+      if (m_pLaserRangeFinder != nullptr)
+        return m_pLaserRangeFinder;
       return SensorRegistry::GetInstance()->GetSensorByName<LaserRangeFinder>(GetSensorIdentifier());
+    }
+
+    /**
+     * Sets the laser range finder sensor directly on this scan,
+     * bypassing the global SensorRegistry lookup.
+     * @param pLaser laser range finder
+     */
+    inline void SetLaserRangeFinder(LaserRangeFinder* pLaser)
+    {
+      m_pLaserRangeFinder = pLaser;
     }
 
   private:
@@ -266,6 +278,7 @@ namespace karto
 
   private:
     RangeReadingsList m_RangeReadings;
+    LaserRangeFinder* m_pLaserRangeFinder = nullptr;
   }; // LaserRangeScan
 
   /**
@@ -563,7 +576,19 @@ namespace karto
      */
     inline LaserRangeFinder* GetLaserRangeFinder() const
     {
+      if (m_pLaserRangeFinder != nullptr)
+        return m_pLaserRangeFinder;
       return SensorRegistry::GetInstance()->GetSensorByName<LaserRangeFinder>(GetSensorIdentifier());
+    }
+
+    /**
+     * Sets the laser range finder sensor directly on this scan,
+     * bypassing the global SensorRegistry lookup.
+     * @param pLaser laser range finder
+     */
+    inline void SetLaserRangeFinder(LaserRangeFinder* pLaser)
+    {
+      m_pLaserRangeFinder = pLaser;
     }
 
     /**
@@ -761,7 +786,13 @@ namespace karto
      * Internal flag used to update point readings, barycenter and bounding box
      */
     kt_bool m_IsDirty;
-    
+
+    /**
+     * Direct pointer to the laser range finder, bypassing global SensorRegistry.
+     * When set, GetLaserRangeFinder() returns this pointer instead of doing a registry lookup.
+     */
+    LaserRangeFinder* m_pLaserRangeFinder = nullptr;
+
   }; // LocalizedLaserScan
   
   /**

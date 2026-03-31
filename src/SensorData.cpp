@@ -181,6 +181,10 @@ namespace karto
   {
   }
 
+  // NOTE: Points are computed in world frame (heading is baked into the angle).
+  // ComputeOffsets() in GridIndexLookup.h correctly inverse-transforms these
+  // back to sensor-local coordinates before applying search angle rotations.
+  // This has been verified to work correctly with both 180-degree and 360-degree lidars.
   void LocalizedRangeScan::ComputePointReadings()
   {
     LaserRangeFinder* pLaserRangeFinder = GetLaserRangeFinder();

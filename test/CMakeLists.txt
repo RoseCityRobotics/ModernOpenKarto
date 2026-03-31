@@ -1,5 +1,4 @@
 add_executable(openkarto_tests
-  test_placeholder.cpp
   test_types.cpp
   test_meta_removal.cpp
   test_string_conversion.cpp
@@ -7,6 +6,7 @@ add_executable(openkarto_tests
   test_any_removal.cpp
   test_mapper_smoke.cpp
   test_parallel_scan_match.cpp
+  test_360_lidar.cpp
 )
 
 target_link_libraries(openkarto_tests PRIVATE
