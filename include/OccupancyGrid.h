@@ -36,12 +36,12 @@ namespace karto
   /**
    * Valid grid cell states
    */
-  typedef enum
+  enum GridStates
   {
     GridStates_Unknown = 0,
     GridStates_Occupied = 100,
     GridStates_Free = 255
-  } GridStates;
+  };
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -85,7 +85,7 @@ namespace karto
      * @param resolution resolution
      * @return occupancy grid from the given scans using the given resolution
      */
-    static OccupancyGrid* CreateFromScans(const LocalizedLaserScanList& rScans, kt_double resolution);
+    [[nodiscard]] static OccupancyGrid* CreateFromScans(const LocalizedLaserScanList& rScans, kt_double resolution);
 
     /**
      * Occupancy grid from the given scans using the given resolution
@@ -96,7 +96,7 @@ namespace karto
      * @warning Throws exception in Windows
      * @return occupancy grid from the given scans using the given resolution
      */
-    static KARTO_DEPRECATED  OccupancyGrid* CreateFromScans(const std::vector<std::shared_ptr<LocalizedRangeScan>>& rScans, kt_double resolution);
+    [[deprecated, nodiscard]] static OccupancyGrid* CreateFromScans(const std::vector<std::shared_ptr<LocalizedRangeScan>>& rScans, kt_double resolution);
 
     /**
      * Occupancy grid from the scans in the given mapper using the given resolution

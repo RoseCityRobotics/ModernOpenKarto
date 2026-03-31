@@ -165,7 +165,7 @@ namespace karto
   class Delegate: public AbstractDelegate<TArgs>
   {
   public:
-    typedef void (TObj::*NotifyMethod)(const void*, TArgs&);
+    using NotifyMethod = void (TObj::*)(const void*, TArgs&);
 
     Delegate(TObj* pObject, NotifyMethod method)
       : AbstractDelegate<TArgs>(pObject)
@@ -203,7 +203,7 @@ namespace karto
     }
 
   public:
-    /** 
+    /**
      * Assignment operator. Assign another Delegate
      * @param rOther
      * @return reference to this Delegate
@@ -231,11 +231,11 @@ namespace karto
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
 
-  template <class TObj, class TArgs> 
+  template <class TObj, class TArgs>
   class Delegate<TObj, TArgs, false>: public AbstractDelegate<TArgs>
   {
   public:
-    typedef void (TObj::*NotifyMethod)(TArgs&);
+    using NotifyMethod = void (TObj::*)(TArgs&);
 
     Delegate(TObj* pObject, NotifyMethod method)
       : AbstractDelegate<TArgs>(pObject)
@@ -313,7 +313,7 @@ namespace karto
     /**
      * Notify callback function
      */
-    typedef void (*NotifyMethod)(const void*, TArgs&);
+    using NotifyMethod = void (*)(const void*, TArgs&);
 
     /**
      * Creates a FunctionDelegate with the given NotifyMethod
@@ -394,7 +394,7 @@ namespace karto
     /**
      * Notify callback function
      */
-    typedef void (*NotifyMethod)(void*, TArgs&);
+    using NotifyMethod = void (*)(void*, TArgs&);
 
     /**
      * Creates a FunctionDelegate with the given NotifyMethod
@@ -475,7 +475,7 @@ namespace karto
     /**
      * Notify callback function
      */
-    typedef void (*NotifyMethod)(TArgs&);
+    using NotifyMethod = void (*)(TArgs&);
 
     /**
      * Creates a FunctionDelegate with the given NotifyMethod
@@ -866,7 +866,7 @@ namespace karto
      */
     void Notify(const void* pSender, TArgs& rArgs)
     {
-      DefaultStrategy<TArgs>* pStrats = NULL;
+      DefaultStrategy<TArgs>* pStrats = nullptr;
       kt_bool enabled = false;
 
       {

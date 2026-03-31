@@ -46,14 +46,14 @@ namespace karto
     {
       karto::ModuleParameters* pParameters = dynamic_cast<karto::ModuleParameters*>(pObject);
       
-      if (pParameters != NULL && pParameters->GetIdentifier() == GetIdentifier())
+      if (pParameters != nullptr && pParameters->GetIdentifier() == GetIdentifier())
       {
         // copy parameters
         const karto::ParameterList& rParameters = pParameters->GetParameters();
         for (const auto& pParameterFrom : rParameters)
         {
           karto::AbstractParameter* pParameterTo = GetParameter(pParameterFrom->GetName());
-          if (pParameterTo != NULL)
+          if (pParameterTo != nullptr)
           {
             pParameterTo->SetValueFromString(pParameterFrom->GetValueAsString());
           }

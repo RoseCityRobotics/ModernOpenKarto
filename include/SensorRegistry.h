@@ -82,7 +82,7 @@ namespace karto
     }
     
     /**
-     * Checks that given sensor is not NULL and has a non-empty name
+     * Checks that given sensor is not nullptr and has a non-empty name
      * @param pSensor sensor to validate
      */
     static void Validate(Sensor* pSensor);

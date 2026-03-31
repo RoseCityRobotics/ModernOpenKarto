@@ -118,7 +118,7 @@ namespace karto
       pFCConsole->setChannel(new Poco::ConsoleChannel);
       pFCConsole->open();
 
-      Poco::FormattingChannel* pFCFile = NULL;
+      Poco::FormattingChannel* pFCFile = nullptr;
       if (s_FileLoggingEnabled == true)
       {
         Poco::PatternFormatter* pFormatter = new Poco::PatternFormatter("%Y-%m-%d %H:%M:%S.%c %N[%P]:%q:%t");
@@ -221,7 +221,7 @@ namespace karto
 #endif // USE_POCO
 
       LogMessageArguments eventArguments(level, rMessage);
-      LogMessage.Notify(NULL, eventArguments);
+      LogMessage.Notify(nullptr, eventArguments);
     }
   }
 
@@ -233,7 +233,7 @@ namespace karto
       Poco::Logger::get("ConsoleLogger").close();
 
       Poco::Channel* pChannel = Poco::Logger::get("FileLogger").getChannel();
-      if (pChannel != NULL)
+      if (pChannel != nullptr)
       {
         pChannel->close();
       }

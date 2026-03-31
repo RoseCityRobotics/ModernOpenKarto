@@ -24,7 +24,6 @@
 
 #include <AbstractGpsEstimationManager.h>
 #include <CoordinateConverter.h>
-#include <Deprecated.h>
 #include <Event.h>
 #include <Exception.h>
 #include <Geometry.h>

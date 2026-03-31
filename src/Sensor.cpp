@@ -96,7 +96,7 @@ namespace karto
         point.SetY(scanPosition.GetY() + ratio * (point.GetY() - scanPosition.GetY()));
       }
 
-      if (pCoordinateConverter != NULL)
+      if (pCoordinateConverter != nullptr)
       {
         Vector2i gridPoint = pCoordinateConverter->WorldToGrid(point, flipY);
         point.SetX(gridPoint.GetX());
@@ -201,7 +201,7 @@ namespace karto
     // verify number of range readings in laser scan matches the number of expected range
     // readings; validation only valid with LocalizedRangeScan (LocalizedPointScan may have
     // variable number of readings)
-    if (pScan != NULL && (pScan->GetNumberOfRangeReadings() != GetNumberOfRangeReadings()))
+    if (pScan != nullptr && (pScan->GetNumberOfRangeReadings() != GetNumberOfRangeReadings()))
     {
       StringBuilder errorMessage;
       errorMessage << "LaserRangeFinder::Validate() - LocalizedRangeScan contains " << pScan->GetNumberOfRangeReadings() << " range readings, expected " << GetNumberOfRangeReadings();
@@ -213,7 +213,7 @@ namespace karto
 
   LaserRangeFinder* LaserRangeFinder::CreateLaserRangeFinder(LaserRangeFinderType type, const Identifier& rName)
   {
-    LaserRangeFinder* pLrf = NULL;
+    LaserRangeFinder* pLrf = nullptr;
 
     switch(type)
     {
@@ -342,7 +342,7 @@ namespace karto
       break;
     }
 
-    if (pLrf != NULL)
+    if (pLrf != nullptr)
     {
       pLrf->m_pType->SetValue(type);
 

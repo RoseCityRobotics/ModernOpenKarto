@@ -34,7 +34,7 @@ namespace karto
   Dataset::Dataset()
     : m_pDatasetPrivate(new DatasetPrivate())
   {
-    m_pDatasetPrivate->m_pDatasetInfo = NULL;
+    m_pDatasetPrivate->m_pDatasetInfo = nullptr;
   }
 
   Dataset::~Dataset()
@@ -46,7 +46,7 @@ namespace karto
 
   void Dataset::Add(Object* pObject)
   {
-    if (pObject != NULL)
+    if (pObject != nullptr)
     {
       if (IsDatasetInfo(pObject))
       {
@@ -67,7 +67,7 @@ namespace karto
   void Dataset::Clear()
   {
     m_pDatasetPrivate->m_Objects.clear();
-    m_pDatasetPrivate->m_pDatasetInfo = NULL;
+    m_pDatasetPrivate->m_pDatasetInfo = nullptr;
   }
 
   const ObjectList& Dataset::GetObjects() const

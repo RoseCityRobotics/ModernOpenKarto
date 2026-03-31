@@ -45,25 +45,25 @@ namespace karto
   template <typename T>
   struct KartoType
   {
-    typedef T Type;
+    using Type = T;
   };
 
   template <typename T>
   struct KartoType<const T>
   {
-    typedef typename KartoType<T>::Type Type;
+    using Type = typename KartoType<T>::Type;
   };
 
   template <typename T>
   struct KartoType<T&>
   {
-    typedef typename KartoType<T>::Type Type;
+    using Type = typename KartoType<T>::Type;
   };
 
   template <typename T>
   struct KartoType<T*>
   {
-    typedef typename KartoType<T>::Type Type;
+    using Type = typename KartoType<T>::Type;
   };
 
   /**
@@ -87,7 +87,7 @@ namespace karto
   template <typename T, typename E = void>
   struct KartoObjectTraits
   {
-    typedef T& RefReturnType;
+    using RefReturnType = T&;
 
     static RefReturnType Get(void* pPointer)
     {
@@ -98,8 +98,8 @@ namespace karto
   template <typename T>
   struct KartoObjectTraits<T*>
   {
-    typedef T* RefReturnType;
-    typedef T* PointerType;
+    using RefReturnType = T*;
+    using PointerType = T*;
 
     static RefReturnType Get(void* pPointer)
     {
@@ -115,8 +115,8 @@ namespace karto
   template <typename T>
   struct KartoObjectTraits<T&, std::enable_if_t<!std::is_pointer_v<typename KartoObjectTraits<T>::RefReturnType>>>
   {
-    typedef T& RefReturnType;
-    typedef T* PointerType;
+    using RefReturnType = T&;
+    using PointerType = T*;
 
     static RefReturnType Get(void* pPointer)
     {
@@ -145,8 +145,8 @@ namespace karto
   template <typename T>
   struct KartoTypeHasRtti
   {
-    typedef kt_int16s Yes;
-    typedef kt_int32s No;
+    using Yes = kt_int16s;
+    using No = kt_int32s;
 
     template <typename U, const char* (U::*)() const>
     struct CheckForMember
@@ -168,7 +168,7 @@ namespace karto
   template <typename T, typename E = void>
   struct GetKartoTypeIdTemplateRTTI
   {
-    typedef KartoObjectTraits<const T&> Traits;
+    using Traits = KartoObjectTraits<const T&>;
 
     static const char* Get(const T& rObject)
     {

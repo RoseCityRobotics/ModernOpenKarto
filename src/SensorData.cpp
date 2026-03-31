@@ -92,7 +92,7 @@ namespace karto
     : SensorData(rSensorIdentifier)
     , m_IsGpsReadingValid(false)
     , m_IsGpsEstimateValid(false)
-    , m_pGpsEstimationManager(NULL)
+    , m_pGpsEstimationManager(nullptr)
   {
   }
 
@@ -184,7 +184,7 @@ namespace karto
   void LocalizedRangeScan::ComputePointReadings()
   {
     LaserRangeFinder* pLaserRangeFinder = GetLaserRangeFinder();
-    if (pLaserRangeFinder == NULL)
+    if (pLaserRangeFinder == nullptr)
     {
       return;
     }
@@ -246,7 +246,7 @@ namespace karto
   void LocalizedPointScan::ComputePointReadings()
   {
     LaserRangeFinder* pLaserRangeFinder = GetLaserRangeFinder();
-    if (pLaserRangeFinder == NULL)
+    if (pLaserRangeFinder == nullptr)
     {
       return;
     }

@@ -597,17 +597,17 @@ namespace karto
   /**
    * Type declaration of kt_int32s Vector2 as Vector2i
    */
-  typedef Vector2<kt_int32s> Vector2i;
+  using Vector2i = Vector2<kt_int32s>;
 
   /**
    * Type declaration of kt_int32u Vector2 as Vector2iu
    */
-  typedef Vector2<kt_int32u> Vector2iu;
+  using Vector2iu = Vector2<kt_int32u>;
 
   /**
    * Type declaration of kt_double Vector2 as Vector2d
    */
-  typedef Vector2<kt_double> Vector2d;
+  using Vector2d = Vector2<kt_double>;
   
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -1033,17 +1033,17 @@ namespace karto
   /**
    * Type declaration of kt_int32s Vector3 as Vector3i
    */
-  typedef Vector3<kt_int32s> Vector3i;
+  using Vector3i = Vector3<kt_int32s>;
 
   /**
    * Type declaration of kt_int32u Vector3 as Vector3iu
    */
-  typedef Vector3<kt_int32u> Vector3iu;
+  using Vector3iu = Vector3<kt_int32u>;
 
   /**
    * Type declaration of kt_double Vector3 as Vector3d
    */
-  typedef Vector3<kt_double> Vector3d;
+  using Vector3d = Vector3<kt_double>;
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -1267,17 +1267,17 @@ namespace karto
   /**
    * Type declaration of kt_int32s Vector4 as Vector4i
    */
-  typedef Vector4<kt_int32s> Vector4i;
+  using Vector4i = Vector4<kt_int32s>;
 
   /**
    * Type declaration of kt_int32u Vector4 as Vector4iu
    */
-  typedef Vector4<kt_int32u> Vector4iu;
+  using Vector4iu = Vector4<kt_int32u>;
 
   /**
    * Type declaration of double Vector4 as Vector4d
    */
-  typedef Vector4<kt_double> Vector4d;
+  using Vector4d = Vector4<kt_double>;
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////

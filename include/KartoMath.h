@@ -20,9 +20,9 @@
 #ifndef __OpenKarto_Math_h__
 #define __OpenKarto_Math_h__
 
-#include <assert.h>
-#include <math.h>
-#include <float.h>
+#include <cassert>
+#include <cmath>
+#include <cfloat>
 #include <cstdlib>
 
 #include <Types.h>

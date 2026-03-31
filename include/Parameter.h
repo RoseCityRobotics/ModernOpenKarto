@@ -230,7 +230,7 @@ namespace karto
      * @param pDescription description of parameter
      * @param pParameterSet set of parameters
      */
-    AbstractParameter(ParameterDescription* pDescription, ParameterSet* pParameterSet = NULL);
+    AbstractParameter(ParameterDescription* pDescription, ParameterSet* pParameterSet = nullptr);
 
     /**
      * Destructor

@@ -44,7 +44,7 @@ namespace karto
   #define KARTO_TYPECHECKCAST(__Name__) \
     inline kt_bool Is##__Name__(Object* pObject) \
     { \
-      return dynamic_cast<__Name__ *>(pObject) != NULL;\
+      return dynamic_cast<__Name__ *>(pObject) != nullptr;\
     } 
 
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -115,7 +115,7 @@ namespace karto
     inline void SetParameters(const std::string& rParameterName, const T& rValue)
     {
       AbstractParameter* pAbstractParameters = GetParameter(rParameterName);
-      if (pAbstractParameters != NULL)
+      if (pAbstractParameters != nullptr)
       {
         pAbstractParameters->SetValueFromString(StringHelper::ToString(rValue));
       }
