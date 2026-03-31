@@ -92,7 +92,7 @@ TEST(MapperSmoke, ProcessSingleScan) {
     karto::LaserRangeFinder* laser = CreateTestLaser("laser_single");
 
     // Generate a scan at origin facing forward
-    karto::RangeReadingsList readings = GenerateRoomScan(
+    const karto::RangeReadingsList readings = GenerateRoomScan(
         0.0, 0.0, 0.0, 10.0, 10.0,
         -karto::KT_PI_2, karto::KT_PI_2, karto::math::DegreesToRadians(1.0));
 
@@ -124,7 +124,7 @@ TEST(MapperSmoke, ProcessMultipleScans) {
 
     for (int i = 0; i < numScans; i++) {
         double x = i * step;
-        karto::RangeReadingsList readings = GenerateRoomScan(
+        const karto::RangeReadingsList readings = GenerateRoomScan(
             x, 0.0, 0.0, 10.0, 10.0,
             -karto::KT_PI_2, karto::KT_PI_2, karto::math::DegreesToRadians(1.0));
 
@@ -146,7 +146,7 @@ TEST(MapperSmoke, CorrectedPosesAreReasonable) {
     karto::LaserRangeFinder* laser = CreateTestLaser("laser_corrected");
 
     // Feed two scans with a known displacement
-    karto::RangeReadingsList readings1 = GenerateRoomScan(
+    const karto::RangeReadingsList readings1 = GenerateRoomScan(
         0.0, 0.0, 0.0, 10.0, 10.0,
         -karto::KT_PI_2, karto::KT_PI_2, karto::math::DegreesToRadians(1.0));
     karto::LocalizedRangeScan* scan1 =
@@ -155,7 +155,7 @@ TEST(MapperSmoke, CorrectedPosesAreReasonable) {
     scan1->SetCorrectedPose(karto::Pose2(0.0, 0.0, 0.0));
     mapper.Process(scan1);
 
-    karto::RangeReadingsList readings2 = GenerateRoomScan(
+    const karto::RangeReadingsList readings2 = GenerateRoomScan(
         1.0, 0.0, 0.0, 10.0, 10.0,
         -karto::KT_PI_2, karto::KT_PI_2, karto::math::DegreesToRadians(1.0));
     karto::LocalizedRangeScan* scan2 =

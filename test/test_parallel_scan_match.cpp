@@ -76,7 +76,7 @@ karto::Pose2 RunTwoScans(bool multiThreaded, const char* laserName) {
 
     double angRes = karto::math::DegreesToRadians(1.0);
 
-    karto::RangeReadingsList r1 = GenerateRoomScan(0.0, 0.0, 0.0, 10.0, 10.0,
+    const karto::RangeReadingsList r1 = GenerateRoomScan(0.0, 0.0, 0.0, 10.0, 10.0,
         -karto::KT_PI_2, karto::KT_PI_2, angRes);
     karto::LocalizedRangeScan* scan1 =
         new karto::LocalizedRangeScan(laser->GetIdentifier(), r1);
@@ -84,7 +84,7 @@ karto::Pose2 RunTwoScans(bool multiThreaded, const char* laserName) {
     scan1->SetCorrectedPose(karto::Pose2(0.0, 0.0, 0.0));
     mapper.Process(scan1);
 
-    karto::RangeReadingsList r2 = GenerateRoomScan(0.5, 0.0, 0.0, 10.0, 10.0,
+    const karto::RangeReadingsList r2 = GenerateRoomScan(0.5, 0.0, 0.0, 10.0, 10.0,
         -karto::KT_PI_2, karto::KT_PI_2, angRes);
     karto::LocalizedRangeScan* scan2 =
         new karto::LocalizedRangeScan(laser->GetIdentifier(), r2);
