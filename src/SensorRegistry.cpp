@@ -19,10 +19,6 @@
 #include <iostream>
 #include <algorithm>
 
-#ifdef USE_TBB
-#include <tbb/mutex.h>
-#endif
-
 #include <SensorRegistry.h>
 #include <Exception.h>
 #include <Sensor.h>

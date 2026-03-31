@@ -6,6 +6,7 @@ add_executable(openkarto_tests
   test_geometry.cpp
   test_any_removal.cpp
   test_mapper_smoke.cpp
+  test_parallel_scan_match.cpp
 )
 
 target_link_libraries(openkarto_tests PRIVATE

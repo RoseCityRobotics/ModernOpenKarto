@@ -15,10 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef USE_TBB
-#include <tbb/tbb_thread.h>
-#include <tbb/concurrent_queue.h>
-#endif
+#include <thread>
+#include <vector>
 
 #include <stdexcept>
 #include <queue>
@@ -376,66 +374,51 @@ namespace karto
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
    
-#ifdef USE_TBB
   class ScanMatcherGridSetBank
   {
   public:
-    ScanMatcherGridSetBank(kt_int32u nGrids, kt_int32s corrGridWidth, kt_int32s corrGridHeight, kt_double resolution, kt_double smearDeviation,
-                        kt_int32s searchSpaceGridWidth, kt_int32s searchSpaceGridHeight)
+    ScanMatcherGridSetBank(kt_int32u nGrids, kt_int32s corrGridWidth, kt_int32s corrGridHeight,
+                           kt_double resolution, kt_double smearDeviation,
+                           kt_int32s searchSpaceGridWidth, kt_int32s searchSpaceGridHeight)
     {
       if (nGrids <= 0)
       {
         throw Exception("ScanMatcherGridSetBank requires at least 1 grid: " + StringHelper::ToString(nGrids));
-        assert(false);
       }
-           
       for (kt_int32u i = 0; i < nGrids; i++)
       {
         CorrelationGrid* pCorrelationGrid = CorrelationGrid::CreateGrid(corrGridWidth, corrGridHeight, resolution, smearDeviation);
         Grid<kt_double>* pSearchSpaceProbs = Grid<kt_double>::CreateGrid(searchSpaceGridWidth, searchSpaceGridHeight, resolution);
         GridIndexLookup<kt_int8u>* pGridLookup = new GridIndexLookup<kt_int8u>(pCorrelationGrid);
-        
-        m_ScanMatcherGridSets.push(std::make_shared<ScanMatcherGridSet>(pCorrelationGrid, pSearchSpaceProbs, pGridLookup));
+        m_GridSets.push(std::make_shared<ScanMatcherGridSet>(pCorrelationGrid, pSearchSpaceProbs, pGridLookup));
       }
     }
-    
-    virtual ~ScanMatcherGridSetBank()
-    {
-      // we add a NULL item on the queue in case we are stuck in CheckOut!
-      m_ScanMatcherGridSets.push(nullptr);
 
-      m_ScanMatcherGridSets.clear();
-    }
-    
-  public:
-    /**
-     * If no ScanMatcherGridSet on queue this thread will wait until one becomes available!
-     */
+    virtual ~ScanMatcherGridSetBank() {}
+
     std::shared_ptr<ScanMatcherGridSet> CheckOut()
     {
-      std::shared_ptr<ScanMatcherGridSet> pScanMatcherGridSet = nullptr;
+      std::unique_lock<std::mutex> lock(m_Mutex);
+      m_Condition.wait(lock, [this]{ return !m_GridSets.empty(); });
+      auto gridSet = m_GridSets.front();
+      m_GridSets.pop();
+      return gridSet;
+    }
 
-      m_ScanMatcherGridSets.pop(pScanMatcherGridSet);
-      
-      return pScanMatcherGridSet;
-    }
-    
-    /**
-     * Return ScanMatcherGridSet to queue
-     */
-    void Return(std::shared_ptr<ScanMatcherGridSet> pScanMatcherGridSet)
+    void Return(std::shared_ptr<ScanMatcherGridSet> pGridSet)
     {
-      m_ScanMatcherGridSets.push(pScanMatcherGridSet);
+      {
+        std::lock_guard<std::mutex> lock(m_Mutex);
+        m_GridSets.push(pGridSet);
+      }
+      m_Condition.notify_one();
     }
-    
+
   private:
-    tbb::concurrent_bounded_queue<std::shared_ptr<ScanMatcherGridSet> > m_ScanMatcherGridSets;    
+    std::queue<std::shared_ptr<ScanMatcherGridSet>> m_GridSets;
+    std::mutex m_Mutex;
+    std::condition_variable m_Condition;
   };
-#else
-  class ScanMatcherGridSetBank
-  {
-  };
-#endif
   
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -491,11 +474,7 @@ namespace karto
     
     if (pOpenMapper->IsMultiThreaded())
     {
-#ifdef USE_TBB
-      pScanMatcher->m_pScanMatcherGridSetBank = new ScanMatcherGridSetBank(10, gridSize, gridSize, resolution, smearDeviation, searchSpaceSideSize, searchSpaceSideSize);                                                                         
-#else
-      pScanMatcher->m_pScanMatcherGridSetBank = NULL;
-#endif
+      pScanMatcher->m_pScanMatcherGridSetBank = new ScanMatcherGridSetBank(10, gridSize, gridSize, resolution, smearDeviation, searchSpaceSideSize, searchSpaceSideSize);
     }
 
     return pScanMatcher;
@@ -507,11 +486,7 @@ namespace karto
 
     if (m_pOpenMapper->IsMultiThreaded())
     {
-#ifdef USE_TBB
       pScanMatcherGridSet = m_pScanMatcherGridSetBank->CheckOut();
-#else
-      pScanMatcherGridSet = m_pScanMatcherGridSet;
-#endif
     }
     else
     {
@@ -540,9 +515,7 @@ namespace karto
       
       if (m_pOpenMapper->IsMultiThreaded())
       {
-#ifdef USE_TBB
         m_pScanMatcherGridSetBank->Return(pScanMatcherGridSet);
-#endif
       }
 
       return 0.0;
@@ -619,109 +592,12 @@ namespace karto
 
     if (m_pOpenMapper->IsMultiThreaded())
     {
-#ifdef USE_TBB
       m_pScanMatcherGridSetBank->Return(pScanMatcherGridSet);
-#endif
     }
-    
+
     return bestResponse;
   }
   
-#ifdef USE_TBB
-  class Parallel_CorrelateScan
-  {
-  public:
-    Parallel_CorrelateScan(std::vector<kt_double>* pNewPositionsY, std::vector<kt_double>* pSquaresY,
-                           std::vector<kt_double>* pNewPositionsX, std::vector<kt_double>* pSquaresX,
-                           std::vector<kt_double>* pAngles,
-                           std::vector<std::pair<kt_double, Pose2> >* pPoseResponses,
-                           ScanMatcher* pScanMatcher, kt_bool doPenalize,
-                           kt_double distanceVariancePenalty, kt_double minimumDistancePenalty,
-                           kt_double angleVariancePenalty, kt_double minimumAnglePenalty,
-                           kt_double searchCenterHeading, ScanMatcherGridSet* pScanMatcherGridSet)
-      : m_pNewPositionsY(pNewPositionsY)
-      , m_pSquaresY(pSquaresY)
-      , m_pNewPositionsX(pNewPositionsX)
-      , m_pSquaresX(pSquaresX)
-      , m_pAngles(pAngles)
-      , m_pPoseResponses(pPoseResponses)
-      , m_pScanMatcher(pScanMatcher)
-      , m_DoPenalize(doPenalize)
-      , m_DistanceVariancePenalty(distanceVariancePenalty)
-      , m_MinimumDistancePenalty(minimumDistancePenalty)
-      , m_AngleVariancePenalty(angleVariancePenalty)
-      , m_MinimumAnglePenalty(minimumAnglePenalty)
-      , m_SearchCenterHeading(searchCenterHeading)
-      , m_pScanMatcherGridSet(pScanMatcherGridSet)
-    {
-      m_nX = pNewPositionsX->size();
-      m_nAngles = pAngles->size();
-    }
-          
-    void operator()(const tbb::blocked_range3d<kt_int32s, kt_int32s, kt_int32s>& rRange) const
-    {      
-      CorrelationGrid* pCorrelationGrid = m_pScanMatcherGridSet->m_pCorrelationGrid.get();
-      
-      for (tbb::blocked_range<kt_int32s>::const_iterator yIndex = rRange.pages().begin(); yIndex != rRange.pages().end(); yIndex++)
-      {
-        kt_double newPositionY = m_pNewPositionsY->at(yIndex);
-        kt_double squareY = m_pSquaresY->at(yIndex);
-
-        for (tbb::blocked_range<kt_int32s>::const_iterator xIndex = rRange.rows().begin(); xIndex != rRange.rows().end(); xIndex++)
-        {
-          kt_double newPositionX = m_pNewPositionsX->at(xIndex);
-          kt_double squareX = m_pSquaresX->at(xIndex);
-
-          Vector2i gridPoint = pCorrelationGrid->WorldToGrid(Vector2d(newPositionX, newPositionY));
-          kt_int32s gridIndex = pCorrelationGrid->GridIndex(gridPoint);
-          assert(gridIndex >= 0);
-          
-          kt_double squaredDistance = squareX + squareY;
-          
-          for (tbb::blocked_range<kt_int32s>::const_iterator angleIndex = rRange.cols().begin(); angleIndex != rRange.cols().end(); angleIndex++)
-          {
-            kt_int32u poseResponseIndex = (m_nX * m_nAngles) * yIndex + m_nAngles * xIndex + angleIndex;
-            
-            kt_double angle = m_pAngles->at(angleIndex);
-            
-            kt_double response = m_pScanMatcher->GetResponse(m_pScanMatcherGridSet, angleIndex, gridIndex);
-            if (m_DoPenalize && (math::DoubleEqual(response, 0.0) == false))
-            {
-              // simple model (approximate Gaussian) to take odometry into account
-              
-              kt_double distancePenalty = 1.0 - (DISTANCE_PENALTY_GAIN * squaredDistance / m_DistanceVariancePenalty);
-              distancePenalty = math::Maximum(distancePenalty, m_MinimumDistancePenalty);
-              
-              kt_double squaredAngleDistance = math::Square(angle - m_SearchCenterHeading);
-              kt_double anglePenalty = 1.0 - (ANGLE_PENALTY_GAIN * squaredAngleDistance / m_AngleVariancePenalty);
-              anglePenalty = math::Maximum(anglePenalty, m_MinimumAnglePenalty);
-              
-              response *= (distancePenalty * anglePenalty);
-            }
-            
-            // store response and pose
-            m_pPoseResponses->at(poseResponseIndex) = std::pair<kt_double, Pose2>(response, Pose2(newPositionX, newPositionY, math::NormalizeAngle(angle)));
-          }
-        }
-      }
-    }
-    
-  private:
-    std::vector<kt_double>* m_pNewPositionsY;
-    std::vector<kt_double>* m_pSquaresY;
-    std::vector<kt_double>* m_pNewPositionsX;
-    std::vector<kt_double>* m_pSquaresX;
-    std::vector<kt_double>* m_pAngles;
-    std::vector<std::pair<kt_double, Pose2> >* m_pPoseResponses;
-    ScanMatcher* m_pScanMatcher;
-    kt_bool m_DoPenalize;
-    kt_double m_DistanceVariancePenalty, m_MinimumDistancePenalty;
-    kt_double m_AngleVariancePenalty, m_MinimumAnglePenalty;
-    kt_double m_SearchCenterHeading;
-    kt_int32u m_nX, m_nAngles;
-    ScanMatcherGridSet* m_pScanMatcherGridSet;
-  };
-#endif
   
   kt_double ScanMatcher::CorrelateScan(ScanMatcherGridSet* pScanMatcherGridSet, LocalizedLaserScan* pScan, const Pose2& rSearchCenter, const Vector2d& rSearchSpaceOffset, const Vector2d& rSearchSpaceResolution,
                                        kt_double searchAngleOffset, kt_double searchAngleResolution,	kt_bool doPenalize, Pose2& rMean, Matrix3& rCovariance, kt_bool doingFineMatch)
@@ -789,28 +665,61 @@ namespace karto
     
     Vector2i startGridPoint = pCorrelationGrid->WorldToGrid(Vector2d(rSearchCenter.GetX() + startX, rSearchCenter.GetY() + startY));
     
-    // use tbb if enabled and in multi threaded mode!
-    kt_bool gotTbb = false;
     if (m_pOpenMapper->IsMultiThreaded())
     {
-#ifdef USE_TBB
-      gotTbb = true;
-      Parallel_CorrelateScan myTask(&newPositionsY, &squaresY, &newPositionsX, &squaresX, &angles,
-        &poseResponses, this, doPenalize,
-        m_pOpenMapper->m_pDistanceVariancePenalty->GetValue(),
-        m_pOpenMapper->m_pMinimumDistancePenalty->GetValue(),
-        m_pOpenMapper->m_pAngleVariancePenalty->GetValue(),
-        m_pOpenMapper->m_pMinimumAnglePenalty->GetValue(),
-        rSearchCenter.GetHeading(), pScanMatcherGridSet);
-      int grainSizeY = 10;
-      int grainSizeX = 10;
-      int grainSizeAngle = 10;
-      tbb::parallel_for(tbb::blocked_range3d<kt_int32s>(0, static_cast<kt_int32s>(nY), grainSizeY, 0, static_cast<kt_int32s>(nX), grainSizeX, 0, nAngles, grainSizeAngle), myTask);
-#endif
-    }
+      unsigned int numThreads = std::thread::hardware_concurrency();
+      if (numThreads == 0) numThreads = 4;
 
-    // fallback to single threaded calculation
-    if (gotTbb == false)
+      std::vector<std::thread> threads;
+      threads.reserve(numThreads);
+
+      auto worker = [&](kt_int32u yStart, kt_int32u yEnd) {
+        for (kt_int32u yIndex = yStart; yIndex < yEnd; yIndex++)
+        {
+          kt_double newPositionY = newPositionsY[yIndex];
+          kt_double squareY = squaresY[yIndex];
+          for (kt_int32u xIndex = 0; xIndex < nX; xIndex++)
+          {
+            kt_double newPositionX = newPositionsX[xIndex];
+            kt_double squareX = squaresX[xIndex];
+            Vector2i gridPoint = pCorrelationGrid->WorldToGrid(Vector2d(newPositionX, newPositionY));
+            kt_int32s gridIndex = pCorrelationGrid->GridIndex(gridPoint);
+            assert(gridIndex >= 0);
+            kt_double squaredDistance = squareX + squareY;
+            for (kt_int32u angleIndex = 0; angleIndex < nAngles; angleIndex++)
+            {
+              kt_int32u poseResponseIndex = (nX * nAngles) * yIndex + nAngles * xIndex + angleIndex;
+              kt_double angle = angles[angleIndex];
+              kt_double response = GetResponse(pScanMatcherGridSet, angleIndex, gridIndex);
+              if (doPenalize && (math::DoubleEqual(response, 0.0) == false))
+              {
+                kt_double distancePenalty = 1.0 - (DISTANCE_PENALTY_GAIN * squaredDistance / m_pOpenMapper->m_pDistanceVariancePenalty->GetValue());
+                distancePenalty = math::Maximum(distancePenalty, m_pOpenMapper->m_pMinimumDistancePenalty->GetValue());
+                kt_double squaredAngleDistance = math::Square(angle - rSearchCenter.GetHeading());
+                kt_double anglePenalty = 1.0 - (ANGLE_PENALTY_GAIN * squaredAngleDistance / m_pOpenMapper->m_pAngleVariancePenalty->GetValue());
+                anglePenalty = math::Maximum(anglePenalty, m_pOpenMapper->m_pMinimumAnglePenalty->GetValue());
+                response *= (distancePenalty * anglePenalty);
+              }
+              poseResponses[poseResponseIndex] = std::pair<kt_double, Pose2>(response, Pose2(newPositionX, newPositionY, math::NormalizeAngle(angle)));
+            }
+          }
+        }
+      };
+
+      kt_int32u rowsPerThread = nY / numThreads;
+      kt_int32u remainder = nY % numThreads;
+      kt_int32u start = 0;
+      for (unsigned int t = 0; t < numThreads; t++)
+      {
+        kt_int32u end = start + rowsPerThread + (t < remainder ? 1 : 0);
+        if (start < end)
+          threads.emplace_back(worker, start, end);
+        start = end;
+      }
+      for (auto& thread : threads)
+        thread.join();
+    }
+    else
     {
       kt_int32u poseResponseCounter = 0;
       for (kt_int32u yIndex = 0; yIndex < nY; yIndex++)
@@ -850,7 +759,7 @@ namespace karto
             // store response and pose
             poseResponses[poseResponseCounter] = std::pair<kt_double, Pose2>(response, Pose2(newPositionX, newPositionY, math::NormalizeAngle(angle)));
             poseResponseCounter++;
-          }        
+          }
         }
       }
 
@@ -1697,101 +1606,63 @@ namespace karto
     }
   }
   
-#ifdef USE_TBB
-  class Parallel_LinkNearChains
-  {
-  public:
-    Parallel_LinkNearChains(OpenMapper* pMapper, LocalizedLaserScan* pScan, const std::vector<LocalizedLaserScanList>* pChains,
-                            kt_bool* pWasChainLinked, Pose2List* pMeans, std::vector<Matrix3>* pCovariances,
-                            kt_int32u minChainSize, kt_double minResponse)
-      : m_pOpenMapper(pMapper)
-      , m_pScan(pScan)
-      , m_pChains(pChains)
-      , m_pWasChainLinked(pWasChainLinked)
-      , m_pMeans(pMeans)
-      , m_pCovariances(pCovariances)
-      , m_MinChainSize(minChainSize)
-      , m_MinResponse(minResponse)
-    {
-    }
-
-    void operator()(const tbb::blocked_range<kt_int32s>& rRange) const
-    {
-      for (kt_int32s i = rRange.begin(); i != rRange.end(); i++)
-      {
-        m_pWasChainLinked[i] = false;
-
-        const LocalizedLaserScanList& rChain = (*m_pChains)[i];
-
-        if (rChain.size() < m_MinChainSize)
-        {
-          continue;
-        }
-
-        Pose2 mean;
-        Matrix3 covariance;
-
-        // match scan against "near" chain
-        kt_double response = m_pOpenMapper->GetSequentialScanMatcher()->MatchScan(m_pScan, rChain, mean, covariance, false);
-        if (response > m_MinResponse - KT_TOLERANCE)
-        {
-          m_pWasChainLinked[i] = true;
-          (*m_pMeans)[i] = mean;
-          (*m_pCovariances)[i] = covariance;
-        }
-      }
-    }
-
-  private:
-    OpenMapper* m_pOpenMapper;
-    LocalizedLaserScan* m_pScan;
-    const std::vector<LocalizedLaserScanList>* m_pChains;
-    kt_bool* m_pWasChainLinked;
-    Pose2List* m_pMeans;
-    std::vector<Matrix3>* m_pCovariances;
-    kt_int32u m_MinChainSize;
-    kt_double m_MinResponse;
-  };
-#endif
-  
   void MapperGraph::LinkNearChains(LocalizedLaserScan* pScan, Pose2List& rMeans, std::vector<Matrix3>& rCovariances)
   {
     const std::vector<LocalizedLaserScanList> nearChains = FindNearChains(pScan);
 
-    kt_bool gotTbb = false;
     if (m_pOpenMapper->IsMultiThreaded())
     {
-#ifdef USE_TBB
-      gotTbb = true;
-      kt_bool* pWasChainLinked = new kt_bool[nearChains.size()];
+      kt_int32s chainCount = static_cast<kt_int32s>(nearChains.size());
+      std::vector<kt_bool> wasChainLinked(chainCount, false);
+      Pose2List means(chainCount);
+      std::vector<Matrix3> covariances(chainCount);
 
-      Pose2List means;
-      means.resize(nearChains.size());
+      unsigned int numThreads = std::thread::hardware_concurrency();
+      if (numThreads == 0) numThreads = 4;
 
-      std::vector<Matrix3> covariances;
-      covariances.resize(nearChains.size());
+      std::vector<std::thread> threads;
+      auto worker = [&](kt_int32s iStart, kt_int32s iEnd) {
+        for (kt_int32s i = iStart; i < iEnd; i++)
+        {
+          const LocalizedLaserScanList& rChain = nearChains[i];
+          if (rChain.size() < m_pOpenMapper->m_pLoopMatchMinimumChainSize->GetValue())
+            continue;
+          Pose2 mean;
+          Matrix3 covariance;
+          kt_double response = m_pOpenMapper->GetSequentialScanMatcher()->MatchScan(pScan, rChain, mean, covariance, false);
+          if (response > m_pOpenMapper->m_pLinkMatchMinimumResponseFine->GetValue() - KT_TOLERANCE)
+          {
+            wasChainLinked[i] = true;
+            means[i] = mean;
+            covariances[i] = covariance;
+          }
+        }
+      };
 
-      int grainSize = 100;
-      Parallel_LinkNearChains myTask(m_pOpenMapper, pScan, &nearChains, pWasChainLinked, &means, &covariances,
-        m_pOpenMapper->m_pLoopMatchMinimumChainSize->GetValue(),
-        m_pOpenMapper->m_pLinkMatchMinimumResponseFine->GetValue());
-      tbb::parallel_for(tbb::blocked_range<kt_int32s>(0, static_cast<kt_int32s>(nearChains.size()), grainSize), myTask);
-
-      for (kt_int32u i = 0; i < nearChains.size(); i++)
+      kt_int32s rowsPerThread = chainCount / numThreads;
+      kt_int32s remainder = chainCount % numThreads;
+      kt_int32s start = 0;
+      for (unsigned int t = 0; t < numThreads; t++)
       {
-        if (pWasChainLinked[i] == true)
+        kt_int32s end = start + rowsPerThread + (t < remainder ? 1 : 0);
+        if (start < end)
+          threads.emplace_back(worker, start, end);
+        start = end;
+      }
+      for (auto& thread : threads)
+        thread.join();
+
+      for (kt_int32s i = 0; i < chainCount; i++)
+      {
+        if (wasChainLinked[i])
         {
           rMeans.push_back(means[i]);
           rCovariances.push_back(covariances[i]);
           LinkChainToScan(nearChains[i], pScan, means[i], covariances[i]);
         }
       }
-
-      delete [] pWasChainLinked;
-#endif
     }
-
-    if (gotTbb == false)
+    else
     {
       for (const auto& chain : nearChains)
       {
