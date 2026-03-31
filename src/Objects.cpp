@@ -58,32 +58,32 @@ namespace karto
   DatasetInfo::DatasetInfo()
     : Object()
   {
-    m_pTitle = new Parameter<karto::String>(GetParameterSet(), "Title", "Dataset::Title", "Title of dataset", "");
-    m_pAuthor = new Parameter<karto::String>(GetParameterSet(), "Author", "Dataset::Author", "Author of dataset", "");
-    m_pDescription = new Parameter<karto::String>(GetParameterSet(), "Description", "Dataset::Description", "Description of dataset", "");
-    m_pCopyright = new Parameter<karto::String>(GetParameterSet(), "Copyright", "Dataset::Copyright", "Copyright of dataset", "");
+    m_pTitle = new Parameter<std::string>(GetParameterSet(), "Title", "Dataset::Title", "Title of dataset", "");
+    m_pAuthor = new Parameter<std::string>(GetParameterSet(), "Author", "Dataset::Author", "Author of dataset", "");
+    m_pDescription = new Parameter<std::string>(GetParameterSet(), "Description", "Dataset::Description", "Description of dataset", "");
+    m_pCopyright = new Parameter<std::string>(GetParameterSet(), "Copyright", "Dataset::Copyright", "Copyright of dataset", "");
   }
 
   DatasetInfo::~DatasetInfo()
   {
   }
 
-  const String& DatasetInfo::GetTitle() const
+  const std::string& DatasetInfo::GetTitle() const
   {
     return m_pTitle->GetValue();
   }
 
-  const String& DatasetInfo::GetAuthor() const
+  const std::string& DatasetInfo::GetAuthor() const
   {
     return m_pAuthor->GetValue();
   }
 
-  const String& DatasetInfo::GetDescription() const
+  const std::string& DatasetInfo::GetDescription() const
   {
     return m_pDescription->GetValue();
   }
 
-  const String& DatasetInfo::GetCopyright() const
+  const std::string& DatasetInfo::GetCopyright() const
   {
     return m_pCopyright->GetValue();
   }

@@ -43,31 +43,31 @@ namespace karto
 
   BasicEvent<LogMessageArguments> LogMessage;
 
-  void InitializeLogger(const String& rApplicationName, const String& rLogLevel)
+  void InitializeLogger(const std::string& rApplicationName, const std::string& rLogLevel)
   {
     LogLevel logLevel = LOG_NONE;
 
-    if (rLogLevel.Find("NONE") != -1) 
+    if (rLogLevel.find("NONE") != std::string::npos) 
     {
       logLevel = LOG_NONE;
     }
-    else if (rLogLevel.Find("FATAL") != -1) 
+    else if (rLogLevel.find("FATAL") != std::string::npos) 
     {
       logLevel = LOG_FATAL;
     }
-    else if (rLogLevel.Find("ERROR") != -1) 
+    else if (rLogLevel.find("ERROR") != std::string::npos) 
     {
       logLevel = LOG_ERROR;
     }
-    else if (rLogLevel.Find("WARNING") != -1) 
+    else if (rLogLevel.find("WARNING") != std::string::npos) 
     {
       logLevel = LOG_WARNING;
     }
-    else if (rLogLevel.Find("INFORMATION") != -1) 
+    else if (rLogLevel.find("INFORMATION") != std::string::npos) 
     {
       logLevel = LOG_INFORMATION;
     }
-    else if (rLogLevel.Find("DEBUG") != -1) 
+    else if (rLogLevel.find("DEBUG") != std::string::npos) 
     {
       logLevel = LOG_DEBUG;
     }
@@ -76,7 +76,7 @@ namespace karto
       std::cerr << "Warning: invalid KARTO_LOG_LEVEL [" << rLogLevel << "] using NONE as default!"<<std::endl;
     }
 
-    karto::String logName;
+    std::string logName;
     if (logLevel != LOG_NONE)
     {
      if (s_FileLoggingEnabled == true)
@@ -124,7 +124,7 @@ namespace karto
         Poco::PatternFormatter* pFormatter = new Poco::PatternFormatter("%Y-%m-%d %H:%M:%S.%c %N[%P]:%q:%t");
         pFormatter->setProperty("times", "local");
         pFCFile = new Poco::FormattingChannel(pFormatter);
-        pFCFile->setChannel(new Poco::FileChannel(logName.ToCString()));
+        pFCFile->setChannel(new Poco::FileChannel(logName.c_str()));
         pFCFile->open();
       }
 
@@ -180,40 +180,40 @@ namespace karto
     return s_LogLevel;
   }
 
-  void Log(LogLevel level, const karto::String& rMessage)
+  void Log(LogLevel level, const std::string& rMessage)
   {
     if (s_LogLevel != LOG_NONE)
     {
 #ifdef USE_POCO
       if (level == LOG_FATAL)
       {
-        Poco::Logger::get("ConsoleLogger").fatal(rMessage.ToCString());
-        Poco::Logger::get("FileLogger").fatal(rMessage.ToCString());
+        Poco::Logger::get("ConsoleLogger").fatal(rMessage.c_str());
+        Poco::Logger::get("FileLogger").fatal(rMessage.c_str());
       }
       else if (level == LOG_ERROR)
       {
-        Poco::Logger::get("ConsoleLogger").error(rMessage.ToCString());
-        Poco::Logger::get("FileLogger").error(rMessage.ToCString());
+        Poco::Logger::get("ConsoleLogger").error(rMessage.c_str());
+        Poco::Logger::get("FileLogger").error(rMessage.c_str());
       }
       else if (level == LOG_WARNING)
       {
-        Poco::Logger::get("ConsoleLogger").warning(rMessage.ToCString());
-        Poco::Logger::get("FileLogger").warning(rMessage.ToCString());
+        Poco::Logger::get("ConsoleLogger").warning(rMessage.c_str());
+        Poco::Logger::get("FileLogger").warning(rMessage.c_str());
       }
       else if (level == LOG_INFORMATION)
       {
-        Poco::Logger::get("ConsoleLogger").information(rMessage.ToCString());
-        Poco::Logger::get("FileLogger").information(rMessage.ToCString());
+        Poco::Logger::get("ConsoleLogger").information(rMessage.c_str());
+        Poco::Logger::get("FileLogger").information(rMessage.c_str());
       }
       else if (level == LOG_DEBUG)
       {
-        Poco::Logger::get("ConsoleLogger").debug(rMessage.ToCString());
-        Poco::Logger::get("FileLogger").debug(rMessage.ToCString());
+        Poco::Logger::get("ConsoleLogger").debug(rMessage.c_str());
+        Poco::Logger::get("FileLogger").debug(rMessage.c_str());
       }
       else
       {
-        Poco::Logger::get("ConsoleLogger").information(rMessage.ToCString());
-        Poco::Logger::get("FileLogger").information(rMessage.ToCString());
+        Poco::Logger::get("ConsoleLogger").information(rMessage.c_str());
+        Poco::Logger::get("FileLogger").information(rMessage.c_str());
       }
 #else
       std::cout << "Warning OpenKarto is compiled without POCO, so no logging enabled! Compile with POCO and define USE_POCO to enable logging." << std::endl;

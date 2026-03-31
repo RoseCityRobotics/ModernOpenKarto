@@ -90,7 +90,7 @@ namespace karto
      * @param rParameterName name of parameter
      * @return parameter with given name
      */
-    inline AbstractParameter* GetParameter(const String& rParameterName) const
+    inline AbstractParameter* GetParameter(const std::string& rParameterName) const
     {
       return m_pParameterSet->GetParameter(rParameterName);
     }
@@ -101,7 +101,7 @@ namespace karto
      * @return parameter with given name
      */
     template<typename T>
-    inline Parameter<T>* GetParameter(const String& rParameterName) const
+    inline Parameter<T>* GetParameter(const std::string& rParameterName) const
     {
       return dynamic_cast<Parameter<T>*>(m_pParameterSet->GetParameter(rParameterName));
     }
@@ -112,7 +112,7 @@ namespace karto
      * @param rValue new value
      */
     template<typename T>
-    inline void SetParameters(const karto::String& rParameterName, const T& rValue)
+    inline void SetParameters(const std::string& rParameterName, const T& rValue)
     {
       AbstractParameter* pAbstractParameters = GetParameter(rParameterName);
       if (pAbstractParameters != NULL)
@@ -121,17 +121,17 @@ namespace karto
       }
       else
       {
-        String errorMessage;
-        errorMessage.Append("Parameter does not exist: ");
-        errorMessage.Append(rParameterName);
-        errorMessage.Append(String::NewLine());
-        errorMessage.Append("Valid parameters are: ");
-        errorMessage.Append(String::NewLine());
+        std::string errorMessage;
+        errorMessage.append("Parameter does not exist: ");
+        errorMessage.append(rParameterName);
+        errorMessage.append("\n");
+        errorMessage.append("Valid parameters are: ");
+        errorMessage.append("\n");
         const ParameterList& rParameters = m_pParameterSet->GetParameters();
         karto_const_forEach(ParameterList, &rParameters)
         {
-          errorMessage.Append("\t" + (*iter)->GetName());
-          errorMessage.Append(String::NewLine());
+          errorMessage.append("\t" + (*iter)->GetName());
+          errorMessage.append("\n");
         }
         throw Exception(errorMessage);
       }

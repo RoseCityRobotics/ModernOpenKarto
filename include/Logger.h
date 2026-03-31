@@ -24,7 +24,10 @@
 #ifndef __KARTO_LOGGER__
 #define __KARTO_LOGGER__
 
-#include <KartoString.h>
+#include <string>
+
+#include <Macros.h>
+#include <Types.h>
 #include <Event.h>
 
 namespace karto
@@ -81,7 +84,7 @@ namespace karto
    * @param level log level
    * @param rMessage message
    */
-  extern KARTO_EXPORT void Log(LogLevel level, const karto::String& rMessage);
+  extern KARTO_EXPORT void Log(LogLevel level, const std::string& rMessage);
 
   /**
    * Gets the log level
@@ -100,7 +103,7 @@ namespace karto
    * Initialize logging
    * @note Please don't call. Called by Environment::Initialize()
    */
-  void InitializeLogger(const karto::String& rApplicationName = "Karto", const String& rLogLevel = "NONE");
+  void InitializeLogger(const std::string& rApplicationName = "Karto", const std::string& rLogLevel = "NONE");
 
   /**
    * Terminate all logging
@@ -124,7 +127,7 @@ namespace karto
      * @param level log level
      * @param rMessage message
      */
-    LogMessageArguments(LogLevel level, const karto::String& rMessage)
+    LogMessageArguments(LogLevel level, const std::string& rMessage)
       : m_Level(level)
       , m_Message(rMessage)
     {
@@ -151,14 +154,14 @@ namespace karto
      * Gets the log message
      * @return log message
      */
-    const karto::String& GetMessage() const
+    const std::string& GetMessage() const
     {
       return m_Message;
     }
 
   private:
     LogLevel m_Level;
-    karto::String m_Message;
+    std::string m_Message;
   };
 
 #ifdef WIN32

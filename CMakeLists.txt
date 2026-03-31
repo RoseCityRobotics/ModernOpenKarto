@@ -28,7 +28,6 @@ set(KARTO_SOURCE_FILES
   src/Sensor.cpp
   src/SensorData.cpp
   src/SensorRegistry.cpp
-  src/String.cpp
   src/StringHelper.cpp
 )
 

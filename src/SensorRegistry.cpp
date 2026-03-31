@@ -73,15 +73,15 @@ namespace karto
       {
         Validate(pSensor);
 
-        Log(LOG_DEBUG, String("Registering sensor: [") + pSensor->GetIdentifier().ToString() + "]");
+        Log(LOG_DEBUG, std::string("Registering sensor: [") + pSensor->GetIdentifier().ToString() + "]");
       }
 
       if ((m_pSensorRegistryPrivate->m_SensorMap.find(karto::Identifier(pSensor->GetIdentifier())) != m_pSensorRegistryPrivate->m_SensorMap.end()))
       {
-        String errorMessage;
-        errorMessage.Append("Cannot register sensor: already registered: [");
-        errorMessage.Append(pSensor->GetIdentifier().ToString());
-        errorMessage.Append("]");
+        std::string errorMessage;
+        errorMessage.append("Cannot register sensor: already registered: [");
+        errorMessage.append(pSensor->GetIdentifier().ToString());
+        errorMessage.append("]");
 
         throw Exception(errorMessage);
       }
@@ -97,7 +97,7 @@ namespace karto
     {
       if (pSensor->GetIdentifier().GetScope() != "Karto/System")
       {
-        Log(LOG_DEBUG, String("Unregistering sensor: [") + pSensor->GetIdentifier().ToString() + "]");
+        Log(LOG_DEBUG, std::string("Unregistering sensor: [") + pSensor->GetIdentifier().ToString() + "]");
       }
 
       if (m_pSensorRegistryPrivate->m_SensorMap.find(pSensor->GetIdentifier()) != m_pSensorRegistryPrivate->m_SensorMap.end())
@@ -108,10 +108,10 @@ namespace karto
       }
       else
       {
-        String errorMessage;
-        errorMessage.Append("Cannot unregister sensor: not registered: [");
-        errorMessage.Append(pSensor->GetIdentifier().ToString());
-        errorMessage.Append("]");
+        std::string errorMessage;
+        errorMessage.append("Cannot unregister sensor: not registered: [");
+        errorMessage.append(pSensor->GetIdentifier().ToString());
+        errorMessage.append("]");
 
         throw Exception(errorMessage);
       }
@@ -129,10 +129,10 @@ namespace karto
       return pSensor;
     }
 
-    String errorMessage;
-    errorMessage.Append("Sensor not registered: [");
-    errorMessage.Append(rName.ToString());
-    errorMessage.Append("]");
+    std::string errorMessage;
+    errorMessage.append("Sensor not registered: [");
+    errorMessage.append(rName.ToString());
+    errorMessage.append("]");
     throw Exception(errorMessage);
   }
 

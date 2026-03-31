@@ -20,7 +20,11 @@
 #ifndef __OpenKarto_Exception_h__
 #define __OpenKarto_Exception_h__
 
-#include <KartoString.h>
+#include <ostream>
+#include <string>
+
+#include <Macros.h>
+#include <Types.h>
 
 namespace karto
 {
@@ -31,55 +35,55 @@ namespace karto
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
-  
+
   /**
    * Root class for all exceptions thrown from Karto.
    */
   class KARTO_EXPORT Exception
   {
-  public:    
+  public:
     /**
      * Exception with given message
      * @param pMessage exception message
      */
-    Exception(const char* pMessage);    
+    Exception(const char* pMessage);
 
     /**
      * Exception with given message
      * @param rMessage exception message
      * @param errorCode error code
      */
-    Exception(const String& rMessage = "Karto Exception", kt_int32s errorCode = 0);    
-    
+    Exception(const std::string& rMessage = "Karto Exception", kt_int32s errorCode = 0);
+
     /**
      * Copy constructor
      */
     Exception(const Exception& rOther);
-    
+
     /**
      * Destructor
      */
     virtual ~Exception();
-    
+
   public:
     /**
      * Assignment operator
      */
     Exception& operator=(const Exception& rException);
-    
+
   public:
     /**
      * Gets the error message
      * @return error message
      */
-    const String& GetErrorMessage() const;
-    
+    const std::string& GetErrorMessage() const;
+
     /**
      * Gets error code
      * @return error code
      */
     kt_int32s GetErrorCode();
-    
+
   public:
     /**
      * Write exception to output stream
@@ -91,9 +95,9 @@ namespace karto
       rStream << " ==> error message: " << rException.GetErrorMessage() << std::endl;
       return rStream;
     }
-    
+
   private:
-    String m_Message;
+    std::string m_Message;
     kt_int32s m_ErrorCode;
   }; // class Exception
 

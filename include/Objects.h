@@ -106,13 +106,13 @@ namespace karto
      * Write out this custom item as a string
      * @return string representation of this custom item
      */
-    virtual const String& Write() const = 0;
-    
+    virtual const std::string& Write() const = 0;
+
     /**
      * Read in this custom item from a string
      * @param pValue string representation of this custom item
      */
-    virtual void Read(const String& pValue) = 0;
+    virtual void Read(const std::string& pValue) = 0;
 
   private:
     // restrict the following functions
@@ -166,25 +166,25 @@ namespace karto
      * Gets title of the dataset
      * @return title of the dataset
      */
-    const String& GetTitle() const;
+    const std::string& GetTitle() const;
 
     /**
      * Gets author(s) information about the dataset
      * @return author(s) information about the dataset
      */
-    const String& GetAuthor() const;
+    const std::string& GetAuthor() const;
 
     /**
      * Gets description about the dataset
      * @return description about the dataset
      */
-    const String& GetDescription() const;
+    const std::string& GetDescription() const;
 
     /**
      * Gets copyright information of the dataset
      * @return copyright information of the dataset
      */
-    const String& GetCopyright() const;
+    const std::string& GetCopyright() const;
 
   private:
     // restrict the following functions
@@ -192,10 +192,10 @@ namespace karto
     const DatasetInfo& operator=(const DatasetInfo&);
 
   private:
-    Parameter<String>* m_pTitle;
-    Parameter<String>* m_pAuthor;
-    Parameter<String>* m_pDescription;
-    Parameter<String>* m_pCopyright;
+    Parameter<std::string>* m_pTitle;
+    Parameter<std::string>* m_pAuthor;
+    Parameter<std::string>* m_pDescription;
+    Parameter<std::string>* m_pCopyright;
   }; // class DatasetInfo
 
   /**

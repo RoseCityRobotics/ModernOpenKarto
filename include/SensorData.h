@@ -867,7 +867,7 @@ namespace karto
    * 
    * Example of how to to get a human readable time from the scan time.
    * \code
-   *   std::cout << "Scan Date: " << karto::LocalDateTime(karto::DateTime(karto::Timestamp::FromUtcTime(pLocalizedRangeScan->GetTime()))).ToString().ToCString() << std::endl;
+   *   std::cout << "Scan Date: " << karto::LocalDateTime(karto::DateTime(karto::Timestamp::FromUtcTime(pLocalizedRangeScan->GetTime()))).ToString() << std::endl;
    * \endcode
    * The LocalDataTime automatically corrects for timezone.
    */

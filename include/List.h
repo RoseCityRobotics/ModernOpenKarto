@@ -167,10 +167,10 @@ namespace karto
     {
       if (index >= m_Size)
       {
-        String message;
-        message.Append("Cannot remove item: invalid index: ");
-        message.Append(StringHelper::ToString(index));
-        
+        std::string message;
+        message.append("Cannot remove item: invalid index: ");
+        message.append(StringHelper::ToString(index));
+
         throw Exception(message);
       }
       

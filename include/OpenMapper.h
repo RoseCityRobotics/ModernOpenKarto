@@ -54,7 +54,7 @@ namespace karto
      * Mapper event arguments with the provided message
      * @param rMessage message
      */
-    MapperEventArguments(const String& rMessage)
+    MapperEventArguments(const std::string& rMessage)
       : m_Message(rMessage)
     {
     }
@@ -71,13 +71,13 @@ namespace karto
      * Gets the event message
      * @return event message
      */
-    const String& GetEventMessage() const
+    const std::string& GetEventMessage() const
     {
       return m_Message;
     }
 
   private:
-    String m_Message;
+    std::string m_Message;
   };
 
 #ifdef WIN32

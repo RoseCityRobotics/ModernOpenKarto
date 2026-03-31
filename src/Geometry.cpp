@@ -16,7 +16,6 @@
  */
 
 #include <Geometry.h>
-#include <KartoString.h>
 
 namespace karto
 {
@@ -189,16 +188,16 @@ namespace karto
     m_Values[3] = cYaw * cPitch * cRoll - sYaw * sPitch * sRoll;
   }
 
-  const String Quaternion::ToString() const
+  const std::string Quaternion::ToString() const
   {
-    String valueString;
-    valueString.Append(StringHelper::ToString(GetX()));
-    valueString.Append(" ");
-    valueString.Append(StringHelper::ToString(GetY()));
-    valueString.Append(" ");
-    valueString.Append(StringHelper::ToString(GetZ()));
-    valueString.Append(" ");
-    valueString.Append(StringHelper::ToString(GetW()));
+    std::string valueString;
+    valueString.append(StringHelper::ToString(GetX()));
+    valueString.append(" ");
+    valueString.append(StringHelper::ToString(GetY()));
+    valueString.append(" ");
+    valueString.append(StringHelper::ToString(GetZ()));
+    valueString.append(" ");
+    valueString.append(StringHelper::ToString(GetW()));
     return valueString;
   }
 

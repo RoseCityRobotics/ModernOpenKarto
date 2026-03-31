@@ -51,7 +51,6 @@
 #include <SensorData.h>
 #include <SensorRegistry.h>
 #include <SmartPointer.h>
-#include <KartoString.h>
 #include <StringHelper.h>
 #include <TypeCasts.h>
 #include <Types.h>

@@ -20,7 +20,11 @@
 #ifndef __OpenKarto_Name_h__
 #define __OpenKarto_Name_h__
 
-#include <KartoString.h>
+#include <ostream>
+#include <string>
+
+#include <Macros.h>
+#include <Types.h>
 
 namespace karto
 {
@@ -36,7 +40,7 @@ namespace karto
    * '/Test' -- no scope; will be parsed to 'Test'
    * '/scope/Test' - 'scope' scope and 'Test' name
    * '/scope/name/Test' - 'scope/name' scope and 'Test' name
-   */ 
+   */
   class KARTO_EXPORT Identifier
   {
   public:
@@ -52,10 +56,10 @@ namespace karto
     Identifier(const char* pString);
 
     /**
-     * Constructs an identifier from a String
+     * Constructs an identifier from a std::string
      * @param rString identifier string
      */
-    Identifier(const String& rString);
+    Identifier(const std::string& rString);
 
     /**
      * Copy constructor
@@ -72,25 +76,25 @@ namespace karto
      * Gets the name of this identifier
      * @return name
      */
-    const String& GetName() const;
+    const std::string& GetName() const;
 
     /**
      * Sets the name
      * @param pName name
      */
-    void SetName(const String& pName);
+    void SetName(const std::string& pName);
 
     /**
      * Gets the scope of this identifier
      * @return scope
      */
-    const String& GetScope() const;
+    const std::string& GetScope() const;
 
     /**
      * Sets the scope of this identifier
      * @param rScope new scope
-     */    
-    void SetScope(const String& rScope);
+     */
+    void SetScope(const std::string& rScope);
 
     /**
      * Gets the size of the identifier (scope and name)
@@ -107,31 +111,31 @@ namespace karto
      * Returns a string representation of this identifier
      * @return string representation of this identifier
      */
-    const String& ToString() const;
+    const std::string& ToString() const;
 
   public:
-    /** 
+    /**
      * Assignment operator
      */
     Identifier& operator=(const Identifier& rOther);
 
-    /** 
+    /**
      * Equality operator
-     */    
+     */
     kt_bool operator==(const Identifier& rOther) const;
 
-    /** 
+    /**
      * Inequality operator
-     */    
+     */
     kt_bool operator!=(const Identifier& rOther) const
     {
       return !(*this == rOther);
     }
 
-    /** 
+    /**
      * Less than operator (An identifier is 'less than' another identifier if it
      * is lexicographically 'less' than the other identifier.)
-     */    
+     */
     kt_bool operator<(const Identifier& rOther) const;
 
     /**
@@ -142,19 +146,19 @@ namespace karto
       rStream << rIdentifier.ToString();
       return rStream;
     }
-    
+
   private:
     /**
      * Parse the given string into an identifier
      * @param rString string
      */
-    void Parse(const String& rString);
+    void Parse(const std::string& rString);
 
     /**
      * Validates the given string as an identifier
      * @param rString string
      */
-    void Validate(const String& rString);
+    void Validate(const std::string& rString);
 
     /**
      * Formats the identifier
@@ -182,9 +186,9 @@ namespace karto
     }
 
   private:
-    String m_Name;
-    String m_Scope;
-    String m_FullName;
+    std::string m_Name;
+    std::string m_Scope;
+    std::string m_FullName;
   };
 
   //@}

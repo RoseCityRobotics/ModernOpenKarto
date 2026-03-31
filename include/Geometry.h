@@ -113,12 +113,12 @@ namespace karto
      * Returns a string representation of this size
      * @return string representation of this size
      */
-    inline const karto::String ToString() const
+    inline const std::string ToString() const
     {
-      String valueString;
-      valueString.Append(StringHelper::ToString(GetWidth()));
-      valueString.Append(" ");
-      valueString.Append(StringHelper::ToString(GetHeight()));
+      std::string valueString;
+      valueString.append(StringHelper::ToString(GetWidth()));
+      valueString.append(" ");
+      valueString.append(StringHelper::ToString(GetHeight()));
       return valueString;
     }
 
@@ -155,7 +155,7 @@ namespace karto
      */
     friend KARTO_FORCEINLINE std::ostream& operator << (std::ostream& rStream, const Size2& rSize)
     {
-      rStream << rSize.ToString().ToCString();
+      rStream << rSize.ToString();
       return rStream;
     }
 
@@ -266,14 +266,14 @@ namespace karto
      * Returns a string representation of this size object
      * @return string representation of this size object
      */
-    inline const karto::String ToString() const
+    inline const std::string ToString() const
     {
-      String valueString;
-      valueString.Append(StringHelper::ToString(GetWidth()));
-      valueString.Append(" ");
-      valueString.Append(StringHelper::ToString(GetHeight()));
-      valueString.Append(" ");
-      valueString.Append(StringHelper::ToString(GetDepth()));
+      std::string valueString;
+      valueString.append(StringHelper::ToString(GetWidth()));
+      valueString.append(" ");
+      valueString.append(StringHelper::ToString(GetHeight()));
+      valueString.append(" ");
+      valueString.append(StringHelper::ToString(GetDepth()));
       return valueString;
     }
 
@@ -449,12 +449,12 @@ namespace karto
      * Returns a string representation of this vector
      * @return string representation of this vector
      */
-    inline const String ToString() const
+    inline const std::string ToString() const
     {
-      String valueString;
-      valueString.Append(StringHelper::ToString(GetX()));
-      valueString.Append(" ");
-      valueString.Append(StringHelper::ToString(GetY()));
+      std::string valueString;
+      valueString.append(StringHelper::ToString(GetX()));
+      valueString.append(" ");
+      valueString.append(StringHelper::ToString(GetY()));
       return valueString;
     }
 
@@ -586,7 +586,7 @@ namespace karto
      */
     friend KARTO_FORCEINLINE std::ostream& operator<<(std::ostream& rStream, const Vector2& rVector)
     {
-      rStream << rVector.ToString().ToCString();
+      rStream << rVector.ToString();
       return rStream;
     }
     
@@ -788,14 +788,14 @@ namespace karto
      * Returns a string representation of this vector
      * @return string representation of this vector
      */
-    inline const String ToString() const
+    inline const std::string ToString() const
     {
-      String valueString;
-      valueString.Append(StringHelper::ToString(GetX()));
-      valueString.Append(" ");
-      valueString.Append(StringHelper::ToString(GetY()));
-      valueString.Append(" ");
-      valueString.Append(StringHelper::ToString(GetZ()));
+      std::string valueString;
+      valueString.append(StringHelper::ToString(GetX()));
+      valueString.append(" ");
+      valueString.append(StringHelper::ToString(GetY()));
+      valueString.append(" ");
+      valueString.append(StringHelper::ToString(GetZ()));
       return valueString;
     }
 
@@ -1022,7 +1022,7 @@ namespace karto
      */
     friend KARTO_FORCEINLINE std::ostream& operator << (std::ostream& rStream, const Vector3& rVector)
     {
-      rStream << rVector.ToString().ToCString();
+      rStream << rVector.ToString();
       return rStream;
     }
 
@@ -1170,16 +1170,16 @@ namespace karto
      * Returns a string representation of this vector
      * @return string representation of this vector
      */
-    inline const String ToString() const
+    inline const std::string ToString() const
     {
-      String valueString;
-      valueString.Append(StringHelper::ToString(GetX()));
-      valueString.Append(" ");
-      valueString.Append(StringHelper::ToString(GetY()));
-      valueString.Append(" ");
-      valueString.Append(StringHelper::ToString(GetZ()));
-      valueString.Append(" ");
-      valueString.Append(StringHelper::ToString(GetW()));
+      std::string valueString;
+      valueString.append(StringHelper::ToString(GetX()));
+      valueString.append(" ");
+      valueString.append(StringHelper::ToString(GetY()));
+      valueString.append(" ");
+      valueString.append(StringHelper::ToString(GetZ()));
+      valueString.append(" ");
+      valueString.append(StringHelper::ToString(GetW()));
       return valueString;
     }
 
@@ -1256,7 +1256,7 @@ namespace karto
      */
     friend KARTO_FORCEINLINE std::ostream& operator<<(std::ostream& rStream, const Vector4& rVector)
     {
-      rStream << rVector.ToString().ToCString();
+      rStream << rVector.ToString();
       return rStream;
     }
 
@@ -1506,7 +1506,7 @@ namespace karto
      * String representation of this quaternion
      * @return string representation of this quaternion
      */
-    const String ToString() const;
+    const std::string ToString() const;
 
   public:
     /**
@@ -1575,7 +1575,7 @@ namespace karto
      */
     friend KARTO_FORCEINLINE std::ostream& operator<<(std::ostream& rStream, const Quaternion& rQuaternion)
     {
-      rStream << rQuaternion.ToString().ToCString();
+      rStream << rQuaternion.ToString();
       return rStream;
     }
 
@@ -2311,14 +2311,14 @@ namespace karto
      * @param precision precision, default 4
      * @return string representation of this pose
      */
-    inline const String ToString(kt_int32u precision = 4) const
+    inline const std::string ToString(kt_int32u precision = 4) const
     {
-      String valueString;
-      valueString.Append(StringHelper::ToString(m_Position.GetX(), precision));
-      valueString.Append(" ");
-      valueString.Append(StringHelper::ToString(m_Position.GetY(), precision));
-      valueString.Append(" ");
-      valueString.Append(StringHelper::ToString(m_Heading, precision));
+      std::string valueString;
+      valueString.append(StringHelper::ToString(m_Position.GetX(), precision));
+      valueString.append(" ");
+      valueString.append(StringHelper::ToString(m_Position.GetY(), precision));
+      valueString.append(" ");
+      valueString.append(StringHelper::ToString(m_Heading, precision));
       return valueString;
     }
 
@@ -2496,12 +2496,12 @@ namespace karto
      * Returns a string representation of this pose
      * @return string representation of this pose
      */
-    inline const String ToString() const
+    inline const std::string ToString() const
     {
-      String valueString;
-      valueString.Append(GetPosition().ToString());
-      valueString.Append(" ");
-      valueString.Append(GetOrientation().ToString());
+      std::string valueString;
+      valueString.append(GetPosition().ToString());
+      valueString.append(" ");
+      valueString.append(GetOrientation().ToString());
       return valueString;
     }
     
@@ -2671,16 +2671,16 @@ namespace karto
      * Returns a string representation of this matrix
      * @return string representation of this matrix
      */
-    inline const String ToString() const
+    inline const std::string ToString() const
     {
-      String valueString;
+      std::string valueString;
 
       for (int row = 0; row < 3; row++)
       {
         for (int col = 0; col < 3; col++)
         {
-          valueString.Append(StringHelper::ToString(m_Matrix[row][col]));
-          valueString.Append(" ");
+          valueString.append(StringHelper::ToString(m_Matrix[row][col]));
+          valueString.append(" ");
         }
       }
       
@@ -2982,16 +2982,16 @@ namespace karto
      * Returns a string representation of this color
      * @return string representation of this color
      */
-    const String ToString() const
+    const std::string ToString() const
     {
-      String valueString;
-      valueString.Append(StringHelper::ToString(GetRed()));
-      valueString.Append(" ");
-      valueString.Append(StringHelper::ToString(GetGreen()));
-      valueString.Append(" ");
-      valueString.Append(StringHelper::ToString(GetBlue()));
-      valueString.Append(" ");
-      valueString.Append(StringHelper::ToString(GetAlpha()));
+      std::string valueString;
+      valueString.append(StringHelper::ToString(GetRed()));
+      valueString.append(" ");
+      valueString.append(StringHelper::ToString(GetGreen()));
+      valueString.append(" ");
+      valueString.append(StringHelper::ToString(GetBlue()));
+      valueString.append(" ");
+      valueString.append(StringHelper::ToString(GetAlpha()));
       return valueString;
     }
 
@@ -3177,12 +3177,12 @@ namespace karto
        * String representation of this GPS point
        * @return string representation of this GPS point
        */
-      inline const String ToString() const
+      inline const std::string ToString() const
       {
-        String valueString;
-        valueString.Append(StringHelper::ToString(GetLatitude()));
-        valueString.Append(" ");
-        valueString.Append(StringHelper::ToString(GetLongitude()));
+        std::string valueString;
+        valueString.append(StringHelper::ToString(GetLatitude()));
+        valueString.append(" ");
+        valueString.append(StringHelper::ToString(GetLongitude()));
         return valueString;
       }
       
@@ -3225,61 +3225,61 @@ namespace karto
   ////////////////////////////////////////////////////////////////////////////////////////
 
   template<typename T>
-  inline String StringHelper::ToString(const Size2<T>& rValue)
+  inline std::string StringHelper::ToString(const Size2<T>& rValue)
   {
     return rValue.ToString();
   }
 
   template<typename T>
-  inline String StringHelper::ToString(const Vector2<T>& rValue)
+  inline std::string StringHelper::ToString(const Vector2<T>& rValue)
   {
     return rValue.ToString();
   }
 
   template<typename T>
-  inline String StringHelper::ToString(const Vector3<T>& rValue)
+  inline std::string StringHelper::ToString(const Vector3<T>& rValue)
   {
     return rValue.ToString();
   }
 
   template<typename T>
-  inline String StringHelper::ToString(const Vector4<T>& rValue)
+  inline std::string StringHelper::ToString(const Vector4<T>& rValue)
   {
     return rValue.ToString();
   }
 
   template<typename T>
-  inline static kt_bool FromString(const String& rStringValue, Vector3<T>& rValue)
+  inline static kt_bool FromString(const std::string& rStringValue, Vector3<T>& rValue)
   {
-    karto::String tempString = rStringValue;
-    kt_size_t index = tempString.FindFirstOf(" ");
-    if (index != -1)
+    std::string tempString = rStringValue;
+    kt_size_t index = tempString.find_first_of(" ");
+    if (index != std::string::npos)
     {
-      karto::String stringValue;
+      std::string stringValue;
       T value;
 
       // Get X
-      stringValue = tempString.SubString(0, index);
+      stringValue = tempString.substr(0, index);
 
       value = 0;
       FromString(stringValue, value);
       rValue.SetX(value);
 
       // Get Y
-      tempString = rStringValue.SubString(index + 1, rStringValue.Size());
-      index = tempString.FindFirstOf(" ");
+      tempString = rStringValue.substr(index + 1, rStringValue.size());
+      index = tempString.find_first_of(" ");
 
-      stringValue = tempString.SubString(0, index);
+      stringValue = tempString.substr(0, index);
 
       value = 0;
       FromString(stringValue, value);
       rValue.SetY(value);
 
       // Get Z
-      tempString = rStringValue.SubString(index + 1, rStringValue.Size());
-      index = tempString.FindFirstOf(" ");
+      tempString = tempString.substr(index + 1, rStringValue.size());
+      index = tempString.find_first_of(" ");
 
-      stringValue = tempString.SubString(index + 1, rStringValue.Size());
+      stringValue = tempString.substr(index + 1, rStringValue.size());
 
       value = 0;
       FromString(stringValue, value);

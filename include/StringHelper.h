@@ -23,8 +23,10 @@
 #include <stdio.h>
 #include <ostream>
 #include <sstream>
+#include <string>
 
-#include <KartoString.h>
+#include <Macros.h>
+#include <Types.h>
 
 namespace karto
 {
@@ -59,83 +61,83 @@ namespace karto
      * @param value value to be converted
      * @return string representation of the C-string
      */
-    static String ToString(const char* value);
+    static std::string ToString(const char* value);
 
     /**
      * Converts the given boolean to a string
      * @param value value to be converted
      * @return string representation of the boolean
      */
-    static String ToString(kt_bool value);
+    static std::string ToString(kt_bool value);
 
     /**
      * Converts the given 16-bit signed integer to a string
      * @param value value to be converted
      * @return string representation of the 16-bit signed integer
      */
-    static String ToString(kt_int16s value);
+    static std::string ToString(kt_int16s value);
 
     /**
      * Converts the given 16-bit unsigned integer to a string
      * @param value value to be converted
      * @return string representation of the 16-bit unsigned integer
      */
-    static String ToString(kt_int16u value);
+    static std::string ToString(kt_int16u value);
 
     /**
      * Converts the given 32-bit signed integer to a string
      * @param value value to be converted
      * @return string representation of the 32-bit signed integer
      */
-    static String ToString(kt_int32s value);
+    static std::string ToString(kt_int32s value);
 
     /**
      * Converts the given 32-bit unsigned integer to a string
      * @param value value to be converted
      * @return string representation of the 32-bit unsigned integer
      */
-    static String ToString(kt_int32u value);
+    static std::string ToString(kt_int32u value);
 
     /**
      * Converts the given 64-bit signed integer to a string
      * @param value value to be converted
      * @return string representation of the 64-bit signed integer
-     */   
-    static String ToString(kt_int64s value);
+     */
+    static std::string ToString(kt_int64s value);
 
     /**
      * Converts the given 64-bit unsigned integer to a string
      * @param value value to be converted
      * @return string representation of the 64-bit unsigned integer
      */
-    static String ToString(kt_int64u value);
+    static std::string ToString(kt_int64u value);
 
 #if !KARTO_SIZE_T_SAME_AS_UINT64
     // size_t is a distinct type from uint64_t on macOS (unsigned long vs unsigned long long)
-    static String ToString(kt_size_t value);
+    static std::string ToString(kt_size_t value);
 #endif
-  
+
     /**
      * Converts the given float to a string
      * @param value value to be converted
      * @return string representation of the float
      */
-    static String ToString(kt_float value);
+    static std::string ToString(kt_float value);
 
     /**
      * Converts the given double to a string
      * @param value value to be converted
      * @return string representation of the double
      */
-    static String ToString(kt_double value);
-	  
+    static std::string ToString(kt_double value);
+
     /**
      * Converts the given float to a string with the given precision
      * @param value value to be converted
      * @param precision precision
      * @return string representation of the float
      */
-    static String ToString(kt_float value, kt_int32u precision);
+    static std::string ToString(kt_float value, kt_int32u precision);
 
     /**
      * Converts the given double to a string with the given precision
@@ -143,14 +145,14 @@ namespace karto
      * @param precision precision
      * @return string representation of the double
      */
-    static String ToString(kt_double value, kt_int32u precision);
+    static std::string ToString(kt_double value, kt_int32u precision);
 
     /**
      * Copies the string argument
      * @param rValue string value
      * @return copy of the string argument
      */
-    static String ToString(const String& rValue);
+    static std::string ToString(const std::string& rValue);
 
     /**
      * Converts the given size to a string
@@ -158,7 +160,7 @@ namespace karto
      * @return string representation of the size
      */
     template<typename T>
-    inline static String ToString(const Size2<T>& rValue);
+    inline static std::string ToString(const Size2<T>& rValue);
 
     /**
      * Converts the given vector to a string
@@ -166,7 +168,7 @@ namespace karto
      * @return string representation of the vector
      */
     template<typename T>
-    inline static String ToString(const Vector2<T>& rValue);
+    inline static std::string ToString(const Vector2<T>& rValue);
 
     /**
      * Converts the given vector to a string
@@ -174,7 +176,7 @@ namespace karto
      * @return string representation of the vector
      */
     template<typename T>
-    inline static String ToString(const Vector3<T>& rValue);
+    inline static std::string ToString(const Vector3<T>& rValue);
 
     /**
      * Converts the given vector to a string
@@ -182,35 +184,35 @@ namespace karto
      * @return string representation of the vector
      */
     template<typename T>
-    inline static String ToString(const Vector4<T>& rValue);
+    inline static std::string ToString(const Vector4<T>& rValue);
 
     /**
      * Converts the given quaternion to a string
      * @param rValue value to be converted
      * @return string representation of the quaternion
      */
-    static String ToString(const Quaternion& rValue);
+    static std::string ToString(const Quaternion& rValue);
 
     /**
      * Converts the given color to a string
      * @param rValue value to be converted
      * @return string representation of the color
      */
-    static String ToString(const Color& rValue);
+    static std::string ToString(const Color& rValue);
 
     /**
      * Converts the given pose to a string
      * @param rValue value to be converted
      * @return string representation of the pose
      */
-    static String ToString(const Pose2& rValue);
+    static std::string ToString(const Pose2& rValue);
 
     /**
      * Converts the given pose to a string
      * @param rValue value to be converted
      * @return string representation of the pose
      */
-    static String ToString(const Pose3& rValue);
+    static std::string ToString(const Pose3& rValue);
 
     /**
      * Converts the given string to a boolean
@@ -218,7 +220,7 @@ namespace karto
      * @param rValue value to set from string
      * @return true if conversion was success, false otherwise
      */
-    static kt_bool FromString(const String& rStringValue, kt_bool& rValue);
+    static kt_bool FromString(const std::string& rStringValue, kt_bool& rValue);
 
     /**
      * Converts the given string to a 16-bit signed integer
@@ -226,15 +228,15 @@ namespace karto
      * @param rValue value to set from string
      * @return true if conversion was success, false otherwise
      */
-    static kt_bool FromString(const String& rStringValue, kt_int16s& rValue);
-    
+    static kt_bool FromString(const std::string& rStringValue, kt_int16s& rValue);
+
     /**
      * Converts the given string to a 16-bit unsigned integer
      * @param rStringValue string representation of value
      * @param rValue value to set from string
      * @return true if conversion was success, false otherwise
      */
-    static kt_bool FromString(const String& rStringValue, kt_int16u& rValue);
+    static kt_bool FromString(const std::string& rStringValue, kt_int16u& rValue);
 
     /**
      * Converts the given string to a 32-bit signed integer
@@ -242,15 +244,15 @@ namespace karto
      * @param rValue value to set from string
      * @return true if conversion was success, false otherwise
      */
-    static kt_bool FromString(const String& rStringValue, kt_int32s& rValue);
-    
+    static kt_bool FromString(const std::string& rStringValue, kt_int32s& rValue);
+
     /**
      * Converts the given string to a 32-bit unsigned integer
      * @param rStringValue string representation of value
      * @param rValue value to set from string
      * @return true if conversion was success, false otherwise
      */
-    static kt_bool FromString(const String& rStringValue, kt_int32u& rValue);
+    static kt_bool FromString(const std::string& rStringValue, kt_int32u& rValue);
 
     /**
      * Converts the given string to a 64-bit signed integer
@@ -258,15 +260,15 @@ namespace karto
      * @param rValue value to set from string
      * @return true if conversion was success, false otherwise
      */
-    static kt_bool FromString(const String& rStringValue, kt_int64s& rValue);
-    
+    static kt_bool FromString(const std::string& rStringValue, kt_int64s& rValue);
+
     /**
      * Converts the given string to a 64-bit unsigned integer
      * @param rStringValue string representation of value
      * @param rValue value to set from string
      * @return true if conversion was success, false otherwise
      */
-    static kt_bool FromString(const String& rStringValue, kt_int64u& rValue);
+    static kt_bool FromString(const std::string& rStringValue, kt_int64u& rValue);
 
     /**
      * Converts the given string to a float
@@ -274,46 +276,46 @@ namespace karto
      * @param rValue value to set from string
      * @return true if conversion was success, false otherwise
      */
-    static kt_bool FromString(const String& rStringValue, kt_float& rValue);
-    
+    static kt_bool FromString(const std::string& rStringValue, kt_float& rValue);
+
     /**
      * Converts the given string to a double
      * @param rStringValue string representation of value
      * @param rValue value to set from string
      * @return true if conversion was success, false otherwise
      */
-    static kt_bool FromString(const String& rStringValue, kt_double& rValue);
+    static kt_bool FromString(const std::string& rStringValue, kt_double& rValue);
 
     /**
-     * Converts the given String to a String
+     * Converts the given std::string to a std::string
      * @param rStringValue string representation of value
      * @param rValue value to set from string
      * @return true if conversion was success, false otherwise
      */
-    static kt_bool FromString(const String& rStringValue, String& rValue);
+    static kt_bool FromString(const std::string& rStringValue, std::string& rValue);
 
     /**
-     * Converts the given String to a Size2<T>
+     * Converts the given std::string to a Size2<T>
      * @param rStringValue string representation of value
      * @param rValue value to set from string
      * @return true if conversion was success, false otherwise
      */
     template<typename T>
-    static kt_bool FromString(const String& rStringValue, Size2<T>& rValue)
+    static kt_bool FromString(const std::string& rStringValue, Size2<T>& rValue)
     {
-      kt_size_t index = rStringValue.FindFirstOf(" ");
-      if (index != -1)
+      kt_size_t index = rStringValue.find_first_of(" ");
+      if (index != std::string::npos)
       {
-        karto::String stringValue;
+        std::string stringValue;
         T value;
 
-        stringValue = rStringValue.SubString(0, index);
+        stringValue = rStringValue.substr(0, index);
 
         value = 0;
         FromString(stringValue, value);
         rValue.SetWidth(value);
 
-        stringValue = rStringValue.SubString(index + 1, rStringValue.Size());
+        stringValue = rStringValue.substr(index + 1, rStringValue.size());
 
         value = 0;
         FromString(stringValue, value);
@@ -326,27 +328,27 @@ namespace karto
     }
 
     /**
-     * Converts the given String to a Vector2<T>
+     * Converts the given std::string to a Vector2<T>
      * @param rStringValue string representation of value
      * @param rValue value to set from string
      * @return true if conversion was success, false otherwise
      */
     template<typename T>
-    static kt_bool FromString(const String& rStringValue, Vector2<T>& rValue)
+    static kt_bool FromString(const std::string& rStringValue, Vector2<T>& rValue)
     {
-      kt_size_t index = rStringValue.FindFirstOf(" ");
-      if (index != -1)
+      kt_size_t index = rStringValue.find_first_of(" ");
+      if (index != std::string::npos)
       {
-        karto::String stringValue;
+        std::string stringValue;
         T value;
-        
-        stringValue = rStringValue.SubString(0, index);
+
+        stringValue = rStringValue.substr(0, index);
 
         value = 0;
         FromString(stringValue, value);
         rValue.SetX(value);
 
-        stringValue = rStringValue.SubString(index + 1, rStringValue.Size());
+        stringValue = rStringValue.substr(index + 1, rStringValue.size());
 
         value = 0;
         FromString(stringValue, value);
@@ -359,43 +361,43 @@ namespace karto
     }
 
     /**
-     * Converts the given String to a Vector3<T>
+     * Converts the given std::string to a Vector3<T>
      * @param rStringValue string representation of value
      * @param rValue value to set from string
      * @return true if conversion was success, false otherwise
      */
     template<typename T>
-    inline static kt_bool FromString(const String& rStringValue, Vector3<T>& rValue)
+    inline static kt_bool FromString(const std::string& rStringValue, Vector3<T>& rValue)
     {
-      karto::String tempString = rStringValue;
-      kt_size_t index = tempString.FindFirstOf(" ");
-      if (index != -1)
+      std::string tempString = rStringValue;
+      kt_size_t index = tempString.find_first_of(" ");
+      if (index != std::string::npos)
       {
-        karto::String stringValue;
+        std::string stringValue;
         T value;
 
         // Get X
-        stringValue = tempString.SubString(0, index);
+        stringValue = tempString.substr(0, index);
 
         value = 0;
         FromString(stringValue, value);
         rValue.SetX(value);
 
         // Get Y
-        tempString = rStringValue.SubString(index + 1, rStringValue.Size());
-        index = tempString.FindFirstOf(" ");
+        tempString = rStringValue.substr(index + 1, rStringValue.size());
+        index = tempString.find_first_of(" ");
 
-        stringValue = tempString.SubString(0, index);
+        stringValue = tempString.substr(0, index);
 
         value = 0;
         FromString(stringValue, value);
         rValue.SetY(value);
 
         // Get Z
-        tempString = tempString.SubString(index + 1, rStringValue.Size());
-        index = tempString.FindFirstOf(" ");
+        tempString = tempString.substr(index + 1, rStringValue.size());
+        index = tempString.find_first_of(" ");
 
-        stringValue = tempString.SubString(index + 1, rStringValue.Size());
+        stringValue = tempString.substr(index + 1, rStringValue.size());
 
         value = 0;
         FromString(stringValue, value);
@@ -408,53 +410,53 @@ namespace karto
     }
 
     /**
-     * Converts the given String to a Vector4<T>
+     * Converts the given std::string to a Vector4<T>
      * @param rStringValue string representation of value
      * @param rValue value to set from string
      * @return true if conversion was success, false otherwise
      */
     template<typename T>
-    static kt_bool FromString(const String& rStringValue, Vector4<T>& rValue)
+    static kt_bool FromString(const std::string& rStringValue, Vector4<T>& rValue)
     {
-      karto::String tempString = rStringValue;
-      kt_size_t index = tempString.FindFirstOf(" ");
-      if (index != -1)
+      std::string tempString = rStringValue;
+      kt_size_t index = tempString.find_first_of(" ");
+      if (index != std::string::npos)
       {
-        karto::String stringValue;
+        std::string stringValue;
         T value;
 
         // Get X
-        stringValue = tempString.SubString(0, index);
+        stringValue = tempString.substr(0, index);
 
         value = 0;
         FromString(stringValue, value);
         rValue.SetX(value);
 
         // Get Y
-        tempString = rStringValue.SubString(index + 1, rStringValue.Size());
-        index = tempString.FindFirstOf(" ");
+        tempString = rStringValue.substr(index + 1, rStringValue.size());
+        index = tempString.find_first_of(" ");
 
-        stringValue = tempString.SubString(0, index);
+        stringValue = tempString.substr(0, index);
 
         value = 0;
         FromString(stringValue, value);
         rValue.SetY(value);
 
         // Get Z
-        tempString = tempString.SubString(index + 1, rStringValue.Size());
-        index = tempString.FindFirstOf(" ");
+        tempString = tempString.substr(index + 1, rStringValue.size());
+        index = tempString.find_first_of(" ");
 
-        stringValue = tempString.SubString(index + 1, rStringValue.Size());
+        stringValue = tempString.substr(index + 1, rStringValue.size());
 
         value = 0;
         FromString(stringValue, value);
         rValue.SetZ(value);
 
         // Get W
-        tempString = tempString.SubString(index + 1, rStringValue.Size());
-        index = tempString.FindFirstOf(" ");
+        tempString = tempString.substr(index + 1, rStringValue.size());
+        index = tempString.find_first_of(" ");
 
-        stringValue = tempString.SubString(index + 1, rStringValue.Size());
+        stringValue = tempString.substr(index + 1, rStringValue.size());
 
         value = 0;
         FromString(stringValue, value);
@@ -467,43 +469,43 @@ namespace karto
     }
 
     /**
-     * Converts the given String to a Quaternion
+     * Converts the given std::string to a Quaternion
      * @param rStringValue string representation of value
      * @param rValue value to set from string
      * @return true if conversion was success, false otherwise
      */
-    static kt_bool FromString(const String& rStringValue, Quaternion& rValue);
+    static kt_bool FromString(const std::string& rStringValue, Quaternion& rValue);
 
     /**
-     * Converts the given String to a Color
+     * Converts the given std::string to a Color
      * @param rStringValue string representation of value
      * @param rValue value to set from string
      * @return true if conversion was success, false otherwise
      */
-    static kt_bool FromString(const String& rStringValue, Color& rValue);
+    static kt_bool FromString(const std::string& rStringValue, Color& rValue);
 
     /**
-     * Converts the given String to a Pose2
+     * Converts the given std::string to a Pose2
      * @param rStringValue string representation of value
      * @param rValue value to set from string
      * @return true if conversion was success, false otherwise
      */
-    static kt_bool FromString(const String& rStringValue, Pose2& rValue);
+    static kt_bool FromString(const std::string& rStringValue, Pose2& rValue);
 
     /**
-     * Converts the given String to a Pose3
+     * Converts the given std::string to a Pose3
      * @param rStringValue string representation of value
      * @param rValue value to set from string
      * @return true if conversion was success, false otherwise
      */
-    static kt_bool FromString(const String& rStringValue, Pose3& rValue);
+    static kt_bool FromString(const std::string& rStringValue, Pose3& rValue);
 
     /**
      * Returns a trimmed version of the given string
      * @param rValue string
      * @return trimmed version of the given string
      */
-    static String Trim(const String& rValue);
+    static std::string Trim(const std::string& rValue);
 
     /**
      * Replace all instances of string pattern in source string with replacement pattern
@@ -512,7 +514,7 @@ namespace karto
      * @param rReplace replacement pattern
      * @return replaced string
      */
-    static String Replace(const String& rSource, const String& rFind, const String& rReplace);
+    static std::string Replace(const std::string& rSource, const std::string& rFind, const std::string& rReplace);
 
     /**
      * Checks if given character is a letter
@@ -526,14 +528,14 @@ namespace karto
      * @param rValue string
      * @return lowercase version of the given string
      */
-    static String ToLowerCase(const String &rValue);
-    
+    static std::string ToLowerCase(const std::string &rValue);
+
     /**
      * Returns a uppercase version of the given string
      * @param rValue string
      * @return uppercase version of the given string
      */
-    static String ToUpperCase(const String &rValue);
+    static std::string ToUpperCase(const std::string &rValue);
   }; // class StringHelper
 
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -550,7 +552,7 @@ namespace karto
      * Convert contents to string
      * @return string of contents
      */
-    const String& ToString() const;
+    const std::string& ToString() const;
 
     /**
      * Erase contents of string builder
@@ -633,7 +635,7 @@ namespace karto
      * @param rValue string value
      * @return this StringBuilder with given value added
      */
-    StringBuilder& operator << (const String& rValue);
+    StringBuilder& operator << (const std::string& rValue);
 
     /**
      * Add string builder to this string builder
@@ -655,7 +657,7 @@ namespace karto
     }
 
   private:
-    String m_String;
+    std::string m_String;
   }; // class StringBuilder
 
   //@}
