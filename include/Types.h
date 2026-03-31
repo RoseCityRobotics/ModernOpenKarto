@@ -20,155 +20,26 @@
 #ifndef __OpenKarto_Types_h__
 #define __OpenKarto_Types_h__
 
-#include <assert.h>
-
+#include <cassert>
 #include <cstddef>
+#include <cstdint>
 
-/**
-  * \defgroup OpenKarto OpenKarto Module
-  */
-/*@{*/
+using kt_int8s  = std::int8_t;
+using kt_int8u  = std::uint8_t;
+using kt_int16s = std::int16_t;
+using kt_int16u = std::uint16_t;
+using kt_int32s = std::int32_t;
+using kt_int32u = std::uint32_t;
+using kt_int64s = std::int64_t;
+using kt_int64u = std::uint64_t;
 
-#if defined(_MSC_VER)
+using kt_size_t = std::size_t;
 
-  /**
-   * Type declaration of 8 bit integer type
-   */
-  typedef signed __int8 kt_int8s;
-
-  /**
-   * Type declaration of unsigned 8 bit integer type
-   */
-  typedef unsigned __int8 kt_int8u;
-
-  /**
-   * Type declaration of 16 bit integer type
-   */
-  typedef signed __int16 kt_int16s;
-
-  /**
-   * Type declaration of unsigned 16 bit integer type
-   */
-  typedef unsigned __int16 kt_int16u;
-
-  /**
-   * Type declaration of 32 bit integer type
-   */
-  typedef signed __int32 kt_int32s;
-
-  /**
-   * Type declaration of unsigned 32 bit integer type
-   */
-  typedef unsigned __int32 kt_int32u;
-
-  /**
-   * Type declaration of 64 bit integer type
-   */
-  typedef signed __int64 kt_int64s;
-
-  /**
-   * Type declaration of unsigned 64 bit integer type
-   */
-  typedef unsigned __int64 kt_int64u;
-
-  /**
-   * Type declaration of size_t type
-   */
-  typedef std::size_t kt_size_t;
-
-#else
-
-  #include <stdint.h>
-
-  /**
-   * Type declaration of 8 bit integer type
-   */
-  typedef int8_t kt_int8s;
-
-  /**
-   * Type declaration of unsigned 8 bit integer type
-   */
-  typedef uint8_t kt_int8u;
-
-  /**
-   * Type declaration of 16 bit integer type
-   */
-  typedef int16_t kt_int16s;
-
-  /**
-   * Type declaration of unsigned 16 bit integer type
-   */
-  typedef uint16_t kt_int16u;
-
-  /**
-   * Type declaration of 32 bit integer type
-   */
-  typedef int32_t kt_int32s;
-
-  /**
-   * Type declaration of unsigned 32 bit integer type
-   */
-  typedef uint32_t kt_int32u;
-
-#if defined(__LP64__)
-  /**
-   * Type declaration of 64 bit integer type
-   */
-  typedef signed long kt_int64s;
-
-  /**
-   * Type declaration of unsigned 64 bit integer type
-   */
-  typedef unsigned long kt_int64u;
-#else
-  /**
-   * Type declaration of 64 bit integer type
-   */
-  typedef signed long long kt_int64s;
-
-  /**
-   * Type declaration of unsigned 64 bit integer type
-   */
-  typedef unsigned long long kt_int64u;
-#endif
-
-  /**
-   * Type declaration of size_t type
-   */
-  typedef std::size_t kt_size_t;
-
-#endif
-
-/**
- * Type declaration of boolean type
- */
-typedef bool kt_bool;
-
-/**
- * Type declaration of char type
- */
-typedef char kt_char;
-
-/**
- * Type declaration of float type
- */
-typedef float kt_float;
-
-/**
- * Type declaration of double type
- */
-typedef double kt_double;
-
-/**
- * Type declaration of karto object type
- */
-typedef kt_int32u kt_objecttype;
-
-/**
- * Type declaration of karto hight resolution timer tick type
- */
-typedef kt_int64s kt_tick;
-
-/*@}*/
+using kt_bool       = bool;
+using kt_char        = char;
+using kt_float       = float;
+using kt_double      = double;
+using kt_objecttype  = kt_int32u;
+using kt_tick        = kt_int64s;
 
 #endif // __OpenKarto_Types_h__
