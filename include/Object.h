@@ -22,6 +22,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <memory>
 #include <Identifier.h>
 #include <Exception.h>
 #include <Parameter.h>
@@ -53,7 +54,7 @@ namespace karto
   /**
    * Base class for Karto objects
    */
-  class KARTO_EXPORT Object : public Referenced
+  class KARTO_EXPORT Object
   {
     KARTO_RTTI();
 
@@ -69,15 +70,12 @@ namespace karto
      */
     Object(const Identifier& rIdentifier);
 
-  protected:
-    //@cond EXCLUDE
+  public:
     /**
      * Destructor
      */
     virtual ~Object();
-    //@endcond
-    
-  public:
+
     /**
      * Gets the identifier of this object
      * @return identifier of this object
@@ -145,7 +143,7 @@ namespace karto
      */
     inline ParameterSet* GetParameterSet()
     {
-      return m_pParameterSet;
+      return m_pParameterSet.get();
     }
     
     /**
@@ -174,14 +172,14 @@ namespace karto
   KARTO_TYPE(Object);
 
   /**
-   * Type declaration of Object managed by SmartPointer
+   * Type declaration of Object managed by std::shared_ptr
    */
-  typedef SmartPointer<Object> ObjectPtr;
+  using ObjectPtr = std::shared_ptr<Object>;
 
   /**
-   * Type declaration of Object List
+   * Type declaration of Object List (non-owning)
    */
-  using ObjectList = std::vector<ObjectPtr>;
+  using ObjectList = std::vector<Object*>;
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////

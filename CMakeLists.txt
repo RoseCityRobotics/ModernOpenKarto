@@ -22,7 +22,6 @@ set(KARTO_SOURCE_FILES
   src/Parameter.cpp
   src/PoseTransform.cpp
   src/RangeTransform.cpp
-  src/Referenced.cpp
   src/RigidBodyTransform.cpp
   src/Sensor.cpp
   src/SensorData.cpp

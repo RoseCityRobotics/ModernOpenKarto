@@ -74,8 +74,7 @@ namespace karto
       return pGrid;
     }
     
-  protected:
-    //@cond EXCLUDE
+  public:
     /**
      * Destructor
      */
@@ -84,7 +83,6 @@ namespace karto
       delete [] m_pData;
       delete m_pCoordinateConverter;
     }
-    //@endcond
 
   public:
     /**

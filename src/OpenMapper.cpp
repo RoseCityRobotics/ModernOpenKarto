@@ -137,12 +137,12 @@ namespace karto
      */
     inline kt_int32s GetScanIndex(LocalizedLaserScan* pScan)
     {
-      LocalizedLaserScanPtr pSmartScan(pScan);
-      auto it = std::lower_bound(m_Scans.begin(), m_Scans.end(), pSmartScan,
-        [](const LocalizedLaserScanPtr& a, const LocalizedLaserScanPtr& b) {
-          return a->GetStateId() < b->GetStateId();
+      kt_int32s targetStateId = pScan->GetStateId();
+      auto it = std::lower_bound(m_Scans.begin(), m_Scans.end(), targetStateId,
+        [](LocalizedLaserScan* a, kt_int32s stateId) {
+          return a->GetStateId() < stateId;
         });
-      if (it != m_Scans.end() && (*it)->GetStateId() == pSmartScan->GetStateId())
+      if (it != m_Scans.end() && (*it)->GetStateId() == targetStateId)
       {
         return static_cast<kt_int32s>(std::distance(m_Scans.begin(), it));
       }
@@ -196,7 +196,7 @@ namespace karto
     }
 
   private:
-    static kt_int32s ScanIndexComparator(const LocalizedLaserScanPtr& pScan1, const LocalizedLaserScanPtr& pScan2)
+    static kt_int32s ScanIndexComparator(LocalizedLaserScan* pScan1, LocalizedLaserScan* pScan2)
     {
       return pScan1->GetStateId() - pScan2->GetStateId();
     }
@@ -206,7 +206,7 @@ namespace karto
     
     LocalizedLaserScanList m_Scans;
     LocalizedLaserScanList m_RunningScans;
-    LocalizedLaserScanPtr m_pLastScan;
+    LocalizedLaserScan* m_pLastScan;
 
     kt_int32u m_RunningBufferMaximumSize;
     kt_double m_RunningBufferMaximumDistance;
@@ -395,14 +395,14 @@ namespace karto
         Grid<kt_double>* pSearchSpaceProbs = Grid<kt_double>::CreateGrid(searchSpaceGridWidth, searchSpaceGridHeight, resolution);
         GridIndexLookup<kt_int8u>* pGridLookup = new GridIndexLookup<kt_int8u>(pCorrelationGrid);
         
-        m_ScanMatcherGridSets.push(new ScanMatcherGridSet(pCorrelationGrid, pSearchSpaceProbs, pGridLookup));
+        m_ScanMatcherGridSets.push(std::make_shared<ScanMatcherGridSet>(pCorrelationGrid, pSearchSpaceProbs, pGridLookup));
       }
     }
     
     virtual ~ScanMatcherGridSetBank()
     {
       // we add a NULL item on the queue in case we are stuck in CheckOut!
-      m_ScanMatcherGridSets.push(NULL);
+      m_ScanMatcherGridSets.push(nullptr);
 
       m_ScanMatcherGridSets.clear();
     }
@@ -411,9 +411,9 @@ namespace karto
     /**
      * If no ScanMatcherGridSet on queue this thread will wait until one becomes available!
      */
-    SmartPointer<ScanMatcherGridSet> CheckOut()
+    std::shared_ptr<ScanMatcherGridSet> CheckOut()
     {
-      SmartPointer<ScanMatcherGridSet> pScanMatcherGridSet = NULL;
+      std::shared_ptr<ScanMatcherGridSet> pScanMatcherGridSet = nullptr;
 
       m_ScanMatcherGridSets.pop(pScanMatcherGridSet);
       
@@ -423,13 +423,13 @@ namespace karto
     /**
      * Return ScanMatcherGridSet to queue
      */
-    void Return(SmartPointer<ScanMatcherGridSet> pScanMatcherGridSet)
+    void Return(std::shared_ptr<ScanMatcherGridSet> pScanMatcherGridSet)
     {
       m_ScanMatcherGridSets.push(pScanMatcherGridSet);
     }
     
   private:
-    tbb::concurrent_bounded_queue<SmartPointer<ScanMatcherGridSet> > m_ScanMatcherGridSets;    
+    tbb::concurrent_bounded_queue<std::shared_ptr<ScanMatcherGridSet> > m_ScanMatcherGridSets;    
   };
 #else
   class ScanMatcherGridSetBank
@@ -487,7 +487,7 @@ namespace karto
     GridIndexLookup<kt_int8u>* pGridLookup = new GridIndexLookup<kt_int8u>(pCorrelationGrid);
     
     ScanMatcher* pScanMatcher = new ScanMatcher(pOpenMapper);
-    pScanMatcher->m_pScanMatcherGridSet = new ScanMatcherGridSet(pCorrelationGrid, pSearchSpaceProbs, pGridLookup);
+    pScanMatcher->m_pScanMatcherGridSet = std::make_shared<ScanMatcherGridSet>(pCorrelationGrid, pSearchSpaceProbs, pGridLookup);
     
     if (pOpenMapper->IsMultiThreaded())
     {
@@ -503,7 +503,7 @@ namespace karto
   
   kt_double ScanMatcher::MatchScan(LocalizedLaserScan* pScan, const LocalizedLaserScanList& rBaseScans, Pose2& rMean, Matrix3& rCovariance, kt_bool doPenalize, kt_bool doRefineMatch)
   {
-    SmartPointer<ScanMatcherGridSet> pScanMatcherGridSet;
+    std::shared_ptr<ScanMatcherGridSet> pScanMatcherGridSet;
 
     if (m_pOpenMapper->IsMultiThreaded())
     {
@@ -518,8 +518,8 @@ namespace karto
       pScanMatcherGridSet = m_pScanMatcherGridSet;
     }
 
-    CorrelationGrid* pCorrelationGrid = pScanMatcherGridSet->m_pCorrelationGrid;
-    Grid<kt_double>* pSearchSpaceProbs = pScanMatcherGridSet->m_pSearchSpaceProbs;
+    CorrelationGrid* pCorrelationGrid = pScanMatcherGridSet->m_pCorrelationGrid.get();
+    Grid<kt_double>* pSearchSpaceProbs = pScanMatcherGridSet->m_pSearchSpaceProbs.get();
     
     ///////////////////////////////////////
     // set scan pose to be center of grid
@@ -572,7 +572,7 @@ namespace karto
     Vector2d coarseSearchResolution(2 * pCorrelationGrid->GetResolution(), 2 * pCorrelationGrid->GetResolution());
     
     // actual scan-matching
-    kt_double bestResponse = CorrelateScan(pScanMatcherGridSet, pScan, scanPose,	coarseSearchOffset, coarseSearchResolution, m_pOpenMapper->m_pCoarseSearchAngleOffset->GetValue(), m_pOpenMapper->m_pCoarseAngleResolution->GetValue(), doPenalize, rMean, rCovariance, false);
+    kt_double bestResponse = CorrelateScan(pScanMatcherGridSet.get(), pScan, scanPose,	coarseSearchOffset, coarseSearchResolution, m_pOpenMapper->m_pCoarseSearchAngleOffset->GetValue(), m_pOpenMapper->m_pCoarseAngleResolution->GetValue(), doPenalize, rMean, rCovariance, false);
     
     if (m_pOpenMapper->m_pUseResponseExpansion->GetValue() == true)
     {
@@ -587,7 +587,7 @@ namespace karto
         {
           newSearchAngleOffset += math::DegreesToRadians(20);
           
-          bestResponse = CorrelateScan(pScanMatcherGridSet, pScan, scanPose,	coarseSearchOffset, coarseSearchResolution, newSearchAngleOffset, m_pOpenMapper->m_pCoarseAngleResolution->GetValue(), doPenalize, rMean, rCovariance, false);
+          bestResponse = CorrelateScan(pScanMatcherGridSet.get(), pScan, scanPose,	coarseSearchOffset, coarseSearchResolution, newSearchAngleOffset, m_pOpenMapper->m_pCoarseAngleResolution->GetValue(), doPenalize, rMean, rCovariance, false);
           
           if (math::DoubleEqual(bestResponse, 0.0) == false)
           {
@@ -608,7 +608,7 @@ namespace karto
     {
       Vector2d fineSearchOffset(coarseSearchResolution * 0.5);
       Vector2d fineSearchResolution(pCorrelationGrid->GetResolution(), pCorrelationGrid->GetResolution());
-      bestResponse = CorrelateScan(pScanMatcherGridSet, pScan, rMean, fineSearchOffset, fineSearchResolution, 0.5 * m_pOpenMapper->m_pCoarseAngleResolution->GetValue(), m_pOpenMapper->m_pFineSearchAngleOffset->GetValue(), doPenalize, rMean, rCovariance, true);
+      bestResponse = CorrelateScan(pScanMatcherGridSet.get(), pScan, rMean, fineSearchOffset, fineSearchResolution, 0.5 * m_pOpenMapper->m_pCoarseAngleResolution->GetValue(), m_pOpenMapper->m_pFineSearchAngleOffset->GetValue(), doPenalize, rMean, rCovariance, true);
     }
     
 #ifdef KARTO_DEBUG
@@ -660,7 +660,7 @@ namespace karto
           
     void operator()(const tbb::blocked_range3d<kt_int32s, kt_int32s, kt_int32s>& rRange) const
     {      
-      CorrelationGrid* pCorrelationGrid = m_pScanMatcherGridSet->m_pCorrelationGrid;
+      CorrelationGrid* pCorrelationGrid = m_pScanMatcherGridSet->m_pCorrelationGrid.get();
       
       for (tbb::blocked_range<kt_int32s>::const_iterator yIndex = rRange.pages().begin(); yIndex != rRange.pages().end(); yIndex++)
       {
@@ -728,8 +728,8 @@ namespace karto
   {
     assert(searchAngleResolution != 0.0);
 
-    CorrelationGrid* pCorrelationGrid = pScanMatcherGridSet->m_pCorrelationGrid;
-    Grid<kt_double>* pSearchSpaceProbs = pScanMatcherGridSet->m_pSearchSpaceProbs;
+    CorrelationGrid* pCorrelationGrid = pScanMatcherGridSet->m_pCorrelationGrid.get();
+    Grid<kt_double>* pSearchSpaceProbs = pScanMatcherGridSet->m_pSearchSpaceProbs.get();
     GridIndexLookup<kt_int8u>* pGridLookup = pScanMatcherGridSet->m_pGridLookup;
 
     // setup lookup arrays
@@ -1043,7 +1043,7 @@ namespace karto
   {
     // NOTE: do not reset covariance matrix
     
-    CorrelationGrid* pCorrelationGrid = pScanMatcherGridSet->m_pCorrelationGrid;
+    CorrelationGrid* pCorrelationGrid = pScanMatcherGridSet->m_pCorrelationGrid.get();
     
     // normalize angle difference
     kt_double bestAngle = math::NormalizeAngleDifference(rBestPose.GetHeading(), rSearchCenter.GetHeading());
@@ -1246,7 +1246,7 @@ namespace karto
   
   kt_double ScanMatcher::GetResponse(ScanMatcherGridSet* pScanMatcherGridSet, kt_int32u angleIndex, kt_int32s gridPositionIndex)
   {
-    CorrelationGrid* pCorrelationGrid = pScanMatcherGridSet->m_pCorrelationGrid;
+    CorrelationGrid* pCorrelationGrid = pScanMatcherGridSet->m_pCorrelationGrid.get();
     GridIndexLookup<kt_int8u>* pGridLookup = pScanMatcherGridSet->m_pGridLookup;
     
     kt_double response = 0.0;
@@ -1294,7 +1294,7 @@ namespace karto
     }
     else
     {
-      return m_pScanMatcherGridSet->m_pCorrelationGrid;
+      return m_pScanMatcherGridSet->m_pCorrelationGrid.get();
     }
   }
   
@@ -1306,7 +1306,7 @@ namespace karto
     }
     else
     {
-      return m_pScanMatcherGridSet->m_pSearchSpaceProbs;
+      return m_pScanMatcherGridSet->m_pSearchSpaceProbs.get();
     }
   }
   
@@ -1387,7 +1387,7 @@ namespace karto
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
 
-  class NearScanVisitor : public Visitor<LocalizedObjectPtr>
+  class NearScanVisitor : public Visitor<LocalizedObject*>
   {
   public:
     NearScanVisitor(LocalizedLaserScan* pScan, kt_double maxDistance, kt_bool useScanBarycenter)
@@ -1397,7 +1397,7 @@ namespace karto
       m_CenterPose = pScan->GetReferencePose(m_UseScanBarycenter);
     }
 
-    virtual kt_bool Visit(Vertex<LocalizedObjectPtr>* pVertex)
+    virtual kt_bool Visit(Vertex<LocalizedObject*>* pVertex)
     {
       LocalizedObject* pObject = pVertex->GetVertexObject();
 
@@ -1432,7 +1432,7 @@ namespace karto
     m_pLoopScanMatcher = ScanMatcher::Create(pOpenMapper, m_pOpenMapper->m_pLoopSearchSpaceDimension->GetValue(), m_pOpenMapper->m_pLoopSearchSpaceResolution->GetValue(), m_pOpenMapper->m_pLoopSearchSpaceSmearDeviation->GetValue(), rangeThreshold);
     assert(m_pLoopScanMatcher);
     
-    m_pTraversal = new BreadthFirstTraversal<LocalizedObjectPtr>(this);
+    m_pTraversal = new BreadthFirstTraversal<LocalizedObject*>(this);
   }
   
   MapperGraph::~MapperGraph()
@@ -1453,9 +1453,9 @@ namespace karto
       return;
     }
     
-    Vertex<LocalizedObjectPtr>* pVertex = new Vertex<LocalizedObjectPtr>(pObject);
-    Graph<LocalizedObjectPtr>::AddVertex(pVertex);
-    if (m_pOpenMapper->m_pScanSolver != NULL)
+    Vertex<LocalizedObject*>* pVertex = new Vertex<LocalizedObject*>(pObject);
+    Graph<LocalizedObject*>::AddVertex(pVertex);
+    if (m_pOpenMapper->m_pScanSolver != nullptr)
     {
       m_pOpenMapper->m_pScanSolver->AddNode(pVertex);
     }
@@ -1648,14 +1648,14 @@ namespace karto
     return pClosestScan;
   }
     
-  Edge<LocalizedObjectPtr>* MapperGraph::AddEdge(LocalizedObject* pSourceObject, LocalizedObject* pTargetObject, kt_bool& rIsNewEdge)
+  Edge<LocalizedObject*>* MapperGraph::AddEdge(LocalizedObject* pSourceObject, LocalizedObject* pTargetObject, kt_bool& rIsNewEdge)
   {
     // check that vertex exists
     assert(pSourceObject->GetUniqueId() < (kt_int32s)m_Vertices.size());
     assert(pTargetObject->GetUniqueId() < (kt_int32s)m_Vertices.size());
     
-    Vertex<LocalizedObjectPtr>* v1 = m_Vertices[pSourceObject->GetUniqueId()];
-    Vertex<LocalizedObjectPtr>* v2 = m_Vertices[pTargetObject->GetUniqueId()];
+    Vertex<LocalizedObject*>* v1 = m_Vertices[pSourceObject->GetUniqueId()];
+    Vertex<LocalizedObject*>* v2 = m_Vertices[pTargetObject->GetUniqueId()];
     
     // see if edge already exists
     for (const auto& pEdge : v1->GetEdges())
@@ -1667,8 +1667,8 @@ namespace karto
       }
     }
     
-    Edge<LocalizedObjectPtr>* pEdge = new Edge<LocalizedObjectPtr>(v1, v2);
-    Graph<LocalizedObjectPtr>::AddEdge(pEdge);
+    Edge<LocalizedObject*>* pEdge = new Edge<LocalizedObject*>(v1, v2);
+    Graph<LocalizedObject*>::AddEdge(pEdge);
     rIsNewEdge = true;
     return pEdge;
   }
@@ -1676,7 +1676,7 @@ namespace karto
   void MapperGraph::LinkObjects(LocalizedObject* pFromObject, LocalizedObject* pToObject, const Pose2& rMean, const Matrix3& rCovariance)
   {
     kt_bool isNewEdge = true;
-    Edge<LocalizedObjectPtr>* pEdge = AddEdge(pFromObject, pToObject, isNewEdge);
+    Edge<LocalizedObject*>* pEdge = AddEdge(pFromObject, pToObject, isNewEdge);
     
     // only attach link information if the edge is new
     if (isNewEdge == true)
@@ -1690,7 +1690,7 @@ namespace karto
       {
         pEdge->SetLabel(new LinkInfo(pFromObject->GetCorrectedPose(), rMean, rCovariance));
       }
-      if (m_pOpenMapper->m_pScanSolver != NULL)
+      if (m_pOpenMapper->m_pScanSolver != nullptr)
       {
         m_pOpenMapper->m_pScanSolver->AddConstraint(pEdge);
       }
@@ -1987,7 +1987,7 @@ namespace karto
     LocalizedLaserScanList nearLinkedScans;
     for (const auto& pObject : nearLinkedObjects)
     {
-      LocalizedLaserScan* pScan = dynamic_cast<LocalizedLaserScan*>(static_cast<LocalizedObject*>(pObject));
+      LocalizedLaserScan* pScan = dynamic_cast<LocalizedLaserScan*>(pObject);
       if (pScan != NULL)
       {
         nearLinkedScans.push_back(pScan);
@@ -2115,7 +2115,7 @@ namespace karto
   void MapperGraph::CorrectPoses()
   {
     // optimize scans!
-    ScanSolver* pSolver = m_pOpenMapper->m_pScanSolver;
+    ScanSolver* pSolver = m_pOpenMapper->m_pScanSolver.get();
     if (pSolver != NULL)
     {
       pSolver->Compute();
@@ -2148,7 +2148,7 @@ namespace karto
    */
   OpenMapper::OpenMapper(kt_bool multiThreaded)
     : Module("OpenMapper")
-    , m_pScanSolver(NULL)
+    , m_pScanSolver(nullptr)
     , m_Initialized(false)
     , m_MultiThreaded(multiThreaded)
     , m_pSequentialScanMatcher(NULL)
@@ -2163,7 +2163,7 @@ namespace karto
    */
   OpenMapper::OpenMapper(const char* pName, kt_bool multiThreaded)
     : Module(pName)
-    , m_pScanSolver(NULL)
+    , m_pScanSolver(nullptr)
     , m_Initialized(false)
     , m_MultiThreaded(multiThreaded)
     , m_pSequentialScanMatcher(NULL)
@@ -2435,12 +2435,12 @@ namespace karto
 
   ScanSolver* OpenMapper::GetScanSolver() const
   {
-    return m_pScanSolver;
+    return m_pScanSolver.get();
   }
 
   void OpenMapper::SetScanSolver(ScanSolver* pScanOptimizer)
   {
-    m_pScanSolver = pScanOptimizer;
+    m_pScanSolver.reset(pScanOptimizer);
   }
 
   MapperGraph* OpenMapper::GetGraph() const

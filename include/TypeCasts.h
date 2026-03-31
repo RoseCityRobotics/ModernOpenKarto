@@ -62,11 +62,11 @@ namespace karto
   EXPORT_KARTO_LIST(KARTO_EXPORT, kt_double)
   EXPORT_KARTO_LIST(KARTO_EXPORT, Pose2)
   EXPORT_KARTO_LIST(KARTO_EXPORT, Vector2d)
-  EXPORT_KARTO_LIST(KARTO_EXPORT, SmartPointer<LocalizedLaserScan>)
-  EXPORT_KARTO_LIST(KARTO_EXPORT, SmartPointer<CustomItem>)
-  EXPORT_KARTO_LIST(KARTO_EXPORT, SmartPointer<Sensor>)
-  EXPORT_KARTO_LIST(KARTO_EXPORT, SmartPointer<AbstractParameter>)
-  EXPORT_KARTO_LIST(KARTO_EXPORT, SmartPointer<Object>)
+  EXPORT_KARTO_LIST(KARTO_EXPORT, LocalizedLaserScan*)
+  EXPORT_KARTO_LIST(KARTO_EXPORT, CustomItem*)
+  EXPORT_KARTO_LIST(KARTO_EXPORT, Sensor*)
+  EXPORT_KARTO_LIST(KARTO_EXPORT, std::shared_ptr<AbstractParameter>)
+  EXPORT_KARTO_LIST(KARTO_EXPORT, Object*)
 #endif
 
   //@}

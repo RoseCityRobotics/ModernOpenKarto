@@ -21,13 +21,13 @@ namespace karto
 {
 
   Object::Object()
-    : m_pParameterSet(new ParameterSet())
+    : m_pParameterSet(std::make_shared<ParameterSet>())
   {
   }
 
   Object::Object(const Identifier& rIdentifier)
     : m_Identifier(rIdentifier)
-    , m_pParameterSet(new ParameterSet())
+    , m_pParameterSet(std::make_shared<ParameterSet>())
   {
   }
 

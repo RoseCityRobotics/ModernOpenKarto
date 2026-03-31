@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <memory>
 #include <OccupancyGrid.h>
 #include <OpenMapper.h>
 
@@ -27,8 +28,8 @@ namespace karto
 
   OccupancyGrid::OccupancyGrid(kt_int32s width, kt_int32s height, const Vector2d& rOffset, kt_double resolution) 
     : Grid<kt_int8u>(width, height)
-    , m_pCellPassCnt(Grid<kt_int32u>::CreateGrid(0, 0, resolution))
-    , m_pCellHitsCnt(Grid<kt_int32u>::CreateGrid(0, 0, resolution))
+    , m_pCellPassCnt(std::shared_ptr<Grid<kt_int32u>>(Grid<kt_int32u>::CreateGrid(0, 0, resolution)))
+    , m_pCellHitsCnt(std::shared_ptr<Grid<kt_int32u>>(Grid<kt_int32u>::CreateGrid(0, 0, resolution)))
     , m_pCellUpdater(NULL)
   {
     m_pCellUpdater = new CellUpdater(this);
@@ -38,8 +39,8 @@ namespace karto
       throw Exception("Resolution cannot be 0");
     }
 
-    m_pMinPassThrough = new Parameter<kt_int32u>(NULL, "MinPassThrough", "", "", 2);
-    m_pOccupancyThreshold = new Parameter<kt_double>(NULL, "OccupancyThreshold", "", "", 0.1);
+    m_pMinPassThrough = std::make_shared<Parameter<kt_int32u>>(nullptr, "MinPassThrough", "", "", 2);
+    m_pOccupancyThreshold = std::make_shared<Parameter<kt_double>>(nullptr, "OccupancyThreshold", "", "", 0.1);
 
     GetCoordinateConverter()->SetScale(1.0 / resolution);
     GetCoordinateConverter()->SetOffset(rOffset);
@@ -56,25 +57,25 @@ namespace karto
     memcpy(pOccupancyGrid->GetDataPointer(), GetDataPointer(), GetDataSize());
 
     pOccupancyGrid->GetCoordinateConverter()->SetSize(GetCoordinateConverter()->GetSize());
-    pOccupancyGrid->m_pCellPassCnt = m_pCellPassCnt->Clone();
-    pOccupancyGrid->m_pCellHitsCnt = m_pCellHitsCnt->Clone();
+    pOccupancyGrid->m_pCellPassCnt.reset(m_pCellPassCnt->Clone());
+    pOccupancyGrid->m_pCellHitsCnt.reset(m_pCellHitsCnt->Clone());
 
     return pOccupancyGrid;
   }
 
   // KARTO_DEPRECATED
 #ifdef WIN32
-  OccupancyGrid* OccupancyGrid::CreateFromScans(const std::vector< SmartPointer<LocalizedRangeScan> >& /*rScans*/, kt_double /*resolution*/)
+  OccupancyGrid* OccupancyGrid::CreateFromScans(const std::vector<std::shared_ptr<LocalizedRangeScan>>& /*rScans*/, kt_double /*resolution*/)
   {
     throw Exception("OccupancyGrid::CreateFromScans - Not supported in Windows. Please Use CreateFromScans(const LocalizedLaserScanList& rScans, kt_double resolution).");
   }
 #else
-  OccupancyGrid* OccupancyGrid::CreateFromScans(const std::vector< SmartPointer<LocalizedRangeScan> >& rScans, kt_double resolution)
+  OccupancyGrid* OccupancyGrid::CreateFromScans(const std::vector<std::shared_ptr<LocalizedRangeScan>>& rScans, kt_double resolution)
   {
     LocalizedLaserScanList scans;
     for (const auto& scan : rScans)
     {
-      scans.push_back(scan);
+      scans.push_back(scan.get());
     }
 
     return CreateFromScans(scans, resolution);

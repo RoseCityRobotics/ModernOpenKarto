@@ -20,7 +20,6 @@
 #ifndef __OpenKarto_AbstractGpsEstimationManager_h__
 #define __OpenKarto_AbstractGpsEstimationManager_h__
 
-#include <Referenced.h>
 #include <Geometry.h>
 
 namespace karto
@@ -37,9 +36,11 @@ namespace karto
    * Mainly so mapper module has a way to update points lazily
    * @endcond
    */
-  class AbstractGpsEstimationManager : public Referenced
+  class AbstractGpsEstimationManager
   {
   public:
+    virtual ~AbstractGpsEstimationManager() = default;
+
     /**
      * Gets the GPS estimate of the given scan (return value is
      * meaningless if IsGpsEstimateValid(pScan) returns false).

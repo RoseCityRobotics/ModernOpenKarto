@@ -55,13 +55,11 @@ namespace karto
      */
     Sensor(const Identifier& rName);
 
-    //@cond EXCLUDE
     /**
      * Destructor
      */
     virtual ~Sensor();
-    //@endcond
-    
+
   public:
     /**
      * Gets this sensor's offset
@@ -110,14 +108,14 @@ namespace karto
   KARTO_TYPE(Sensor);
 
   /**
-   * Type declaration of Sensor managed by SmartPointer
+   * Type declaration of Sensor managed by std::shared_ptr
    */
-  typedef SmartPointer<Sensor> SensorPtr;
+  using SensorPtr = std::shared_ptr<Sensor>;
   
   /**
    * Type declaration of Sensor List
    */
-  using SensorList = std::vector<SensorPtr>;
+  using SensorList = std::vector<Sensor*>;
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -143,17 +141,14 @@ namespace karto
     {
     }
 
-  protected:
-    //@cond EXCLUDE
+  public:
     /**
      * Destructor
      */
     virtual ~Drive()
     {
     }
-    //@endcond
 
-  public:
     virtual void Validate()
     {
     }
@@ -241,15 +236,13 @@ namespace karto
   {
     KARTO_RTTI();
 
-  protected:
-    //@cond EXCLUDE
+  public:
     /**
      * Destructor
      */
     virtual ~LaserRangeFinder();
-    //@endcond
-    
-  public:   
+
+  public:
     /**
      * Gets this range finder sensor's minimum range
      * @return minimum range
@@ -450,9 +443,9 @@ namespace karto
   KARTO_TYPE(LaserRangeFinder);
 
   /**
-   * Type declaration of LaserRangeFinder managed by SmartPointer
+   * Type declaration of LaserRangeFinder managed by std::shared_ptr
    */
-  typedef SmartPointer<LaserRangeFinder> LaserRangeFinderPtr;
+  using LaserRangeFinderPtr = std::shared_ptr<LaserRangeFinder>;
   
   //@}
 

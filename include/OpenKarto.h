@@ -43,12 +43,10 @@
 #include <Parameter.h>
 #include <PoseTransform.h>
 #include <RangeTransform.h>
-#include <Referenced.h>
 #include <RigidBodyTransform.h>
 #include <Sensor.h>
 #include <SensorData.h>
 #include <SensorRegistry.h>
-#include <SmartPointer.h>
 #include <StringHelper.h>
 #include <TypeCasts.h>
 #include <Types.h>
