@@ -1985,7 +1985,9 @@ namespace karto
   
   void MapperGraph::CorrectPoses()
   {
-    // optimize scans!
+    // If no solver is set, we skip pose graph correction. Loop closure
+    // constraints are still detected and added to the graph, but poses
+    // are not optimized. This is acceptable for small operational areas.
     ScanSolver* pSolver = m_pOpenMapper->m_pScanSolver.get();
     if (pSolver != nullptr)
     {

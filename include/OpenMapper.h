@@ -732,6 +732,11 @@ namespace karto
   
   /**
    * Graph optimization algorithm
+   *
+   * NOTE: Without a ScanSolver implementation, loop closure detection will find
+   * candidate loops but pose graph correction (CorrectPoses) will be skipped.
+   * For operational areas under ~20m, odometry drift is typically acceptable.
+   * To enable loop closure correction, set a ScanSolver via SetScanSolver().
    */
   class ScanSolver
   {
