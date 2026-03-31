@@ -20,7 +20,8 @@
 #ifndef __OpenKarto_Sensor_h__
 #define __OpenKarto_Sensor_h__
 
-#include <List.h>
+#include <vector>
+#include <Exception.h>
 #include <Object.h>
 
 namespace karto
@@ -32,7 +33,7 @@ namespace karto
   /**
    * Type declaration of Vector2d List
    */
-  typedef List<Vector2d> Vector2dList;
+  using Vector2dList = std::vector<Vector2d>;
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -116,7 +117,7 @@ namespace karto
   /**
    * Type declaration of Sensor List
    */
-  typedef List<SensorPtr> SensorList;
+  using SensorList = std::vector<SensorPtr>;
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////

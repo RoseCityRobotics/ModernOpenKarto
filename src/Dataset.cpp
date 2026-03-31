@@ -54,7 +54,7 @@ namespace karto
       }
       else
       {
-        m_pDatasetPrivate->m_Objects.Add(pObject);
+        m_pDatasetPrivate->m_Objects.push_back(pObject);
       }
     }
   }
@@ -66,7 +66,7 @@ namespace karto
 
   void Dataset::Clear()
   {
-    m_pDatasetPrivate->m_Objects.Clear();
+    m_pDatasetPrivate->m_Objects.clear();
     m_pDatasetPrivate->m_pDatasetInfo = NULL;
   }
 
@@ -77,7 +77,7 @@ namespace karto
 
   Object* Dataset::operator[](kt_int32u index) const
   {
-    assert(index < m_pDatasetPrivate->m_Objects.Size());
+    assert(index < m_pDatasetPrivate->m_Objects.size());
     return m_pDatasetPrivate->m_Objects[index];
   }
 

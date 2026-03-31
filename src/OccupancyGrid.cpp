@@ -72,9 +72,9 @@ namespace karto
   OccupancyGrid* OccupancyGrid::CreateFromScans(const std::vector< SmartPointer<LocalizedRangeScan> >& rScans, kt_double resolution)
   {
     LocalizedLaserScanList scans;
-    const_forEach(std::vector< SmartPointer<LocalizedRangeScan> >, &rScans)
+    for (const auto& scan : rScans)
     {
-      scans.Add(*iter);
+      scans.push_back(scan);
     }
 
     return CreateFromScans(scans, resolution);
@@ -83,7 +83,7 @@ namespace karto
 
   OccupancyGrid* OccupancyGrid::CreateFromScans(const LocalizedLaserScanList& rScans, kt_double resolution)
   {
-    if (rScans.Size() == 0)
+    if (rScans.size() == 0)
     {
       return NULL;
     }
@@ -105,10 +105,8 @@ namespace karto
   void OccupancyGrid::ComputeDimensions(const LocalizedLaserScanList& rScans, kt_double resolution, kt_int32s& rWidth, kt_int32s& rHeight, Vector2d& rOffset)
   {
     BoundingBox2 boundingBox;
-    karto_const_forEach(LocalizedLaserScanList, &rScans)
+    for (const auto& pLocalizedLaserScan : rScans)
     {
-      LocalizedLaserScan* pLocalizedLaserScan = *iter;
-
       if (pLocalizedLaserScan != NULL)
       {
         boundingBox.Add(pLocalizedLaserScan->GetBoundingBox());
@@ -131,9 +129,9 @@ namespace karto
     m_pCellHitsCnt->Resize(GetWidth(), GetHeight());
     m_pCellHitsCnt->GetCoordinateConverter()->SetOffset(GetCoordinateConverter()->GetOffset());
 
-    karto_const_forEach(LocalizedLaserScanList, &rScans)
+    for (const auto& pScan : rScans)
     {
-      AddScan(*iter);
+      AddScan(pScan);
     }
 
     UpdateGrid();
@@ -153,9 +151,9 @@ namespace karto
     kt_bool scanInGrid = false;
 
     // draw lines from scan position to all point readings 
-    karto_const_forEach(Vector2dList, &rPointReadings)
+    for (const auto& pointReading : rPointReadings)
     {
-      Vector2d point = *iter;
+      Vector2d point = pointReading;
       kt_double range = scanPosition.Distance(point);
       kt_bool isEndPointValid = range < (rangeThreshold - KT_TOLERANCE);
 

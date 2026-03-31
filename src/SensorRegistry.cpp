@@ -17,6 +17,7 @@
 
 #include <map>
 #include <iostream>
+#include <algorithm>
 
 #ifdef USE_TBB
 #include <tbb/mutex.h>
@@ -37,7 +38,7 @@ namespace karto
   // Note to not change the Sensor* to SensorPtr or SmartPointer<Sensor>. 
   struct SensorRegistryPrivate
   {
-    List<Sensor*> m_Sensors;
+    std::vector<Sensor*> m_Sensors;
 
     typedef std::map<Identifier, Sensor*> SensorManagerMap;
     SensorManagerMap m_SensorMap;
@@ -50,7 +51,7 @@ namespace karto
 
   SensorRegistry::~SensorRegistry()
   {
-    m_pSensorRegistryPrivate->m_Sensors.Clear();
+    m_pSensorRegistryPrivate->m_Sensors.clear();
     delete m_pSensorRegistryPrivate;
   }
 
@@ -87,7 +88,7 @@ namespace karto
       }
 
       m_pSensorRegistryPrivate->m_SensorMap[karto::Identifier(pSensor->GetIdentifier())] = pSensor;
-      m_pSensorRegistryPrivate->m_Sensors.Add(pSensor);
+      m_pSensorRegistryPrivate->m_Sensors.push_back(pSensor);
     }
   }
 
@@ -104,7 +105,7 @@ namespace karto
       {
         m_pSensorRegistryPrivate->m_SensorMap.erase(pSensor->GetIdentifier());
 
-        m_pSensorRegistryPrivate->m_Sensors.Remove(pSensor);
+        m_pSensorRegistryPrivate->m_Sensors.erase(std::remove(m_pSensorRegistryPrivate->m_Sensors.begin(), m_pSensorRegistryPrivate->m_Sensors.end(), pSensor), m_pSensorRegistryPrivate->m_Sensors.end());
       }
       else
       {
@@ -138,7 +139,7 @@ namespace karto
 
   void SensorRegistry::Clear()
   {
-    m_pSensorRegistryPrivate->m_Sensors.Clear();
+    m_pSensorRegistryPrivate->m_Sensors.clear();
     m_pSensorRegistryPrivate->m_SensorMap.clear();
   }
 

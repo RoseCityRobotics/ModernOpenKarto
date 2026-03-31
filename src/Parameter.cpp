@@ -101,7 +101,7 @@ namespace karto
       if (m_pPrivate->m_ParametersMap.find(pParameter->GetName()) == m_pPrivate->m_ParametersMap.end())
       {
         m_pPrivate->m_ParametersMap[pParameter->GetName()] = pParameter;
-        m_pPrivate->m_Parameters.Add(pParameter);
+        m_pPrivate->m_Parameters.push_back(pParameter);
       }
       else
       {
@@ -119,7 +119,7 @@ namespace karto
       {
         m_pPrivate->m_ParametersMap.erase(iter);
 
-        m_pPrivate->m_Parameters.Remove(pParameter);
+        m_pPrivate->m_Parameters.erase(std::remove(m_pPrivate->m_Parameters.begin(), m_pPrivate->m_Parameters.end(), pParameter), m_pPrivate->m_Parameters.end());
       }
     }
   }
@@ -127,7 +127,7 @@ namespace karto
   void ParameterSet::Clear()
   {
     m_pPrivate->m_ParametersMap.clear();
-    m_pPrivate->m_Parameters.Clear();
+    m_pPrivate->m_Parameters.clear();
   }
 
   const ParameterList& ParameterSet::GetParameters() const
@@ -190,9 +190,9 @@ namespace karto
     {
       StringBuilder validValues;
 
-      forEach(ParameterEnumPrivate::EnumPairVector, &(m_pPrivate->m_EnumPairs))
+      for (auto& pair : m_pPrivate->m_EnumPairs)
       {
-        validValues << iter->name << ", ";
+        validValues << pair.name << ", ";
       }
 
       throw Exception("ParameterEnum::SetValueFromString - Unable to set enum: '" + rStringValue + "'. Valid values are: " + validValues.ToString());
@@ -238,9 +238,9 @@ namespace karto
   {
     EnumPairList enumPairList;
 
-    forEach(ParameterEnumPrivate::EnumPairVector, &(m_pPrivate->m_EnumPairs))
+    for (auto& pair : m_pPrivate->m_EnumPairs)
     {
-      enumPairList.Add(*iter);
+      enumPairList.push_back(pair);
     }
 
     return enumPairList;

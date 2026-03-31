@@ -35,7 +35,7 @@ namespace karto
     
   /**
    * Resizable array whose contents are not preseved upon resizing.
-   * \todo Consider replacing with List<kt_int32s>
+   * \todo Consider replacing with std::vector<kt_int32s>
    */
   class LookupArray
   {
@@ -173,7 +173,7 @@ namespace karto
      * Gets list of angles 
      * @return list of angles
      */
-    const List<kt_double>& GetAngles() const
+    const std::vector<kt_double>& GetAngles() const
     {
       return m_Angles;
     }
@@ -202,11 +202,11 @@ namespace karto
       Transform transform(pScan->GetSensorPose());
 
       Pose2List localPoints;
-      karto_const_forEach(Vector2dList, &rPointReadings)
+      for (const auto& point : rPointReadings)
       {
         // do inverse transform to get points in local coordinates
-        Pose2 vec = transform.InverseTransformPose(Pose2(*iter, 0.0));
-        localPoints.Add(vec);
+        Pose2 vec = transform.InverseTransformPose(Pose2(point, 0.0));
+        localPoints.push_back(vec);
       }
 
       //////////////////////////////////////////////////////
@@ -230,7 +230,7 @@ namespace karto
      */
     void ComputeOffsets(kt_int32u angleIndex, kt_double angle, const Pose2List& rLocalPoints)
     {
-      m_ppLookupArray[angleIndex]->SetSize(static_cast<kt_int32u>(rLocalPoints.Size()));
+      m_ppLookupArray[angleIndex]->SetSize(static_cast<kt_int32u>(rLocalPoints.size()));
       m_Angles[angleIndex] = angle;
       
       // set up point array by computing relative offsets to points readings
@@ -245,9 +245,9 @@ namespace karto
 
       kt_int32s* pAngleIndexPointer = m_ppLookupArray[angleIndex]->GetArrayPointer();
 
-      karto_const_forEach(Pose2List, &rLocalPoints)
+      for (const auto& localPoint : rLocalPoints)
       {
-        const Vector2d& rPosition = iter->GetPosition();
+        const Vector2d& rPosition = localPoint.GetPosition();
         
         // counterclockwise rotation and that rotation is about the origin (0, 0).
         Vector2d offset;
@@ -264,7 +264,7 @@ namespace karto
 
         readingIndex++;
       }
-      assert(readingIndex == rLocalPoints.Size());
+      assert(readingIndex == rLocalPoints.size());
     }
         
     /**
@@ -292,7 +292,7 @@ namespace karto
       
       m_Size = size;
       
-      m_Angles.Resize(size);
+      m_Angles.resize(size);
     }
 
     /**
@@ -318,7 +318,7 @@ namespace karto
     LookupArray **m_ppLookupArray;
 
     // for sanity check
-    List<kt_double> m_Angles;
+    std::vector<kt_double> m_Angles;
   }; // class GridIndexLookup
 
   //@}

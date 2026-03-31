@@ -22,6 +22,7 @@
 
 #include <string>
 
+#include <Exception.h>
 #include <Geometry.h>
 #include <Event.h>
 #include <SmartPointer.h>
@@ -340,7 +341,7 @@ namespace karto
   /**
    * Type declaration of AbstractParameter List
    */
-  typedef List<SmartPointer<AbstractParameter> > ParameterList;
+  using ParameterList = std::vector<SmartPointer<AbstractParameter> >;
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -752,7 +753,7 @@ namespace karto
     kt_int64s value;
   };
 
-  typedef List< EnumPair > EnumPairList;
+  using EnumPairList = std::vector< EnumPair >;
 
   struct FindByName
   {

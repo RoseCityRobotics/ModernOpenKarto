@@ -82,65 +82,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
 
-/** 
- * Iterate through items in std::vector with iterator iter
- */
-#define forEach( listtype, list ) \
-  for ( listtype::iterator iter = (list)->begin(); iter != (list)->end(); ++iter )
-
-/** 
- * Iterate through items in std::vector with provided iterator iter
- */
-#define forEachAs( listtype, list, iter ) \
-  for ( listtype::iterator iter = (list)->begin(); iter != (list)->end(); ++iter )
-
-/** 
- * Iterate through items in const std::vector with iterator iter
- */
-#define const_forEach( listtype, list ) \
-  for ( listtype::const_iterator iter = (list)->begin(); iter != (list)->end(); ++iter )
-
-/** 
- * Iterate through items in const std::vector with provided iterator iter
- */
-#define const_forEachAs( listtype, list, iter ) \
-  for ( listtype::const_iterator iter = (list)->begin(); iter != (list)->end(); ++iter )
-
-/** 
- * Reverse iterate through items in std::vector with iterator iter
- */
-#define forEachR( listtype, list ) \
-  for ( listtype::reverse_iterator iter = (list)->rbegin(); iter != (list)->rend(); ++iter )
-
-/** 
- * Reverse iterate through items in const std::vector with iterator iter
- */
-#define const_forEachR( listtype, list ) \
-  for ( listtype::const_reverse_iterator iter = (list)->rbegin(); iter != (list)->rend(); ++iter )
-
-/** 
- * Iterate through items in karto::List with iterator iter
- */
-#define karto_forEach(listtype, list) \
-  for ( listtype::Iterator iter = (list)->GetIterator(); iter.HasNext(); iter.Next())
-
-/** 
- * Iterate through items in karto::List with provided iterator iter
- */
-#define karto_forEachAs(listtype, list, iter) \
-  for ( listtype::Iterator iter = (list)->GetIterator(); iter.HasNext(); iter.Next())
-
-/** 
- * Iterate through items in const karto::List with iterator iter
- */
-#define karto_const_forEach(listtype, list) \
-  for ( listtype::ConstIterator iter = (list)->GetConstIterator(); iter.HasNext(); iter.Next())
-
-/** 
- * Iterate through items in const karto::List with provided iterator iter
- */
-#define karto_const_forEachAs(listtype, list, iter) \
-  for ( listtype::ConstIterator iter = (list)->GetConstIterator(); iter.HasNext(); iter.Next())
+// forEach macros removed in Phase 5 C++17 modernization.
+// Use range-based for loops instead.
 
 
 ////////////////////////////////////////////////////////////////////////////////////////

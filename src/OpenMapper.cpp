@@ -79,18 +79,18 @@ namespace karto
     inline void AddObject(LocalizedObject* pObject, kt_int32s uniqueId)
     {
       // assign state id to object
-      pObject->SetStateId(static_cast<kt_int32u>(m_Objects.Size()));
+      pObject->SetStateId(static_cast<kt_int32u>(m_Objects.size()));
 
       // assign unique id to object
       pObject->SetUniqueId(uniqueId);
 
-      m_Objects.Add(pObject);
-      
+      m_Objects.push_back(pObject);
+
       // if object is scan and it was scan-matched, add it to scan buffer
       LocalizedLaserScan* pScan = dynamic_cast<LocalizedLaserScan*>(pObject);
       if (pScan != NULL)
       {
-        m_Scans.Add(pScan);
+        m_Scans.push_back(pScan);
       }      
     }
 
@@ -138,7 +138,15 @@ namespace karto
     inline kt_int32s GetScanIndex(LocalizedLaserScan* pScan)
     {
       LocalizedLaserScanPtr pSmartScan(pScan);
-      return m_Scans.BinarySearch(pSmartScan, ScanIndexComparator);
+      auto it = std::lower_bound(m_Scans.begin(), m_Scans.end(), pSmartScan,
+        [](const LocalizedLaserScanPtr& a, const LocalizedLaserScanPtr& b) {
+          return a->GetStateId() < b->GetStateId();
+        });
+      if (it != m_Scans.end() && (*it)->GetStateId() == pSmartScan->GetStateId())
+      {
+        return static_cast<kt_int32s>(std::distance(m_Scans.begin(), it));
+      }
+      return -1;
     }
 
     /**
@@ -156,22 +164,22 @@ namespace karto
      */
     void AddRunningScan(LocalizedLaserScan* pScan)
     {
-      m_RunningScans.Add(pScan);
+      m_RunningScans.push_back(pScan);
 
       // list has at least one element (first line of this function), so this is valid
-      Pose2 frontScanPose = m_RunningScans.Front()->GetSensorPose();
-      Pose2 backScanPose = m_RunningScans.Back()->GetSensorPose();
+      Pose2 frontScanPose = m_RunningScans.front()->GetSensorPose();
+      Pose2 backScanPose = m_RunningScans.back()->GetSensorPose();
 
       // cap list size and remove all scans from front of list that are too far from end of list
       kt_double squaredDistance = frontScanPose.GetPosition().SquaredDistance(backScanPose.GetPosition());
-      while (m_RunningScans.Size() > m_RunningBufferMaximumSize || squaredDistance > math::Square(m_RunningBufferMaximumDistance) - KT_TOLERANCE)
+      while (m_RunningScans.size() > m_RunningBufferMaximumSize || squaredDistance > math::Square(m_RunningBufferMaximumDistance) - KT_TOLERANCE)
       {
         // remove front of running scans
-        m_RunningScans.Remove(m_RunningScans.Front());
+        m_RunningScans.erase(m_RunningScans.begin());
 
         // recompute stats of running scans
-        frontScanPose = m_RunningScans.Front()->GetSensorPose();
-        backScanPose = m_RunningScans.Back()->GetSensorPose();
+        frontScanPose = m_RunningScans.front()->GetSensorPose();
+        backScanPose = m_RunningScans.back()->GetSensorPose();
         squaredDistance = frontScanPose.GetPosition().SquaredDistance(backScanPose.GetPosition());
       }
     }
@@ -181,9 +189,9 @@ namespace karto
      */
     void Clear()
     {
-      m_Objects.Clear();
-      m_Scans.Clear();
-      m_RunningScans.Clear();
+      m_Objects.clear();
+      m_Scans.clear();
+      m_RunningScans.clear();
       m_pLastScan = NULL;
     }
 
@@ -251,7 +259,7 @@ namespace karto
     SensorDataManager* pSensorDataManager = GetSensorDataManager(rSensorName);
     if (pSensorDataManager != NULL)
     {
-      return pSensorDataManager->GetObjects().Get(stateId);
+      return pSensorDataManager->GetObjects()[stateId];
     }
 
     assert(false);
@@ -261,18 +269,18 @@ namespace karto
   // for use by scan solver
   LocalizedObject* MapperSensorManager::GetLocalizedObject(kt_int32s uniqueId)
   {
-    assert(math::IsUpTo(uniqueId, (kt_int32s)m_pMapperSensorManagerPrivate->m_Objects.Size()));
+    assert(math::IsUpTo(uniqueId, (kt_int32s)m_pMapperSensorManagerPrivate->m_Objects.size()));
     return m_pMapperSensorManagerPrivate->m_Objects[uniqueId];
   }
   
-  List<Identifier> MapperSensorManager::GetSensorNames()
+  std::vector<Identifier> MapperSensorManager::GetSensorNames()
   {
-    List<Identifier> sensorNames;
-    const_forEach(SensorDataManagerMap, &m_pMapperSensorManagerPrivate->m_SensorDataManagers)
+    std::vector<Identifier> sensorNames;
+    for (auto& entry : m_pMapperSensorManagerPrivate->m_SensorDataManagers)
     {
-      sensorNames.Add(iter->first);
+      sensorNames.push_back(entry.first);
     }
-    
+
     return sensorNames;
   }
   
@@ -294,7 +302,7 @@ namespace karto
   void MapperSensorManager::AddLocalizedObject(LocalizedObject* pObject)
   {
     GetSensorDataManager(pObject)->AddObject(pObject, m_pMapperSensorManagerPrivate->m_NextUniqueId);
-    m_pMapperSensorManagerPrivate->m_Objects.Add(pObject);
+    m_pMapperSensorManagerPrivate->m_Objects.push_back(pObject);
     m_pMapperSensorManagerPrivate->m_NextUniqueId++;
   }
   
@@ -321,13 +329,13 @@ namespace karto
   LocalizedLaserScanList MapperSensorManager::GetAllScans()
   {
     LocalizedLaserScanList scans;
-    
-    forEach(SensorDataManagerMap, &m_pMapperSensorManagerPrivate->m_SensorDataManagers)
+
+    for (auto& entry : m_pMapperSensorManagerPrivate->m_SensorDataManagers)
     {
-      LocalizedLaserScanList& rScans = iter->second->GetScans();
-      scans.Add(rScans);
+      LocalizedLaserScanList& rScans = entry.second->GetScans();
+      scans.insert(scans.end(), rScans.begin(), rScans.end());
     }
-    
+
     return scans;
   }
 
@@ -335,10 +343,10 @@ namespace karto
   {
     LocalizedObjectList objects;
 
-    forEach(SensorDataManagerMap, &m_pMapperSensorManagerPrivate->m_SensorDataManagers)
+    for (auto& entry : m_pMapperSensorManagerPrivate->m_SensorDataManagers)
     {
-      LocalizedObjectList& rObjects = iter->second->GetObjects();
-      objects.Add(rObjects);
+      LocalizedObjectList& rObjects = entry.second->GetObjects();
+      objects.insert(objects.end(), rObjects.begin(), rObjects.end());
     }
 
     return objects;
@@ -346,9 +354,9 @@ namespace karto
 
   void MapperSensorManager::Clear()
   {
-    forEach(SensorDataManagerMap, &m_pMapperSensorManagerPrivate->m_SensorDataManagers)
+    for (auto& entry : m_pMapperSensorManagerPrivate->m_SensorDataManagers)
     {
-      delete iter->second;
+      delete entry.second;
     }
     
     m_pMapperSensorManagerPrivate->m_SensorDataManagers.clear();
@@ -521,7 +529,7 @@ namespace karto
     
     // scan has no readings; cannot do scan matching
     // best guess of pose is based off of adjusted odometer reading
-    if (pScan->GetPointReadings(true).Size() == 0)
+    if (pScan->GetPointReadings(true).size() == 0)
     {
       rMean = scanPose;
       
@@ -1086,9 +1094,9 @@ namespace karto
     pCorrelationGrid->Clear();
     
     // add all scans to grid
-    karto_const_forEach(LocalizedLaserScanList, &rScans)
+    for (const auto& pScan : rScans)
     {
-      AddScan(pCorrelationGrid, *iter, rViewPoint);
+      AddScan(pCorrelationGrid, pScan, rViewPoint);
     }
   }
   
@@ -1097,19 +1105,13 @@ namespace karto
     pCorrelationGrid->Clear();
 
     kt_int32s index = 0;
-    kt_size_t nScans = rScans.Size();
+    kt_size_t nScans = rScans.size();
     Vector2dList* pValidPoints = new Vector2dList[nScans];
 
     // first find all valid points
-//#pragma omp parallel for
-//    for (kt_int32s i = 0; i < nScans; i++)
-//    {
-//      pValidPoints[i] = FindValidPoints(rScans[i], rViewPoint);
-//    }
-
-    karto_const_forEach(LocalizedLaserScanList, &rScans)
+    for (const auto& pScan : rScans)
     {
-      pValidPoints[index++] = FindValidPoints(*iter, rViewPoint);
+      pValidPoints[index++] = FindValidPoints(pScan, rViewPoint);
     }
 
     // then add all valid points to correlation grid
@@ -1126,40 +1128,40 @@ namespace karto
     Vector2dList validPoints = FindValidPoints(pScan, rViewPoint);
     
     // put in all valid points
-    karto_const_forEach(Vector2dList, &validPoints)
+    for (const auto& point : validPoints)
     {
-      Vector2i gridPoint = pCorrelationGrid->WorldToGrid(*iter);
+      Vector2i gridPoint = pCorrelationGrid->WorldToGrid(point);
       if (!math::IsUpTo(gridPoint.GetX(), pCorrelationGrid->GetROI().GetWidth()) || !math::IsUpTo(gridPoint.GetY(), pCorrelationGrid->GetROI().GetHeight()))
       {
         // point not in grid
         continue;
       }
-      
+
       int gridIndex = pCorrelationGrid->GridIndex(gridPoint);
-      
+
       // set grid cell as occupied
       if (pCorrelationGrid->GetDataPointer()[gridIndex] == GridStates_Occupied)
       {
         // value already set
         continue;
       }
-      
+
       pCorrelationGrid->GetDataPointer()[gridIndex] = GridStates_Occupied;
-      
+
       // smear grid
       if (doSmear == true)
       {
-        pCorrelationGrid->SmearPoint(gridPoint);        
+        pCorrelationGrid->SmearPoint(gridPoint);
       }
     }
   }
-  
+
   void ScanMatcher::AddScanNew(CorrelationGrid* pCorrelationGrid, const Vector2dList& rValidPoints, kt_bool doSmear)
   {
     // put in all valid points
-    karto_const_forEach(Vector2dList, &rValidPoints)
+    for (const auto& point : rValidPoints)
     {
-      Vector2i gridPoint = pCorrelationGrid->WorldToGrid(*iter);
+      Vector2i gridPoint = pCorrelationGrid->WorldToGrid(point);
       if (!math::IsUpTo(gridPoint.GetX(), pCorrelationGrid->GetROI().GetWidth()) || !math::IsUpTo(gridPoint.GetY(), pCorrelationGrid->GetROI().GetHeight()))
       {
         // point not in grid
@@ -1191,24 +1193,24 @@ namespace karto
     
     // points must be at least 10 cm away when making comparisons of inside/outside of viewpoint
     const kt_double minSquareDistance = math::Square(0.1); // in m^2
-    
+
     // this iterator lags from the main iterator adding points only when the points are on
     // the same side as the viewpoint
-    Vector2dList::ConstIterator trailingPointIter = rPointReadings.GetConstIterator();
+    kt_size_t trailingPointIndex = 0;
     Vector2dList validPoints;
-    
+
     Vector2d firstPoint;
     kt_bool firstTime = true;
-    karto_const_forEach(Vector2dList, &rPointReadings)
+    for (kt_size_t i = 0; i < rPointReadings.size(); i++)
     {
-      Vector2d currentPoint = *iter;
-      
+      Vector2d currentPoint = rPointReadings[i];
+
       if (firstTime)
       {
         firstPoint = currentPoint;
         firstTime = false;
       }
-      
+
       Vector2d delta = firstPoint - currentPoint;
       if (delta.SquaredLength() > minSquareDistance)
       {
@@ -1221,24 +1223,24 @@ namespace karto
         double b = firstPoint.GetX() - rViewPoint.GetX();
         double c = firstPoint.GetY() * rViewPoint.GetX() - firstPoint.GetX() * rViewPoint.GetY();
         double ss = currentPoint.GetX() * a + currentPoint.GetY() * b + c;
-        
+
         // reset beginning point
         firstPoint = currentPoint;
-        
+
         if (ss < 0.0)	// wrong side, skip and keep going
         {
-          trailingPointIter = iter;
+          trailingPointIndex = i;
         }
         else
         {
-          for (; trailingPointIter != iter; trailingPointIter++)
+          for (; trailingPointIndex < i; trailingPointIndex++)
           {
-            validPoints.Add(*trailingPointIter);
+            validPoints.push_back(rPointReadings[trailingPointIndex]);
           }
         }
       }
     }
-    
+
     return validPoints;
   }  
   
@@ -1338,7 +1340,7 @@ namespace karto
      * @param pVisitor
      * @return visited vertices
      */
-    virtual List<T> Traverse(Vertex<T>* pStartVertex, Visitor<T>* pVisitor)
+    virtual std::vector<T> Traverse(Vertex<T>* pStartVertex, Visitor<T>* pVisitor)
     {
       std::queue<Vertex<T>*> toVisit;
       std::set<Vertex<T>*> seenVertices;
@@ -1357,11 +1359,9 @@ namespace karto
           // vertex is valid, explore neighbors
           validVertices.push_back(pNext);
 
-          List<Vertex<T>*> adjacentVertices = pNext->GetAdjacentVertices();
-          karto_const_forEach(typename List<Vertex<T>*>, &adjacentVertices)
+          std::vector<Vertex<T>*> adjacentVertices = pNext->GetAdjacentVertices();
+          for (auto& pAdjacent : adjacentVertices)
           {
-            Vertex<T>* pAdjacent = *iter;
-
             // adjacent vertex has not yet been seen, add to queue for processing
             if (seenVertices.find(pAdjacent) == seenVertices.end())
             {
@@ -1372,10 +1372,10 @@ namespace karto
         }
       } while (toVisit.empty() == false);
 
-      List<T> objects;
-      forEach(typename std::vector<Vertex<T>*>, &validVertices)
+      std::vector<T> objects;
+      for (auto& pVertex : validVertices)
       {
-        objects.Add((*iter)->GetVertexObject());
+        objects.push_back(pVertex->GetVertexObject());
       }
 
       return objects;
@@ -1494,36 +1494,34 @@ namespace karto
     const Identifier& rSensorName = pScan->GetSensorIdentifier();
     
     Pose2List means;
-    List<Matrix3> covariances;
-    
+    std::vector<Matrix3> covariances;
+
     LocalizedLaserScan* pLastScan = pSensorManager->GetLastScan(rSensorName);
     if (pLastScan == NULL)
     {
       // first scan (link to first scan of other robots)
 
-      assert(pSensorManager->GetScans(rSensorName).Size() == 1);
-      
-      List<Identifier> sensorNames = pSensorManager->GetSensorNames();
-      karto_const_forEach(List<Identifier>, &sensorNames)
+      assert(pSensorManager->GetScans(rSensorName).size() == 1);
+
+      std::vector<Identifier> sensorNames = pSensorManager->GetSensorNames();
+      for (const auto& rCandidateSensorName : sensorNames)
       {
-        const Identifier& rCandidateSensorName = *iter;
-        
         // skip if candidate sensor is the same or other sensor has no scans
-        if ((rCandidateSensorName == rSensorName) || (pSensorManager->GetScans(rCandidateSensorName).IsEmpty()))
+        if ((rCandidateSensorName == rSensorName) || (pSensorManager->GetScans(rCandidateSensorName).empty()))
         {
           continue;
         }
-        
+
         Pose2 bestPose;
         Matrix3 covariance;
         kt_double response = m_pOpenMapper->m_pSequentialScanMatcher->MatchScan(pScan, pSensorManager->GetScans(rCandidateSensorName), bestPose, covariance);
         LinkObjects(pSensorManager->GetScans(rCandidateSensorName)[0], pScan, bestPose, covariance);
-        
+
         // only add to means and covariances if response was high "enough"
         if (response > m_pOpenMapper->m_pLinkMatchMinimumResponseFine->GetValue())
         {
-          means.Add(bestPose);
-          covariances.Add(covariance);
+          means.push_back(bestPose);
+          covariances.push_back(covariance);
         }
       }
     }
@@ -1534,15 +1532,15 @@ namespace karto
 
       // link to running scans
       Pose2 scanPose = pScan->GetSensorPose();
-      means.Add(scanPose);
-      covariances.Add(rCovariance);
+      means.push_back(scanPose);
+      covariances.push_back(rCovariance);
       LinkChainToScan(pSensorManager->GetRunningScans(rSensorName), pScan, scanPose, rCovariance);
     }
-    
+
     // link to other near chains (chains that include new scan are invalid)
     LinkNearChains(pScan, means, covariances);
-    
-    if (!means.IsEmpty())
+
+    if (!means.empty())
     {
       pScan->SetSensorPose(ComputeWeightedMean(means, covariances));
     }
@@ -1556,13 +1554,13 @@ namespace karto
     
     LocalizedLaserScanList candidateChain = FindPossibleLoopClosure(pScan, rSensorName, scanIndex);
     
-    while (!candidateChain.IsEmpty())
+    while (!candidateChain.empty())
     {
 #ifdef KARTO_DEBUG2
       std::cout << "Candidate chain for " << pScan->GetStateId() << ": [ ";
-      karto_const_forEach(LocalizedLaserScanList, &candidateChain)
+      for (const auto& chainScan : candidateChain)
       {
-        std::cout << (*iter)->GetStateId() << " ";
+        std::cout << chainScan->GetStateId() << " ";
       }
       std::cout << "]" << std::endl;
 #endif
@@ -1635,15 +1633,15 @@ namespace karto
     LocalizedLaserScan* pClosestScan = NULL;
     kt_double bestSquaredDistance = DBL_MAX;
     
-    karto_const_forEach(LocalizedLaserScanList, &rScans)
+    for (const auto& scan : rScans)
     {
-      Pose2 scanPose = (*iter)->GetReferencePose(m_pOpenMapper->m_pUseScanBarycenter->GetValue());
-      
+      Pose2 scanPose = scan->GetReferencePose(m_pOpenMapper->m_pUseScanBarycenter->GetValue());
+
       kt_double squaredDistance = rPose.GetPosition().SquaredDistance(scanPose.GetPosition());
       if (squaredDistance < bestSquaredDistance)
       {
         bestSquaredDistance = squaredDistance;
-        pClosestScan = *iter;
+        pClosestScan = scan;
       }
     }
     
@@ -1653,17 +1651,15 @@ namespace karto
   Edge<LocalizedObjectPtr>* MapperGraph::AddEdge(LocalizedObject* pSourceObject, LocalizedObject* pTargetObject, kt_bool& rIsNewEdge)
   {
     // check that vertex exists
-    assert(pSourceObject->GetUniqueId() < (kt_int32s)m_Vertices.Size());
-    assert(pTargetObject->GetUniqueId() < (kt_int32s)m_Vertices.Size());
+    assert(pSourceObject->GetUniqueId() < (kt_int32s)m_Vertices.size());
+    assert(pTargetObject->GetUniqueId() < (kt_int32s)m_Vertices.size());
     
     Vertex<LocalizedObjectPtr>* v1 = m_Vertices[pSourceObject->GetUniqueId()];
     Vertex<LocalizedObjectPtr>* v2 = m_Vertices[pTargetObject->GetUniqueId()];
     
     // see if edge already exists
-    karto_const_forEach(List<Edge<LocalizedObjectPtr>*>, &(v1->GetEdges()))
+    for (const auto& pEdge : v1->GetEdges())
     {
-      Edge<LocalizedObjectPtr>* pEdge = *iter;
-      
       if (pEdge->GetTarget() == v2)
       {
         rIsNewEdge = false;
@@ -1705,8 +1701,8 @@ namespace karto
   class Parallel_LinkNearChains
   {
   public:
-    Parallel_LinkNearChains(OpenMapper* pMapper, LocalizedLaserScan* pScan, const List<LocalizedLaserScanList>* pChains,
-                            kt_bool* pWasChainLinked, Pose2List* pMeans, List<Matrix3>* pCovariances,
+    Parallel_LinkNearChains(OpenMapper* pMapper, LocalizedLaserScan* pScan, const std::vector<LocalizedLaserScanList>* pChains,
+                            kt_bool* pWasChainLinked, Pose2List* pMeans, std::vector<Matrix3>* pCovariances,
                             kt_int32u minChainSize, kt_double minResponse)
       : m_pOpenMapper(pMapper)
       , m_pScan(pScan)
@@ -1716,32 +1712,32 @@ namespace karto
       , m_pCovariances(pCovariances)
       , m_MinChainSize(minChainSize)
       , m_MinResponse(minResponse)
-    {      
+    {
     }
-    
+
     void operator()(const tbb::blocked_range<kt_int32s>& rRange) const
     {
       for (kt_int32s i = rRange.begin(); i != rRange.end(); i++)
       {
         m_pWasChainLinked[i] = false;
 
-        const LocalizedLaserScanList& rChain = m_pChains->Get(i);
-        
-        if (rChain.Size() < m_MinChainSize)
+        const LocalizedLaserScanList& rChain = (*m_pChains)[i];
+
+        if (rChain.size() < m_MinChainSize)
         {
           continue;
         }
 
         Pose2 mean;
         Matrix3 covariance;
-        
+
         // match scan against "near" chain
         kt_double response = m_pOpenMapper->GetSequentialScanMatcher()->MatchScan(m_pScan, rChain, mean, covariance, false);
         if (response > m_MinResponse - KT_TOLERANCE)
         {
           m_pWasChainLinked[i] = true;
-          m_pMeans->Set(i, mean);
-          m_pCovariances->Set(i, covariance);
+          (*m_pMeans)[i] = mean;
+          (*m_pCovariances)[i] = covariance;
         }
       }
     }
@@ -1749,44 +1745,44 @@ namespace karto
   private:
     OpenMapper* m_pOpenMapper;
     LocalizedLaserScan* m_pScan;
-    const List<LocalizedLaserScanList>* m_pChains;
+    const std::vector<LocalizedLaserScanList>* m_pChains;
     kt_bool* m_pWasChainLinked;
     Pose2List* m_pMeans;
-    List<Matrix3>* m_pCovariances;
+    std::vector<Matrix3>* m_pCovariances;
     kt_int32u m_MinChainSize;
     kt_double m_MinResponse;
   };
 #endif
   
-  void MapperGraph::LinkNearChains(LocalizedLaserScan* pScan, Pose2List& rMeans, List<Matrix3>& rCovariances)
+  void MapperGraph::LinkNearChains(LocalizedLaserScan* pScan, Pose2List& rMeans, std::vector<Matrix3>& rCovariances)
   {
-    const List<LocalizedLaserScanList> nearChains = FindNearChains(pScan);
+    const std::vector<LocalizedLaserScanList> nearChains = FindNearChains(pScan);
 
     kt_bool gotTbb = false;
     if (m_pOpenMapper->IsMultiThreaded())
     {
 #ifdef USE_TBB
       gotTbb = true;
-      kt_bool* pWasChainLinked = new kt_bool[nearChains.Size()];
+      kt_bool* pWasChainLinked = new kt_bool[nearChains.size()];
 
       Pose2List means;
-      means.Resize(nearChains.Size());
+      means.resize(nearChains.size());
 
-      List<Matrix3> covariances;
-      covariances.Resize(nearChains.Size());
+      std::vector<Matrix3> covariances;
+      covariances.resize(nearChains.size());
 
       int grainSize = 100;
       Parallel_LinkNearChains myTask(m_pOpenMapper, pScan, &nearChains, pWasChainLinked, &means, &covariances,
         m_pOpenMapper->m_pLoopMatchMinimumChainSize->GetValue(),
         m_pOpenMapper->m_pLinkMatchMinimumResponseFine->GetValue());
-      tbb::parallel_for(tbb::blocked_range<kt_int32s>(0, static_cast<kt_int32s>(nearChains.Size()), grainSize), myTask);
+      tbb::parallel_for(tbb::blocked_range<kt_int32s>(0, static_cast<kt_int32s>(nearChains.size()), grainSize), myTask);
 
-      for (kt_int32u i = 0; i < nearChains.Size(); i++)
+      for (kt_int32u i = 0; i < nearChains.size(); i++)
       {
         if (pWasChainLinked[i] == true)
         {
-          rMeans.Add(means[i]);
-          rCovariances.Add(covariances[i]);
+          rMeans.push_back(means[i]);
+          rCovariances.push_back(covariances[i]);
           LinkChainToScan(nearChains[i], pScan, means[i], covariances[i]);
         }
       }
@@ -1797,21 +1793,21 @@ namespace karto
 
     if (gotTbb == false)
     {
-      karto_const_forEach(List<LocalizedLaserScanList>, &nearChains)
+      for (const auto& chain : nearChains)
       {
 #ifdef KARTO_DEBUG2
         std::cout << "Near chain for " << pScan->GetStateId() << ": [ ";
-        karto_const_forEachAs(LocalizedLaserScanList, iter, iter2)
+        for (const auto& chainScan : chain)
         {
-          std::cout << (*iter2)->GetStateId() << " ";
+          std::cout << chainScan->GetStateId() << " ";
         }
         std::cout << "]: ";
 #endif
 
-        if (iter->Size() < m_pOpenMapper->m_pLoopMatchMinimumChainSize->GetValue())
+        if (chain.size() < m_pOpenMapper->m_pLoopMatchMinimumChainSize->GetValue())
         {
 #ifdef KARTO_DEBUG2
-          std::cout << iter->Size() << "(< " << m_pOpenMapper->m_pLoopMatchMinimumChainSize->GetValue() << ") REJECTED" << std::endl;
+          std::cout << chain.size() << "(< " << m_pOpenMapper->m_pLoopMatchMinimumChainSize->GetValue() << ") REJECTED" << std::endl;
 #endif
           continue;
         }
@@ -1819,21 +1815,21 @@ namespace karto
         Pose2 mean;
         Matrix3 covariance;
         // match scan against "near" chain
-        kt_double response = m_pOpenMapper->m_pSequentialScanMatcher->MatchScan(pScan, *iter, mean, covariance, false);
+        kt_double response = m_pOpenMapper->m_pSequentialScanMatcher->MatchScan(pScan, chain, mean, covariance, false);
         if (response > m_pOpenMapper->m_pLinkMatchMinimumResponseFine->GetValue() - KT_TOLERANCE)
         {
 #ifdef KARTO_DEBUG2
           std::cout << " ACCEPTED" << std::endl;
 #endif
-          rMeans.Add(mean);
-          rCovariances.Add(covariance);
-          LinkChainToScan(*iter, pScan, mean, covariance);
+          rMeans.push_back(mean);
+          rCovariances.push_back(covariance);
+          LinkChainToScan(chain, pScan, mean, covariance);
         }
         else
         {
 #ifdef KARTO_DEBUG2
           std::cout << response << "(< " << m_pOpenMapper->m_pLinkMatchMinimumResponseFine->GetValue() << ") REJECTED" << std::endl;
-#endif        
+#endif
         }
       }
     }
@@ -1858,27 +1854,25 @@ namespace karto
     }
   }
   
-  List<LocalizedLaserScanList> MapperGraph::FindNearChains(LocalizedLaserScan* pScan)
+  std::vector<LocalizedLaserScanList> MapperGraph::FindNearChains(LocalizedLaserScan* pScan)
   {
-    List<LocalizedLaserScanList> nearChains;
-    
+    std::vector<LocalizedLaserScanList> nearChains;
+
     Pose2 scanPose = pScan->GetReferencePose(m_pOpenMapper->m_pUseScanBarycenter->GetValue());
-    
+
     // to keep track of which scans have been added to a chain
     LocalizedLaserScanList processed;
-    
+
     const LocalizedLaserScanList nearLinkedScans = FindNearLinkedScans(pScan, m_pOpenMapper->m_pLinkScanMaximumDistance->GetValue());
-    karto_const_forEach(LocalizedLaserScanList, &nearLinkedScans)
+    for (const auto& pNearScan : nearLinkedScans)
     {
-      LocalizedLaserScan* pNearScan = *iter;
-      
       if (pNearScan == pScan)
       {
         continue;
       }
-      
+
       // scan has already been processed, skip
-      if (processed.Contains(pNearScan) == true)
+      if (std::find(processed.begin(), processed.end(), pNearScan) != processed.end())
       {
         continue;
       }
@@ -1887,22 +1881,22 @@ namespace karto
       std::cout << "BUILDING CHAIN: Scan " << pScan->GetStateId() << " is near " << pNearScan->GetStateId() << " (< " << m_pOpenMapper->m_pLinkScanMaximumDistance->GetValue() << ")" << std::endl;
 #endif
       
-      processed.Add(pNearScan);
-      
+      processed.push_back(pNearScan);
+
       // build up chain
       kt_bool isValidChain = true;
       LocalizedLaserScanList chain;
 
       LocalizedLaserScanList scans = m_pOpenMapper->m_pMapperSensorManager->GetScans(pNearScan->GetSensorIdentifier());
-      
+
       kt_int32s nearScanIndex = m_pOpenMapper->m_pMapperSensorManager->GetScanIndex(pNearScan);
       assert(nearScanIndex >= 0);
-      
+
       // add scans before current scan being processed
       for (kt_int32s candidateScanIndex = nearScanIndex - 1; candidateScanIndex >= 0; candidateScanIndex--)
       {
         LocalizedLaserScan* pCandidateScan = scans[candidateScanIndex];
-        
+
         // chain is invalid--contains scan being added
         if (pCandidateScan == pScan)
         {
@@ -1911,73 +1905,73 @@ namespace karto
 #endif
           isValidChain = false;
         }
-        
+
         Pose2 candidatePose = pCandidateScan->GetReferencePose(m_pOpenMapper->m_pUseScanBarycenter->GetValue());
         kt_double squaredDistance = scanPose.GetPosition().SquaredDistance(candidatePose.GetPosition());
-        
+
         if (squaredDistance < math::Square(m_pOpenMapper->m_pLinkScanMaximumDistance->GetValue()) + KT_TOLERANCE)
         {
-          chain.Add(pCandidateScan);
-          processed.Add(pCandidateScan);
-          
+          chain.push_back(pCandidateScan);
+          processed.push_back(pCandidateScan);
+
 #ifdef KARTO_DEBUG2
           std::cout << "Building chain for " << pScan->GetStateId() << ": [ ";
-          karto_const_forEachAs(LocalizedLaserScanList, &chain, iter2)
+          for (const auto& chainScan : chain)
           {
-            std::cout << (*iter2)->GetStateId() << " ";
+            std::cout << chainScan->GetStateId() << " ";
           }
           std::cout << "]" << std::endl;
-#endif          
+#endif
         }
         else
         {
           break;
         }
       }
-      
-      chain.Add(pNearScan);
-      
+
+      chain.push_back(pNearScan);
+
       // add scans after current scan being processed
-      kt_size_t end = scans.Size();
+      kt_size_t end = scans.size();
       for (kt_size_t candidateScanIndex = nearScanIndex + 1; candidateScanIndex < end; candidateScanIndex++)
       {
         LocalizedLaserScan* pCandidateScan = scans[candidateScanIndex];
-        
+
         if (pCandidateScan == pScan)
         {
 #ifdef KARTO_DEBUG2
           std::cout << "INVALID CHAIN: Scan " << pScan->GetStateId() << " is not allowed in chain." << std::endl;
-#endif          
+#endif
           isValidChain = false;
         }
-        
+
         Pose2 candidatePose = pCandidateScan->GetReferencePose(m_pOpenMapper->m_pUseScanBarycenter->GetValue());;
         kt_double squaredDistance = scanPose.GetPosition().SquaredDistance(candidatePose.GetPosition());
-        
+
         if (squaredDistance < math::Square(m_pOpenMapper->m_pLinkScanMaximumDistance->GetValue()) + KT_TOLERANCE)
         {
-          chain.Add(pCandidateScan);
-          processed.Add(pCandidateScan);
-          
+          chain.push_back(pCandidateScan);
+          processed.push_back(pCandidateScan);
+
 #ifdef KARTO_DEBUG2
           std::cout << "Building chain for " << pScan->GetStateId() << ": [ ";
-          karto_const_forEachAs(LocalizedLaserScanList, &chain, iter2)
+          for (const auto& chainScan : chain)
           {
-            std::cout << (*iter2)->GetStateId() << " ";
+            std::cout << chainScan->GetStateId() << " ";
           }
           std::cout << "]" << std::endl;
-#endif                    
+#endif
         }
         else
         {
           break;
         }
       }
-      
+
       if (isValidChain)
       {
         // add chain to collection
-        nearChains.Add(chain);
+        nearChains.push_back(chain);
       }
     }
     
@@ -1991,13 +1985,12 @@ namespace karto
     delete pVisitor;
     
     LocalizedLaserScanList nearLinkedScans;
-    karto_const_forEach(LocalizedObjectList, &nearLinkedObjects)
+    for (const auto& pObject : nearLinkedObjects)
     {
-      LocalizedObject* pObject = *iter;
-      LocalizedLaserScan* pScan = dynamic_cast<LocalizedLaserScan*>(pObject);
+      LocalizedLaserScan* pScan = dynamic_cast<LocalizedLaserScan*>(static_cast<LocalizedObject*>(pObject));
       if (pScan != NULL)
       {
-        nearLinkedScans.Add(pScan);
+        nearLinkedScans.push_back(pScan);
       }
     }
     
@@ -2011,18 +2004,18 @@ namespace karto
     const BoundingBox2& rBoundingBox = pScan->GetBoundingBox();
     
     const VertexList& vertices = GetVertices();
-    karto_const_forEach(VertexList, &vertices)
+    for (const auto& pVertex : vertices)
     {
-      LocalizedObject* pObject = (*iter)->GetVertexObject();
+      LocalizedObject* pObject = pVertex->GetVertexObject();
       LocalizedLaserScan* pCandidateScan = dynamic_cast<LocalizedLaserScan*>(pObject);
       if (pCandidateScan == NULL)
       {
         continue;
       }
-      
+
       if (rBoundingBox.Intersects(pCandidateScan->GetBoundingBox()) == true)
       {
-        nearScans.Add(pCandidateScan);
+        nearScans.push_back(pCandidateScan);
       }
     }
     
@@ -2030,45 +2023,42 @@ namespace karto
   }
 
   
-  Pose2 MapperGraph::ComputeWeightedMean(const Pose2List& rMeans, const List<Matrix3>& rCovariances) const
+  Pose2 MapperGraph::ComputeWeightedMean(const Pose2List& rMeans, const std::vector<Matrix3>& rCovariances) const
   {
-    assert(rMeans.Size() == rCovariances.Size());
-    
+    assert(rMeans.size() == rCovariances.size());
+
     // compute sum of inverses and create inverse list
-    List<Matrix3> inverses;
-    inverses.EnsureCapacity(rCovariances.Size());
-    
+    std::vector<Matrix3> inverses;
+    inverses.reserve(rCovariances.size());
+
     Matrix3 sumOfInverses;
-    karto_const_forEach(List<Matrix3>, &rCovariances)
+    for (const auto& cov : rCovariances)
     {
-      Matrix3 inverse = iter->Inverse();
-      inverses.Add(inverse);
-      
+      Matrix3 inverse = cov.Inverse();
+      inverses.push_back(inverse);
+
       sumOfInverses += inverse;
     }
     Matrix3 inverseOfSumOfInverses = sumOfInverses.Inverse();
-    
+
     // compute weighted mean
     Pose2 accumulatedPose;
     kt_double thetaX = 0.0;
     kt_double thetaY = 0.0;
-    
-    Pose2List::ConstIterator meansIter = rMeans.GetConstIterator();
-    karto_const_forEach(List<Matrix3>, &inverses)
+
+    for (kt_size_t i = 0; i < inverses.size(); i++)
     {
-      Pose2 pose = *meansIter;
+      Pose2 pose = rMeans[i];
       kt_double angle = pose.GetHeading();
       thetaX += cos(angle);
       thetaY += sin(angle);
-      
-      Matrix3 weight = inverseOfSumOfInverses * (*iter);
+
+      Matrix3 weight = inverseOfSumOfInverses * inverses[i];
       accumulatedPose += weight * pose;
-      
-      meansIter++;
     }
-    
-    thetaX /= rMeans.Size();
-    thetaY /= rMeans.Size();
+
+    thetaX /= rMeans.size();
+    thetaY /= rMeans.size();
     accumulatedPose.SetHeading(atan2(thetaY, thetaX));
     
     return accumulatedPose;
@@ -2085,36 +2075,36 @@ namespace karto
     const LocalizedLaserScanList nearLinkedScans = FindNearLinkedScans(pScan, m_pOpenMapper->m_pLoopSearchMaximumDistance->GetValue());
     
     LocalizedLaserScanList scans = m_pOpenMapper->m_pMapperSensorManager->GetScans(rSensorName);
-    kt_size_t nScans = scans.Size();
+    kt_size_t nScans = scans.size();
     for (; rStartScanIndex < nScans; rStartScanIndex++)
     {
       LocalizedLaserScan* pCandidateScan = scans[rStartScanIndex];
-      
+
       Pose2 candidateScanPose = pCandidateScan->GetReferencePose(m_pOpenMapper->m_pUseScanBarycenter->GetValue());
-      
+
       kt_double squaredDistance = candidateScanPose.GetPosition().SquaredDistance(pose.GetPosition());
       if (squaredDistance < math::Square(m_pOpenMapper->m_pLoopSearchMaximumDistance->GetValue()) + KT_TOLERANCE)
       {
         // a linked scan cannot be in the chain
-        if (nearLinkedScans.Contains(pCandidateScan) == true)
+        if (std::find(nearLinkedScans.begin(), nearLinkedScans.end(), pCandidateScan) != nearLinkedScans.end())
         {
-          chain.Clear();
+          chain.clear();
         }
         else
         {
-          chain.Add(pCandidateScan);
+          chain.push_back(pCandidateScan);
         }
       }
       else
       {
         // return chain if it is long "enough"
-        if (chain.Size() >= m_pOpenMapper->m_pLoopMatchMinimumChainSize->GetValue())
+        if (chain.size() >= m_pOpenMapper->m_pLoopMatchMinimumChainSize->GetValue())
         {
           return chain;
         }
         else
         {
-          chain.Clear();
+          chain.clear();
         }
       }
     }
@@ -2130,18 +2120,18 @@ namespace karto
     {
       pSolver->Compute();
       
-      karto_const_forEach(ScanSolver::IdPoseVector, &pSolver->GetCorrections())
+      for (const auto& correction : pSolver->GetCorrections())
       {
-        LocalizedObject* pObject = m_pOpenMapper->m_pMapperSensorManager->GetLocalizedObject(iter->GetFirst());
+        LocalizedObject* pObject = m_pOpenMapper->m_pMapperSensorManager->GetLocalizedObject(correction.first);
         LocalizedLaserScan* pScan = dynamic_cast<LocalizedLaserScan*>(pObject);
-        
+
         if (pScan != NULL)
         {
-          pScan->SetSensorPose(iter->GetSecond());
+          pScan->SetSensorPose(correction.second);
         }
         else
         {
-          pObject->SetCorrectedPose(iter->GetSecond());
+          pObject->SetCorrectedPose(correction.second);
         }
       }
       
@@ -2373,10 +2363,10 @@ namespace karto
         
         m_pMapperSensorManager->AddRunningScan(pScan);
         
-        List<Identifier> sensorNames = m_pMapperSensorManager->GetSensorNames();
-        karto_const_forEach(List<Identifier>, &sensorNames)
+        std::vector<Identifier> sensorNames = m_pMapperSensorManager->GetSensorNames();
+        for (const auto& sensorName : sensorNames)
         {
-          m_pGraph->TryCloseLoop(pScan, *iter);
+          m_pGraph->TryCloseLoop(pScan, sensorName);
         }      
       }
       

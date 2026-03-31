@@ -20,7 +20,9 @@
 #ifndef __OpenKarto_Event_h__
 #define __OpenKarto_Event_h__
 
-#include <List.h>
+#include <vector>
+#include <algorithm>
+#include <Types.h>
 #include <Mutex.h>
 
 // Forward declaration for tbb::mutex
@@ -616,7 +618,7 @@ namespace karto
     /**
      * Type declaration of a DelegateList 
      */
-    typedef karto::List< AbstractDelegate<TArgs>* > DelegateList;
+    using DelegateList = std::vector< AbstractDelegate<TArgs>* >;
 
   public:
     /**
@@ -646,9 +648,9 @@ namespace karto
   public:
     void Notify(const void* pSender, TArgs& rArguments)
     {
-      karto_forEach(typename DelegateList, &m_Observers)
+      for (auto& item : m_Observers)
       {
-        (*iter)->Notify(pSender, rArguments);
+        item->Notify(pSender, rArguments);
       }
     }
 
@@ -657,43 +659,34 @@ namespace karto
       Remove(rDelegate);
 
       AbstractDelegate<TArgs>* pDelegate = rDelegate.Clone();
-      m_Observers.Add(pDelegate);
+      m_Observers.push_back(pDelegate);
     }
 
     void Remove(const AbstractDelegate<TArgs>& rDelegate)
     {
-      kt_bool found = false;
-      kt_int32s index = 0;
-      karto_forEach(typename DelegateList, &m_Observers)
+      for (auto it = m_Observers.begin(); it != m_Observers.end(); ++it)
       {
-        if (*(*iter) == rDelegate)
+        if (*(*it) == rDelegate)
         {
-          delete *iter;
-          found = true;
+          delete *it;
+          m_Observers.erase(it);
           break;
         }
-
-        index++;
-      }
-
-      if (found == true)
-      {
-        m_Observers.RemoveAt(index);
       }
     }
 
     void Clear()
     {
-      karto_forEach(typename DelegateList, &m_Observers)
+      for (auto& item : m_Observers)
       {
-        delete *iter;
+        delete item;
       }
-      m_Observers.Clear();
+      m_Observers.clear();
     }
 
     kt_bool IsEmpty() const
     {
-      return m_Observers.IsEmpty();
+      return m_Observers.empty();
     }
 
   public:
@@ -704,9 +697,9 @@ namespace karto
     {
       if (this != &rOther)
       {
-        karto_const_forEach(typename DelegateList, &(rOther.m_Observers))
+        for (const auto& item : rOther.m_Observers)
         {
-          Add(**iter);
+          Add(*item);
         }
       }
       return *this;

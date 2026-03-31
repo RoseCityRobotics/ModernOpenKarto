@@ -45,14 +45,14 @@ namespace karto
 
   SensorData::~SensorData()
   {
-    m_pSensorDataPrivate->m_CustomItems.Clear();
+    m_pSensorDataPrivate->m_CustomItems.clear();
 
     delete m_pSensorDataPrivate;    
   }
 
   void SensorData::AddCustomItem(CustomItem* pCustomData)
   {
-    m_pSensorDataPrivate->m_CustomItems.Add(pCustomData);
+    m_pSensorDataPrivate->m_CustomItems.push_back(pCustomData);
   }
 
   const CustomItemList& SensorData::GetCustomItems() const
@@ -62,7 +62,7 @@ namespace karto
 
   kt_bool SensorData::HasCustomItem() 
   {
-    return m_pSensorDataPrivate->m_CustomItems.Size() > 0;
+    return m_pSensorDataPrivate->m_CustomItems.size() > 0;
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -130,14 +130,14 @@ namespace karto
     // calculate bounding box of scan
     m_BoundingBox = BoundingBox2();
     m_BoundingBox.Add(scanPose.GetPosition());
-    karto_const_forEach(Vector2dList, &rPointReadings)
+    for (const auto& point : rPointReadings)
     {
-      m_BoundingBox.Add(*iter);
-      rangePointsSum += *iter;
-    }          
-    
+      m_BoundingBox.Add(point);
+      rangePointsSum += point;
+    }
+
     // compute barycenter
-    kt_double nPoints = static_cast<kt_double>(rPointReadings.Size());
+    kt_double nPoints = static_cast<kt_double>(rPointReadings.size());
     if (nPoints != 0.0)
     {
       Vector2d averagePosition = Vector2d(rangePointsSum / nPoints);
@@ -171,7 +171,7 @@ namespace karto
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
 
-  LocalizedRangeScan::LocalizedRangeScan(const Identifier& rSensorIdentifier, const List<kt_double>& rReadings)
+  LocalizedRangeScan::LocalizedRangeScan(const Identifier& rSensorIdentifier, const std::vector<kt_double>& rReadings)
     : LocalizedLaserScan(rSensorIdentifier)
   {
     m_RangeReadings = rReadings;
@@ -189,9 +189,9 @@ namespace karto
       return;
     }
     
-    m_FilteredPointReadings.Clear();
-    m_UnfilteredPointReadings.Clear();
-    
+    m_FilteredPointReadings.clear();
+    m_UnfilteredPointReadings.clear();
+
     kt_double minimumAngle = pLaserRangeFinder->GetMinimumAngle();
     kt_double angularResolution = pLaserRangeFinder->GetAngularResolution();
 
@@ -199,8 +199,8 @@ namespace karto
     kt_double rangeThreshold = pLaserRangeFinder->GetRangeThreshold();
 
     Pose2 scanPose = GetSensorPose();
-    
-    const List<kt_double>& rRangeReadings = GetRangeReadings();
+
+    const std::vector<kt_double>& rRangeReadings = GetRangeReadings();
 
     // compute point readings
     kt_int32u numberOfReadings = pLaserRangeFinder->GetNumberOfRangeReadings();
@@ -208,15 +208,15 @@ namespace karto
     {
       kt_double angle = scanPose.GetHeading() + minimumAngle + i * angularResolution;
       kt_double rangeReading = rRangeReadings[i];
-      
+
       Vector2d point;
       point.SetX(scanPose.GetX() + (rangeReading * cos(angle)));
       point.SetY(scanPose.GetY() + (rangeReading * sin(angle)));
-      m_UnfilteredPointReadings.Add(point);
-      
+      m_UnfilteredPointReadings.push_back(point);
+
       if (math::InRange(rangeReading, minimumRange, rangeThreshold))
       {
-        m_FilteredPointReadings.Add(point);
+        m_FilteredPointReadings.push_back(point);
       }
     }
   }
@@ -229,13 +229,13 @@ namespace karto
     : LocalizedLaserScan(rSensorIdentifier)
   {
     m_LocalPointReadings = rLocalPoints;
-    
+
     Vector2d origin(0, 0);
     Pose2 originPose(origin, 0);
-    karto_const_forEach(Vector2dList, &rLocalPoints)
+    for (const auto& point : rLocalPoints)
     {
-      m_RangeReadings.Add(origin.Distance(*iter));
-      m_LocalAngles.Add(originPose.AngleTo(*iter));
+      m_RangeReadings.push_back(origin.Distance(point));
+      m_LocalAngles.push_back(originPose.AngleTo(point));
     }
   }
   
@@ -251,25 +251,25 @@ namespace karto
       return;
     }
 
-    m_FilteredPointReadings.Clear();
-    m_UnfilteredPointReadings.Clear();
-    
+    m_FilteredPointReadings.clear();
+    m_UnfilteredPointReadings.clear();
+
     kt_double rangeThreshold = pLaserRangeFinder->GetRangeThreshold();
     Pose2 scanPose = GetSensorPose();
     Vector2d scanPosition = scanPose.GetPosition();
-    
+
     // compute point readings
-    for (kt_int32u i = 0; i < m_LocalPointReadings.Size(); i++)
+    for (kt_int32u i = 0; i < m_LocalPointReadings.size(); i++)
     {
       RigidBodyTransform transform(Pose2(m_LocalPointReadings[i], 0));
       Pose2 pointPose = transform.TransformPose(scanPose);
       Vector2d point = pointPose.GetPosition();
-      m_UnfilteredPointReadings.Add(point);
-      
+      m_UnfilteredPointReadings.push_back(point);
+
       kt_double range = scanPosition.Distance(point);
       if (math::InRange(range, pLaserRangeFinder->GetMinimumRange(), rangeThreshold))
       {
-        m_FilteredPointReadings.Add(point);
+        m_FilteredPointReadings.push_back(point);
       }
     }
   }

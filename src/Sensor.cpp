@@ -83,7 +83,7 @@ namespace karto
 
     // compute point readings
     const Vector2dList& rPoints = pLocalizedLaserScan->GetPointReadings(ignoreThresholdPoints);
-    for (kt_int32u i = 0; i < rPoints.Size(); i++)
+    for (kt_int32u i = 0; i < rPoints.size(); i++)
     {
       Vector2d point = rPoints[i];
 
@@ -103,7 +103,7 @@ namespace karto
         point.SetY(gridPoint.GetY());
       }
 
-      pointReadings.Add(point);
+      pointReadings.push_back(point);
     }
 
     return pointReadings;

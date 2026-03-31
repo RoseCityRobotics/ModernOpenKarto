@@ -27,8 +27,9 @@
 #include <tbb/blocked_range3d.h>
 #endif
 
+#include <utility>
+#include <algorithm>
 #include <Event.h>
-#include <Pair.h>
 #include <Geometry.h>
 #include <StringHelper.h>
 #include <SensorData.h>
@@ -239,7 +240,7 @@ namespace karto
      * Gets edges adjacent to this vertex
      * @return adjacent edges
      */
-    inline const List<Edge<T>*>& GetEdges() const
+    inline const std::vector<Edge<T>*>& GetEdges() const
     {
       return m_Edges;
     }
@@ -257,23 +258,21 @@ namespace karto
      * Gets a list of the vertices adjacent to this vertex
      * @return adjacent vertices
      */
-    List<Vertex<T>*> GetAdjacentVertices() const
+    std::vector<Vertex<T>*> GetAdjacentVertices() const
     {
-      List<Vertex<T>*> vertices;
+      std::vector<Vertex<T>*> vertices;
 
-      karto_const_forEach(typename List<Edge<T>*>, &m_Edges)
+      for (const auto& pEdge : m_Edges)
       {
-        Edge<T>* pEdge = *iter;
-
         // check both source and target because we have a undirected graph
         if (pEdge->GetSource() != this)
         {
-          vertices.Add(pEdge->GetSource());
+          vertices.push_back(pEdge->GetSource());
         }
 
         if (pEdge->GetTarget() != this)
         {
-          vertices.Add(pEdge->GetTarget());
+          vertices.push_back(pEdge->GetTarget());
         }
       }
 
@@ -287,11 +286,11 @@ namespace karto
      */
     inline void AddEdge(Edge<T>* pEdge)
     {
-      m_Edges.Add(pEdge);
+      m_Edges.push_back(pEdge);
     }
 
     T m_pObject;
-    List<Edge<T>*> m_Edges;
+    std::vector<Edge<T>*> m_Edges;
   }; // Vertex<T>
 
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -433,7 +432,7 @@ namespace karto
      * @param pVisitor visitor
      * @return list of vertices visited during traversal
      */
-    virtual List<T> Traverse(Vertex<T>* pStartVertex, Visitor<T>* pVisitor) = 0;
+    virtual std::vector<T> Traverse(Vertex<T>* pStartVertex, Visitor<T>* pVisitor) = 0;
 
   protected:
     /**
@@ -456,12 +455,12 @@ namespace karto
     /**
      * Type definition for list of vertices
      */
-    typedef List<Vertex<T>*> VertexList;
-    
+    using VertexList = std::vector<Vertex<T>*>;
+
     /**
      * Type definition for list of edges
      */
-    typedef List<Edge<T>*> EdgeList;
+    using EdgeList = std::vector<Edge<T>*>;
 
   public:
     /**
@@ -486,7 +485,7 @@ namespace karto
      */
     inline void AddVertex(Vertex<T>* pVertex)
     {
-      m_Vertices.Add(pVertex);
+      m_Vertices.push_back(pVertex);
     }
 
     /**
@@ -495,7 +494,7 @@ namespace karto
      */
     inline void AddEdge(Edge<T>* pEdge)
     {
-      m_Edges.Add(pEdge);
+      m_Edges.push_back(pEdge);
     }
 
     /**
@@ -503,21 +502,21 @@ namespace karto
      */
     void Clear()
     {
-      karto_const_forEach(typename VertexList, &m_Vertices)
+      for (const auto& pVertex : m_Vertices)
       {
         // delete each vertex
-        delete *iter;
+        delete pVertex;
       }
 
-      m_Vertices.Clear();
+      m_Vertices.clear();
 
-      karto_const_forEach(typename EdgeList, &m_Edges)
+      for (const auto& pEdge : m_Edges)
       {
         // delete each edge
-        delete *iter;
+        delete pEdge;
       }
 
-      m_Edges.Clear();
+      m_Edges.clear();
     }
 
     /**
@@ -679,14 +678,14 @@ namespace karto
      * @param rMeans means
      * @param rCovariances match uncertainties
      */
-    void LinkNearChains(LocalizedLaserScan* pScan, Pose2List& rMeans, List<Matrix3>& rCovariances);
+    void LinkNearChains(LocalizedLaserScan* pScan, Pose2List& rMeans, std::vector<Matrix3>& rCovariances);
     
     /**
      * Finds chains of scans that are close to given scan
      * @param pScan scan
      * @return chains of scans
      */
-    List<LocalizedLaserScanList> FindNearChains(LocalizedLaserScan* pScan);
+    std::vector<LocalizedLaserScanList> FindNearChains(LocalizedLaserScan* pScan);
         
     /**
      * Compute mean of poses weighted by covariances
@@ -694,7 +693,7 @@ namespace karto
      * @param rCovariances uncertainties
      * @return weighted mean
      */
-    Pose2 ComputeWeightedMean(const Pose2List& rMeans, const List<Matrix3>& rCovariances) const;
+    Pose2 ComputeWeightedMean(const Pose2List& rMeans, const std::vector<Matrix3>& rCovariances) const;
     
     /**
      * Tries to find a chain of scan from the given sensor starting at the
@@ -741,7 +740,7 @@ namespace karto
     /**
      * Vector of id-pose pairs
      */
-    typedef List<Pair<kt_int32s, Pose2> > IdPoseVector;
+    using IdPoseVector = std::vector<std::pair<kt_int32s, Pose2> >;
 
     /**
      * Default constructor
@@ -1272,7 +1271,7 @@ namespace karto
      * Gets names of all sensors
      * @return list of sensor names
      */
-    List<Identifier> GetSensorNames();
+    std::vector<Identifier> GetSensorNames();
     
     /**
      * Gets last scan of given sensor

@@ -22,7 +22,6 @@
 
 #include <vector>
 
-#include <List.h>
 #include <Object.h>
 #include <Geometry.h>
 #include <Sensor.h>
@@ -45,12 +44,12 @@ namespace karto
   /**
    * Type declaration of range readings List
    */
-  typedef List<kt_double> RangeReadingsList;
+  using RangeReadingsList = std::vector<kt_double>;
 
   /**
    * Type declaration of kt_double List
    */
-  typedef List<kt_double> DoubleList;
+  using DoubleList = std::vector<kt_double>;
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -553,7 +552,7 @@ namespace karto
   /**
    * Type declaration of LocalizedObject List
    */
-  typedef List<LocalizedObjectPtr> LocalizedObjectList;
+  using LocalizedObjectList = std::vector<LocalizedObjectPtr>;
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -696,7 +695,7 @@ namespace karto
      */
     inline kt_size_t GetNumberOfRangeReadings() const
     {
-      return m_RangeReadings.Size();
+      return m_RangeReadings.size();
     }
 
   protected:
@@ -787,7 +786,7 @@ namespace karto
   /**
    * Type declaration of LocalizedLaserScan List
    */
-  typedef List<LocalizedLaserScanPtr> LocalizedLaserScanList;
+  using LocalizedLaserScanList = std::vector<LocalizedLaserScanPtr>;
   
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -892,11 +891,7 @@ namespace karto
     KARTO_DEPRECATED KARTO_FORCEINLINE LocalizedRangeScan(const Identifier& rSensorIdentifier, std::vector<kt_double>& rRangeReadings)
       : LocalizedLaserScan(rSensorIdentifier)
     {
-      m_RangeReadings.Resize(static_cast<kt_int32u>(rRangeReadings.size()));
-      if (rRangeReadings.size() > 0)
-      {
-        memcpy(&(m_RangeReadings[0]), &(rRangeReadings[0]), sizeof(kt_double) * rRangeReadings.size());
-      }
+      m_RangeReadings = rRangeReadings;
     }
   
   protected:
