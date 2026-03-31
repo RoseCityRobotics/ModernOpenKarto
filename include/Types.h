@@ -35,6 +35,14 @@ using kt_int64u = std::uint64_t;
 
 using kt_size_t = std::size_t;
 
+// On ARM64 Linux (Jetson, etc.), size_t and uint64_t are both 'unsigned long',
+// making them the same type. On macOS and x86_64 Linux, they differ.
+#if defined(__linux__) && defined(__aarch64__)
+#define KARTO_SIZE_T_SAME_AS_UINT64 1
+#else
+#define KARTO_SIZE_T_SAME_AS_UINT64 0
+#endif
+
 using kt_bool       = bool;
 using kt_char        = char;
 using kt_float       = float;

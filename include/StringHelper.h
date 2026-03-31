@@ -110,8 +110,10 @@ namespace karto
      */
     static String ToString(kt_int64u value);
 
+#if !KARTO_SIZE_T_SAME_AS_UINT64
     // size_t is a distinct type from uint64_t on macOS (unsigned long vs unsigned long long)
     static String ToString(kt_size_t value);
+#endif
   
     /**
      * Converts the given float to a string
@@ -608,8 +610,10 @@ namespace karto
      */
     StringBuilder& operator << (kt_int64u value);
 
+#if !KARTO_SIZE_T_SAME_AS_UINT64
     // size_t is a distinct type from uint64_t on macOS
     StringBuilder& operator << (kt_size_t value);
+#endif
 
     /**
      * Add kt_float to this string builder
