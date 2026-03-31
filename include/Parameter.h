@@ -740,6 +740,33 @@ namespace karto
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
 
+  struct EnumPair
+  {
+    kt_bool operator == (const EnumPair& rOther) const
+    {
+      return rOther.name == name && rOther.value == value;
+    }
+
+    karto::String name;
+    kt_int64s value;
+  };
+
+  typedef List< EnumPair > EnumPairList;
+
+  struct FindByName
+  {
+    FindByName(const karto::String& rName) : m_name(rName) {}
+    kt_bool operator()(const EnumPair& rOther) const { return rOther.name == m_name; }
+    karto::String m_name;
+  };
+
+  struct FindByValue
+  {
+    FindByValue(kt_int64s value) : m_value(value) {}
+    kt_bool operator()(const EnumPair& rOther) const { return rOther.value == m_value; }
+    kt_int64s m_value;
+  };
+
   struct ParameterEnumPrivate;
 
   /**

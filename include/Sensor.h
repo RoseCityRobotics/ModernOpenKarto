@@ -202,15 +202,7 @@ namespace karto
     LaserRangeFinder_Hokuyo_URG_04LX = 5    
   } LaserRangeFinderType;
 
-  /**
-   * LaserRangeFinderType auto register callback function 
-   */
-  KARTO_EXPORT void RegisterLaserRangeFinderType();
-
-  /**
-   * Auto register LaserRangeFinderType with MetaEnumManager
-   */
-  KARTO_AUTO_TYPE(LaserRangeFinderType, &RegisterLaserRangeFinderType);
+  KARTO_TYPE(LaserRangeFinderType);
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////

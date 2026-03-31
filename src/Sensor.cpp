@@ -31,21 +31,6 @@ namespace karto
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
 
-  void RegisterLaserRangeFinderType()
-  {
-    MetaEnum::Register<LaserRangeFinderType>("LaserRangeFinderType")
-      .Value("Custom", LaserRangeFinder_Custom)
-      .Value("Sick_LMS100", LaserRangeFinder_Sick_LMS100)
-      .Value("Sick_LMS200", LaserRangeFinder_Sick_LMS200)
-      .Value("Sick_LMS291", LaserRangeFinder_Sick_LMS291)
-      .Value("Hokuyo_UTM_30LX", LaserRangeFinder_Hokuyo_UTM_30LX)
-      .Value("Hokuyo_URG_04LX", LaserRangeFinder_Hokuyo_URG_04LX);
-  }
-
-  ////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////
-
   Sensor::Sensor(const Identifier& rIdentifier)
     : Object(rIdentifier)
   {
@@ -78,12 +63,12 @@ namespace karto
     m_pRangeThreshold = new Parameter<kt_double>(GetParameterSet(), "RangeThreshold", "Range Threshold", "", 12.0);
 
     m_pType = new ParameterEnum(GetParameterSet(), "Type", "Type", "", (kt_int64s)karto::LaserRangeFinder_Custom);
-    const MetaEnum& rMetaEnum = karto::GetMetaEnumByType<karto::LaserRangeFinderType>();
-    for (kt_size_t i = 0; i < rMetaEnum.GetSize(); i++)
-    {
-      const EnumPair& rEnumPair = rMetaEnum.GetPair(i);
-      m_pType->DefineEnumValue(rEnumPair.name, rEnumPair.value);
-    }
+    m_pType->DefineEnumValue("Custom", LaserRangeFinder_Custom);
+    m_pType->DefineEnumValue("Sick_LMS100", LaserRangeFinder_Sick_LMS100);
+    m_pType->DefineEnumValue("Sick_LMS200", LaserRangeFinder_Sick_LMS200);
+    m_pType->DefineEnumValue("Sick_LMS291", LaserRangeFinder_Sick_LMS291);
+    m_pType->DefineEnumValue("Hokuyo_UTM_30LX", LaserRangeFinder_Hokuyo_UTM_30LX);
+    m_pType->DefineEnumValue("Hokuyo_URG_04LX", LaserRangeFinder_Hokuyo_URG_04LX);
   }
 
   LaserRangeFinder::~LaserRangeFinder()

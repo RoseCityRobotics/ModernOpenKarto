@@ -14,19 +14,11 @@ set(KARTO_SOURCE_FILES
   src/GridIndexLookup.cpp
   src/Identifier.cpp
   src/Logger.cpp
-  src/Meta.cpp
-  src/MetaAttribute.cpp
-  src/MetaClass.cpp
-  src/MetaClassManager.cpp
-  src/MetaEnum.cpp
-  src/MetaEnumHelper.cpp
-  src/MetaEnumManager.cpp
   src/Module.cpp
   src/Mutex.cpp
   src/Object.cpp
   src/Objects.cpp
   src/OccupancyGrid.cpp
-  src/OpenKarto.cpp
   src/OpenMapper.cpp
   src/Parameter.cpp
   src/PoseTransform.cpp

@@ -36,8 +36,6 @@
 #include <Macros.h>
 #include <KartoMath.h>
 #include <Meta.h>
-#include <MetaClassHelper.h>
-#include <MetaEnumHelper.h>
 #include <Module.h>
 #include <Object.h>
 #include <Objects.h>
@@ -57,24 +55,5 @@
 #include <StringHelper.h>
 #include <TypeCasts.h>
 #include <Types.h>
-
-namespace karto
-{
-
-  ///** \addtogroup OpenKarto */
-  //@{
-
-  //@cond EXCLUDE
-  /**
-   * Internal function please don't call. 
-   * Initialize and register OpenKarto classes with MetaClassManager
-   * @note Please don't call. Called by Environment::Initialize()
-   */
-  void InitializeOpenKartoMetaClasses();
-  //@endcond
-
-  //@}
-
-};
 
 #endif // __OpenKarto_h__

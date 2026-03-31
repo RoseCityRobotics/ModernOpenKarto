@@ -106,6 +106,7 @@ namespace karto
     return converter.str().c_str();
   }
 
+#if !KARTO_SIZE_T_SAME_AS_UINT64
   String StringHelper::ToString(kt_size_t value)
   {
     std::stringstream converter;
@@ -113,6 +114,7 @@ namespace karto
     converter << value;
     return converter.str().c_str();
   }
+#endif
 
   String StringHelper::ToString(kt_float value)
   {
@@ -561,12 +563,14 @@ namespace karto
     return *this;
   }
 
+#if !KARTO_SIZE_T_SAME_AS_UINT64
   StringBuilder& StringBuilder::operator << (kt_size_t value)
   {
     m_String.Append(karto::StringHelper::ToString(value));
 
     return *this;
   }
+#endif
 
   StringBuilder& StringBuilder::operator << (kt_float value)
   {
