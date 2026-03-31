@@ -17,7 +17,7 @@ set(KARTO_SOURCE_FILES
   src/SensorData.cpp
 )
 
-add_library(${PROJECT_NAME} ${KARTO_SOURCE_FILES})
+add_library(${PROJECT_NAME} SHARED ${KARTO_SOURCE_FILES})
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC
