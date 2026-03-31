@@ -20,12 +20,11 @@
 #ifndef __OpenKarto_Mapper_h__
 #define __OpenKarto_Mapper_h__
 
-#ifdef USE_TBB
-#include <tbb/mutex.h>
-#include <tbb/parallel_for.h>
-#include <tbb/blocked_range.h>
-#include <tbb/blocked_range3d.h>
-#endif
+#include <thread>
+#include <mutex>
+#include <queue>
+#include <condition_variable>
+#include <functional>
 
 #include <utility>
 #include <algorithm>

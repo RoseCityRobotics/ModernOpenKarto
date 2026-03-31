@@ -22,14 +22,9 @@
 
 #include <vector>
 #include <algorithm>
+#include <mutex>
+#include <Macros.h>
 #include <Types.h>
-#include <Mutex.h>
-
-// Forward declaration for tbb::mutex
-namespace tbb
-{
-  class mutex;
-}
 
 namespace karto
 {
@@ -835,7 +830,7 @@ namespace karto
      */
     void operator+=(const AbstractDelegate<TArgs>& rDelegate)
     {
-      Mutex::ScopedLock lock(m_Mutex);
+      std::lock_guard<std::mutex> lock(m_Mutex);
       m_Strategy.Add(rDelegate);
     }
 
@@ -847,7 +842,7 @@ namespace karto
      */
     void operator-=(const AbstractDelegate<TArgs>& rDelegate)
     {
-      Mutex::ScopedLock lock(m_Mutex);
+      std::lock_guard<std::mutex> lock(m_Mutex);
       m_Strategy.Remove(rDelegate);
     }
 
@@ -875,7 +870,7 @@ namespace karto
       kt_bool enabled = false;
 
       {
-        Mutex::ScopedLock lock(m_Mutex);
+        std::lock_guard<std::mutex> lock(m_Mutex);
         enabled = m_Enabled;
 
         if (m_Enabled)
@@ -899,7 +894,7 @@ namespace karto
      */
     void Enable()
     {
-      Mutex::ScopedLock lock(m_Mutex);
+      std::lock_guard<std::mutex> lock(m_Mutex);
       m_Enabled = true;
     }
 
@@ -909,7 +904,7 @@ namespace karto
      */
     void Disable()
     {
-      Mutex::ScopedLock lock(m_Mutex);
+      std::lock_guard<std::mutex> lock(m_Mutex);
       m_Enabled = false;
     }
 
@@ -918,7 +913,7 @@ namespace karto
      */
     kt_bool IsEnabled() const
     {
-      Mutex::ScopedLock lock(m_Mutex);
+      std::lock_guard<std::mutex> lock(m_Mutex);
       return m_Enabled;
     }
 
@@ -927,7 +922,7 @@ namespace karto
      */
     void Clear()
     {
-      Mutex::ScopedLock lock(m_Mutex);
+      std::lock_guard<std::mutex> lock(m_Mutex);
       m_Strategy.Clear();
     }
 
@@ -936,7 +931,7 @@ namespace karto
      */
     kt_bool IsEmpty() const
     {
-      Mutex::ScopedLock lock(m_Mutex);
+      std::lock_guard<std::mutex> lock(m_Mutex);
       return m_Strategy.IsEmpty();
     }
 
@@ -954,7 +949,7 @@ namespace karto
     /**
      * Mutex
      */
-    mutable Mutex m_Mutex;
+    mutable std::mutex m_Mutex;
 
   private:
     AbstractEvent(const AbstractEvent& rOther);

@@ -14,7 +14,6 @@ set(KARTO_SOURCE_FILES
   src/Identifier.cpp
   src/Logger.cpp
   src/Module.cpp
-  src/Mutex.cpp
   src/Object.cpp
   src/Objects.cpp
   src/OccupancyGrid.cpp
@@ -37,8 +36,8 @@ target_include_directories(${PROJECT_NAME}
     $<INSTALL_INTERFACE:include>
 )
 
-# TBB intentionally removed — target platform is ARM (Jetson Orin).
-# Single-threaded fallbacks are used; Phase 8 will add std::thread parallelism.
+# TBB replaced with std::thread/std::mutex/std::condition_variable (Phase 8).
+# Target platform is ARM (Jetson Orin) where TBB is not available.
 
 # Install
 include(GNUInstallDirs)
