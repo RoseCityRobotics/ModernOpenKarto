@@ -40,7 +40,7 @@ TEST(MetaRemoval, KartoRttiReturnsCorrectType) {
 
 // Verify KARTO_TYPECHECKCAST macros (dynamic_cast-based) still work
 TEST(MetaRemoval, TypeCheckCastsWork) {
-    karto::Identifier id("test_laser");
+    karto::Identifier id("test_laser_casts");
     karto::LaserRangeFinder* laser = karto::LaserRangeFinder::CreateLaserRangeFinder(
         karto::LaserRangeFinder_Custom, id);
 
