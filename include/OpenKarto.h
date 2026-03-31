@@ -31,7 +31,6 @@
 #include <Grid.h>
 #include <GridIndexLookup.h>
 #include <Identifier.h>
-#include <List.h>
 #include <Logger.h>
 #include <Macros.h>
 #include <KartoMath.h>
@@ -41,7 +40,6 @@
 #include <Objects.h>
 #include <OccupancyGrid.h>
 #include <OpenMapper.h>
-#include <Pair.h>
 #include <Parameter.h>
 #include <PoseTransform.h>
 #include <RangeTransform.h>

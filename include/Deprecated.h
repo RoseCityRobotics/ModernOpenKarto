@@ -51,7 +51,7 @@ namespace karto
   /**
    * Type declaration of ObjectVector.  Please use ObjectList instead.
    */
-  typedef KARTO_DEPRECATED karto::List<ObjectPtr> ObjectVector;
+  typedef KARTO_DEPRECATED std::vector<ObjectPtr> ObjectVector;
 
 }
 

@@ -39,7 +39,7 @@ namespace karto
     
     if (IsSensor(pObject))
     {
-      m_Sensors.Add(dynamic_cast<karto::Sensor*>(pObject));
+      m_Sensors.push_back(dynamic_cast<karto::Sensor*>(pObject));
       isObjectProcessed = true;
     }
     else if (IsModuleParameters(pObject))
@@ -50,9 +50,8 @@ namespace karto
       {
         // copy parameters
         const karto::ParameterList& rParameters = pParameters->GetParameters();
-        karto_const_forEach(karto::ParameterList, &rParameters)
+        for (const auto& pParameterFrom : rParameters)
         {
-          karto::AbstractParameter* pParameterFrom = *iter;
           karto::AbstractParameter* pParameterTo = GetParameter(pParameterFrom->GetName());
           if (pParameterTo != NULL)
           {
@@ -73,7 +72,7 @@ namespace karto
 
   void Module::Reset()
   {
-    m_Sensors.Clear();
+    m_Sensors.clear();
   }
 
 }

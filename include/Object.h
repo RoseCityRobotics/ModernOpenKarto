@@ -20,9 +20,11 @@
 #ifndef __ObjectKarto_Object_h__
 #define __ObjectKarto_Object_h__
 
+#include <vector>
+#include <algorithm>
 #include <Identifier.h>
+#include <Exception.h>
 #include <Parameter.h>
-#include <List.h>
 #include <Meta.h>
 
 namespace karto
@@ -128,9 +130,9 @@ namespace karto
         errorMessage.append("Valid parameters are: ");
         errorMessage.append("\n");
         const ParameterList& rParameters = m_pParameterSet->GetParameters();
-        karto_const_forEach(ParameterList, &rParameters)
+        for (const auto& param : rParameters)
         {
-          errorMessage.append("\t" + (*iter)->GetName());
+          errorMessage.append("\t" + param->GetName());
           errorMessage.append("\n");
         }
         throw Exception(errorMessage);
@@ -179,7 +181,7 @@ namespace karto
   /**
    * Type declaration of Object List
    */
-  typedef List<ObjectPtr> ObjectList;
+  using ObjectList = std::vector<ObjectPtr>;
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////

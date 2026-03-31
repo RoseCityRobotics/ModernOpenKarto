@@ -20,7 +20,7 @@
 #ifndef __OpenKarto_Geometry_h__
 #define __OpenKarto_Geometry_h__
 
-#include <List.h>
+#include <vector>
 #include <StringHelper.h>
 #include <KartoMath.h>
 
@@ -2393,7 +2393,7 @@ namespace karto
   /**
    * Type declaration of Pose2 List
    */
-  typedef List<Pose2> Pose2List;
+  using Pose2List = std::vector<Pose2>;
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -3217,7 +3217,7 @@ namespace karto
       }
     };
 
-    typedef List<PointGps> PointGpsList;
+    using PointGpsList = std::vector<PointGps>;
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////

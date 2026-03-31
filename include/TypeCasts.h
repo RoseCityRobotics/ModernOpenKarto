@@ -57,7 +57,7 @@ namespace karto
 
 #ifdef WIN32
 #define EXPORT_KARTO_LIST(declspec, T) \
-  template class declspec karto::List<T>;
+  template class declspec std::vector<T>;
 
   EXPORT_KARTO_LIST(KARTO_EXPORT, kt_double)
   EXPORT_KARTO_LIST(KARTO_EXPORT, Pose2)
