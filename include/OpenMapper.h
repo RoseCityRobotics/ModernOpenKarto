@@ -311,7 +311,7 @@ namespace karto
     Edge(Vertex<T>* pSource, Vertex<T>* pTarget)
       : m_pSource(pSource)
       , m_pTarget(pTarget)
-      , m_pLabel(NULL)
+      , m_pLabel(nullptr)
     {
       m_pSource->AddEdge(this);
       m_pTarget->AddEdge(this);
@@ -322,13 +322,13 @@ namespace karto
      */
     virtual ~Edge()
     {
-      m_pSource = NULL;
-      m_pTarget = NULL;
+      m_pSource = nullptr;
+      m_pTarget = nullptr;
 
-      if (m_pLabel != NULL)
+      if (m_pLabel != nullptr)
       {
         delete m_pLabel;
-        m_pLabel = NULL;
+        m_pLabel = nullptr;
       }
     }
 
@@ -828,7 +828,7 @@ namespace karto
      * @param smearDeviation amount to smear when adding scans to grid
      * @return correlation grid
      */
-    static CorrelationGrid* CreateGrid(kt_int32s width, kt_int32s height, kt_double resolution, kt_double smearDeviation)
+    [[nodiscard]] static CorrelationGrid* CreateGrid(kt_int32s width, kt_int32s height, kt_double resolution, kt_double smearDeviation)
     {
       assert(resolution != 0.0);
       
@@ -878,7 +878,7 @@ namespace karto
      */
     inline void SmearPoint(const Vector2i& rGridPoint)
     {
-      assert(m_pKernel != NULL);
+      assert(m_pKernel != nullptr);
       
       int gridIndex = GridIndex(rGridPoint);
       if (GetDataPointer()[gridIndex] != GridStates_Occupied)
@@ -914,7 +914,7 @@ namespace karto
     CorrelationGrid(kt_int32u width, kt_int32u height, kt_int32u borderSize, kt_double resolution, kt_double smearDeviation)
       : Grid<kt_int8u>(width + borderSize * 2, height + borderSize * 2)
       , m_SmearDeviation(smearDeviation)
-      , m_pKernel(NULL)
+      , m_pKernel(nullptr)
     {            
       GetCoordinateConverter()->SetScale(1.0 / resolution);
 
@@ -955,7 +955,7 @@ namespace karto
       
       // allocate kernel
       m_pKernel = new kt_int8u[m_KernelSize * m_KernelSize];
-      if (m_pKernel == NULL)
+      if (m_pKernel == nullptr)
       {
         throw Exception("Unable to allocate memory for kernel!");
       }
@@ -1209,7 +1209,7 @@ namespace karto
     ScanMatcher(OpenMapper* pOpenMapper)
       : m_pOpenMapper(pOpenMapper)
       , m_pScanMatcherGridSet(nullptr)
-      , m_pScanMatcherGridSetBank(NULL)
+      , m_pScanMatcherGridSetBank(nullptr)
     {
     }
     

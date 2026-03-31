@@ -144,7 +144,7 @@ namespace karto
       : m_pGrid(pGrid)
       , m_Capacity(0)
       , m_Size(0)
-      , m_ppLookupArray(NULL)
+      , m_ppLookupArray(nullptr)
     {
     }
     
@@ -277,7 +277,7 @@ namespace karto
       
       if (size > m_Capacity)
       {
-        if (m_ppLookupArray != NULL)
+        if (m_ppLookupArray != nullptr)
         {
           DestroyArrays();
         }
@@ -306,7 +306,7 @@ namespace karto
       }
       
       delete[] m_ppLookupArray;
-      m_ppLookupArray = NULL;      
+      m_ppLookupArray = nullptr;      
     }
     
   private:

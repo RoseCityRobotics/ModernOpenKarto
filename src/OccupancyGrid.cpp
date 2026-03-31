@@ -30,7 +30,7 @@ namespace karto
     : Grid<kt_int8u>(width, height)
     , m_pCellPassCnt(std::shared_ptr<Grid<kt_int32u>>(Grid<kt_int32u>::CreateGrid(0, 0, resolution)))
     , m_pCellHitsCnt(std::shared_ptr<Grid<kt_int32u>>(Grid<kt_int32u>::CreateGrid(0, 0, resolution)))
-    , m_pCellUpdater(NULL)
+    , m_pCellUpdater(nullptr)
   {
     m_pCellUpdater = new CellUpdater(this);
 
@@ -86,7 +86,7 @@ namespace karto
   {
     if (rScans.size() == 0)
     {
-      return NULL;
+      return nullptr;
     }
 
     kt_int32s width, height;
@@ -108,7 +108,7 @@ namespace karto
     BoundingBox2 boundingBox;
     for (const auto& pLocalizedLaserScan : rScans)
     {
-      if (pLocalizedLaserScan != NULL)
+      if (pLocalizedLaserScan != nullptr)
       {
         boundingBox.Add(pLocalizedLaserScan->GetBoundingBox());
       }
@@ -224,12 +224,12 @@ namespace karto
 
   kt_bool OccupancyGrid::RayTrace(const Vector2d& rWorldFrom, const Vector2d& rWorldTo, kt_bool isEndPointValid, kt_bool doUpdate)
   {
-    assert(m_pCellPassCnt != NULL && m_pCellHitsCnt != NULL);
+    assert(m_pCellPassCnt != nullptr && m_pCellHitsCnt != nullptr);
 
     Vector2i gridFrom = m_pCellPassCnt->WorldToGrid(rWorldFrom);
     Vector2i gridTo = m_pCellPassCnt->WorldToGrid(rWorldTo);
 
-    CellUpdater* pCellUpdater = doUpdate ? m_pCellUpdater : NULL;
+    CellUpdater* pCellUpdater = doUpdate ? m_pCellUpdater : nullptr;
     m_pCellPassCnt->TraceLine(gridFrom.GetX(), gridFrom.GetY(), gridTo.GetX(), gridTo.GetY(), pCellUpdater);        
 
     // for the end point
@@ -275,7 +275,7 @@ namespace karto
 
   void OccupancyGrid::UpdateGrid()
   {
-    assert(m_pCellPassCnt != NULL && m_pCellHitsCnt != NULL);
+    assert(m_pCellPassCnt != nullptr && m_pCellHitsCnt != nullptr);
 
     // clear grid
     Clear();

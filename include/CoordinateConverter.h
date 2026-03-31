@@ -54,7 +54,7 @@ namespace karto
      * @param value value to scale
      * @return scaled value
      */
-    KARTO_DEPRECATED inline kt_double Transform(kt_double value)
+    [[deprecated]] inline kt_double Transform(kt_double value)
     {
       return value * m_Scale;
     }

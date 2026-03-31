@@ -31,13 +31,7 @@
  * Karto defines for handling deprecated code 
  */
 #ifndef KARTO_DEPRECATED
-#  if defined(__GNUC__) && (__GNUC__ >= 4 || (__GNUC__==3 && __GNUC_MINOR__>=1))
-#    define KARTO_DEPRECATED __attribute__((deprecated))
-#  elif defined(__INTEL) || defined(_MSC_VER)
-#    define KARTO_DEPRECATED __declspec(deprecated)
-#  else
-#    define KARTO_DEPRECATED
-#  endif
+#define KARTO_DEPRECATED [[deprecated]]
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////

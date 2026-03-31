@@ -21,7 +21,7 @@ namespace karto
 {
 
   LookupArray::LookupArray()
-    : m_pArray(NULL)
+    : m_pArray(nullptr)
     , m_Capacity(0)
     , m_Size(0)
   {
@@ -29,10 +29,10 @@ namespace karto
 
   LookupArray::~LookupArray()
   {
-    assert(m_pArray != NULL);
+    assert(m_pArray != nullptr);
 
     delete[] m_pArray;
-    m_pArray = NULL;
+    m_pArray = nullptr;
   }
 
   void LookupArray::Clear()
@@ -51,7 +51,7 @@ namespace karto
 
     if (size > m_Capacity)
     {
-      if (m_pArray != NULL)
+      if (m_pArray != nullptr)
       {
         delete [] m_pArray;
       }

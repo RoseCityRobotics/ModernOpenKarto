@@ -39,7 +39,7 @@ namespace karto
    * Container for Karto objects.
    * @deprecated Please use ObjectList instead.
    */
-  class KARTO_DEPRECATED KARTO_EXPORT Dataset
+  class [[deprecated]] KARTO_EXPORT Dataset
   {
   public:
     /**

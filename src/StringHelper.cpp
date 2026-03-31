@@ -63,22 +63,14 @@ namespace karto
   std::string StringHelper::ToString(kt_int32u value)
   {
     char buffer[64];
-#ifdef WIN32
-    sprintf_s(buffer, 64, "%u", value);
-#else
-    sprintf(buffer, "%u", value);
-#endif
+    snprintf(buffer, sizeof(buffer), "%u", value);
     return std::string(buffer);
   }
 
   std::string StringHelper::ToString(kt_int32s value)
   {
     char buffer[64];
-#ifdef WIN32
-    sprintf_s(buffer, 64, "%d", value);
-#else
-    sprintf(buffer, "%d", value);
-#endif
+    snprintf(buffer, sizeof(buffer), "%d", value);
     return std::string(buffer);
   }
 
@@ -111,44 +103,28 @@ namespace karto
   std::string StringHelper::ToString(kt_float value)
   {
     char buffer[64];
-#ifdef WIN32
-    sprintf_s(buffer, 64, "%.*g", 8, (double) value);
-#else
-    sprintf(buffer, "%.*g", 8, (double) value);
-#endif
+    snprintf(buffer, sizeof(buffer), "%.*g", 8, (double) value);
     return std::string(buffer);
   }
 
   std::string StringHelper::ToString(kt_double value)
   {
     char buffer[64];
-#ifdef WIN32
-    sprintf_s(buffer, 64, "%.*g", 16, value);
-#else
-    sprintf(buffer, "%.*g", 16, value);
-#endif
+    snprintf(buffer, sizeof(buffer), "%.*g", 16, value);
     return std::string(buffer);
   }
 
   std::string StringHelper::ToString(kt_float value, kt_int32u precision)
   {
     char buffer[64];
-#ifdef WIN32
-    sprintf_s(buffer, 64, "%.*f", (kt_int32s)precision, (double)value);
-#else
-    sprintf(buffer, "%.*f", (kt_int32s)precision, (double)value);
-#endif
+    snprintf(buffer, sizeof(buffer), "%.*f", (kt_int32s)precision, (double)value);
     return std::string(buffer);
   }
 
   std::string StringHelper::ToString(kt_double value, kt_int32u precision)
   {
     char buffer[64];
-#ifdef WIN32
-    sprintf_s(buffer, 64, "%.*f", (kt_int32s)precision, value);
-#else
-    sprintf(buffer, "%.*f", (kt_int32s)precision, value);
-#endif
+    snprintf(buffer, sizeof(buffer), "%.*f", (kt_int32s)precision, value);
     return std::string(buffer);
   }
 

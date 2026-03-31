@@ -437,7 +437,7 @@ namespace karto
      */
     inline gps::PointGps GetGpsEstimate() const
     {
-      if (m_pGpsEstimationManager != NULL)
+      if (m_pGpsEstimationManager != nullptr)
       {
         return m_pGpsEstimationManager->GetGpsEstimate(this);
       }
@@ -453,7 +453,7 @@ namespace karto
      */
     inline void SetGpsEstimate(const gps::PointGps& rGpsEstimate)
     {
-      if (m_pGpsEstimationManager != NULL)
+      if (m_pGpsEstimationManager != nullptr)
       {
         m_pGpsEstimationManager->SetGpsEstimate(this, rGpsEstimate);
       }
@@ -470,7 +470,7 @@ namespace karto
      */
     inline kt_bool IsGpsEstimateValid() const
     {
-      if (m_pGpsEstimationManager != NULL)
+      if (m_pGpsEstimationManager != nullptr)
       {
         return m_pGpsEstimationManager->IsGpsEstimateValid(this);
       }
@@ -877,7 +877,7 @@ namespace karto
      * @param rRangeReadings vector of range readings
      * @deprecated Please use LocalizedRangeScan(const Name& rSensorIdentifier, const RangeReadingsList& rReadings)
      */
-    KARTO_DEPRECATED KARTO_FORCEINLINE LocalizedRangeScan(const Identifier& rSensorIdentifier, std::vector<kt_double>& rRangeReadings)
+    [[deprecated]] KARTO_FORCEINLINE LocalizedRangeScan(const Identifier& rSensorIdentifier, std::vector<kt_double>& rRangeReadings)
       : LocalizedLaserScan(rSensorIdentifier)
     {
       m_RangeReadings = rRangeReadings;

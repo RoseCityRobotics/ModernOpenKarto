@@ -65,7 +65,7 @@ namespace karto
      * @param resolution resolution
      * @return grid pointer
      */
-    static Grid* CreateGrid(kt_int32s width, kt_int32s height, kt_double resolution)
+    [[nodiscard]] static Grid* CreateGrid(kt_int32s width, kt_int32s height, kt_double resolution)
     {
       Grid* pGrid = new Grid(width, height);
       
@@ -118,17 +118,17 @@ namespace karto
       m_Height = height;
       m_WidthStep = math::AlignValue<kt_int32s>(width, 8);
       
-      if (m_pData != NULL)
+      if (m_pData != nullptr)
       {
         delete[] m_pData;
-        m_pData = NULL;
+        m_pData = nullptr;
       }
 
       try
       {
         m_pData = new T[GetDataSize()];
 
-        if (m_pCoordinateConverter == NULL)
+        if (m_pCoordinateConverter == nullptr)
         {
           m_pCoordinateConverter = new CoordinateConverter();
         }
@@ -137,7 +137,7 @@ namespace karto
       }
       catch (...)
       {
-        m_pData = NULL;
+        m_pData = nullptr;
 
         m_Width = 0;
         m_Height = 0;
@@ -366,7 +366,7 @@ namespace karto
      * @param y1 y1
      * @param f functor
      */
-    void TraceLine(kt_int32s x0, kt_int32s y0, kt_int32s x1, kt_int32s y1, Functor* f = NULL)
+    void TraceLine(kt_int32s x0, kt_int32s y0, kt_int32s x1, kt_int32s y1, Functor* f = nullptr)
     {
       kt_bool steep = abs(y1 - y0) > abs(x1 - x0);
       if (steep)
@@ -425,7 +425,7 @@ namespace karto
           T* pGridPointer = GetDataPointer();
           pGridPointer[index]++;
           
-          if (f != NULL)
+          if (f != nullptr)
           {
             (*f)(index); 
           }
@@ -443,9 +443,9 @@ namespace karto
       : m_Width(0)
       , m_Height(0)
       , m_WidthStep(0)
-      , m_pData(NULL)
+      , m_pData(nullptr)
 
-      , m_pCoordinateConverter(NULL)
+      , m_pCoordinateConverter(nullptr)
     {
       Resize(width, height);
     }

@@ -53,7 +53,7 @@ namespace karto
      * Default constructor
      */
     SensorDataManager(kt_int32u runningBufferMaximumSize, kt_double runningBufferMaximumDistance)
-      : m_pLastScan(NULL)
+      : m_pLastScan(nullptr)
       , m_RunningBufferMaximumSize(runningBufferMaximumSize)
       , m_RunningBufferMaximumDistance(runningBufferMaximumDistance)
     {
@@ -86,7 +86,7 @@ namespace karto
 
       // if object is scan and it was scan-matched, add it to scan buffer
       LocalizedLaserScan* pScan = dynamic_cast<LocalizedLaserScan*>(pObject);
-      if (pScan != NULL)
+      if (pScan != nullptr)
       {
         m_Scans.push_back(pScan);
       }      
@@ -190,7 +190,7 @@ namespace karto
       m_Objects.clear();
       m_Scans.clear();
       m_RunningScans.clear();
-      m_pLastScan = NULL;
+      m_pLastScan = nullptr;
     }
 
   private:
@@ -214,7 +214,7 @@ namespace karto
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
 
-  typedef std::map<Identifier, SensorDataManager*> SensorDataManagerMap;
+  using SensorDataManagerMap = std::map<Identifier, SensorDataManager*>;
 
   struct MapperSensorManagerPrivate
   {
@@ -246,7 +246,7 @@ namespace karto
   
   void MapperSensorManager::RegisterSensor(const Identifier& rSensorName)
   {
-    if (GetSensorDataManager(rSensorName) == NULL)
+    if (GetSensorDataManager(rSensorName) == nullptr)
     {
       m_pMapperSensorManagerPrivate->m_SensorDataManagers[rSensorName] = new SensorDataManager(m_pMapperSensorManagerPrivate->m_RunningBufferMaximumSize, m_pMapperSensorManagerPrivate->m_RunningBufferMaximumDistance);
     }
@@ -255,13 +255,13 @@ namespace karto
   LocalizedObject* MapperSensorManager::GetLocalizedObject(const Identifier& rSensorName, kt_int32s stateId)
   {
     SensorDataManager* pSensorDataManager = GetSensorDataManager(rSensorName);
-    if (pSensorDataManager != NULL)
+    if (pSensorDataManager != nullptr)
     {
       return pSensorDataManager->GetObjects()[stateId];
     }
 
     assert(false);
-    return NULL;
+    return nullptr;
   }
   
   // for use by scan solver
@@ -294,7 +294,7 @@ namespace karto
   
   void MapperSensorManager::ClearLastScan(const Identifier& rSensorName)
   {
-    GetSensorDataManager(rSensorName)->SetLastScan(NULL);
+    GetSensorDataManager(rSensorName)->SetLastScan(nullptr);
   }
 
   void MapperSensorManager::AddLocalizedObject(LocalizedObject* pObject)
@@ -367,7 +367,7 @@ namespace karto
       return m_pMapperSensorManagerPrivate->m_SensorDataManagers[rSensorName];
     }
     
-    return NULL;
+    return nullptr;
   }  
 
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -434,19 +434,19 @@ namespace karto
     // invalid parameters
     if (resolution <= 0)
     {
-      return NULL;
+      return nullptr;
     }
     if (searchSize <= 0)
     {
-      return NULL;
+      return nullptr;
     }
     if (smearDeviation < 0)
     {
-      return NULL;
+      return nullptr;
     }
     if (rangeThreshold <= 0)
     {
-      return NULL;
+      return nullptr;
     }
     
     assert(math::DoubleEqual(math::Round(searchSize / resolution), (searchSize / resolution)));
@@ -779,7 +779,7 @@ namespace karto
         Vector2i grid = pSearchSpaceProbs->WorldToGrid(rPose.GetPosition());
         
         kt_double* ptr = (kt_double*)pSearchSpaceProbs->GetDataPointer(grid);
-        if (ptr == NULL)
+        if (ptr == nullptr)
         {
           throw Exception("Mapper FATAL ERROR - Index out of range in probability search!");
         }
@@ -1164,7 +1164,7 @@ namespace karto
     kt_int8u* pByte = pCorrelationGrid->GetDataPointer() + gridPositionIndex;
     
     const LookupArray* pOffsets = pGridLookup->GetLookupArray(angleIndex);
-    assert(pOffsets != NULL);
+    assert(pOffsets != nullptr);
     
     // get number of points in offset list
     kt_int32u nPoints = pOffsets->GetSize();
@@ -1313,7 +1313,7 @@ namespace karto
       LocalizedLaserScan* pScan = dynamic_cast<LocalizedLaserScan*>(pObject);
       
       // object is not a scan or wasn't scan matched, ignore
-      if (pScan == NULL)
+      if (pScan == nullptr)
       {
         return false;
       }
@@ -1347,17 +1347,17 @@ namespace karto
   MapperGraph::~MapperGraph()
   {
     delete m_pLoopScanMatcher;
-    m_pLoopScanMatcher = NULL;
+    m_pLoopScanMatcher = nullptr;
     
     delete m_pTraversal;
-    m_pTraversal = NULL;
+    m_pTraversal = nullptr;
   }
   
   void MapperGraph::AddVertex(LocalizedObject* pObject)
   {
     assert(pObject);
 
-    if (pObject == NULL)
+    if (pObject == nullptr)
     {
       return;
     }
@@ -1379,7 +1379,7 @@ namespace karto
     covariance(2, 2) = MAX_VARIANCE;
     
     LocalizedLaserScan* pScan = dynamic_cast<LocalizedLaserScan*>(pObject);
-    if (pScan != NULL)
+    if (pScan != nullptr)
     {      
       AddEdges(pScan, covariance);
     }
@@ -1389,7 +1389,7 @@ namespace karto
       const Identifier& rSensorName = pObject->GetSensorIdentifier();
       
       LocalizedLaserScan* pLastScan = pSensorManager->GetLastScan(rSensorName);
-      if (pLastScan != NULL)
+      if (pLastScan != nullptr)
       {
         LinkObjects(pLastScan, pObject, pObject->GetCorrectedPose(), covariance);
       }
@@ -1406,7 +1406,7 @@ namespace karto
     std::vector<Matrix3> covariances;
 
     LocalizedLaserScan* pLastScan = pSensorManager->GetLastScan(rSensorName);
-    if (pLastScan == NULL)
+    if (pLastScan == nullptr)
     {
       // first scan (link to first scan of other robots)
 
@@ -1539,7 +1539,7 @@ namespace karto
   
   LocalizedLaserScan* MapperGraph::GetClosestScanToPose(const LocalizedLaserScanList& rScans, const Pose2& rPose) const
   {
-    LocalizedLaserScan* pClosestScan = NULL;
+    LocalizedLaserScan* pClosestScan = nullptr;
     kt_double bestSquaredDistance = DBL_MAX;
     
     for (const auto& scan : rScans)
@@ -1591,7 +1591,7 @@ namespace karto
     if (isNewEdge == true)
     {
       LocalizedLaserScan* pScan = dynamic_cast<LocalizedLaserScan*>(pFromObject);
-      if (pScan != NULL)
+      if (pScan != nullptr)
       {
         pEdge->SetLabel(new LinkInfo(pScan->GetSensorPose(), rMean, rCovariance));
       }
@@ -1711,7 +1711,7 @@ namespace karto
     Pose2 pose = pScan->GetReferencePose(m_pOpenMapper->m_pUseScanBarycenter->GetValue());
 
     LocalizedLaserScan* pClosestScan = GetClosestScanToPose(rChain, pose);
-    assert(pClosestScan != NULL);
+    assert(pClosestScan != nullptr);
 
     Pose2 closestScanPose = pClosestScan->GetReferencePose(m_pOpenMapper->m_pUseScanBarycenter->GetValue());
 
@@ -1859,7 +1859,7 @@ namespace karto
     for (const auto& pObject : nearLinkedObjects)
     {
       LocalizedLaserScan* pScan = dynamic_cast<LocalizedLaserScan*>(pObject);
-      if (pScan != NULL)
+      if (pScan != nullptr)
       {
         nearLinkedScans.push_back(pScan);
       }
@@ -1879,7 +1879,7 @@ namespace karto
     {
       LocalizedObject* pObject = pVertex->GetVertexObject();
       LocalizedLaserScan* pCandidateScan = dynamic_cast<LocalizedLaserScan*>(pObject);
-      if (pCandidateScan == NULL)
+      if (pCandidateScan == nullptr)
       {
         continue;
       }
@@ -1987,7 +1987,7 @@ namespace karto
   {
     // optimize scans!
     ScanSolver* pSolver = m_pOpenMapper->m_pScanSolver.get();
-    if (pSolver != NULL)
+    if (pSolver != nullptr)
     {
       pSolver->Compute();
       
@@ -1996,7 +1996,7 @@ namespace karto
         LocalizedObject* pObject = m_pOpenMapper->m_pMapperSensorManager->GetLocalizedObject(correction.first);
         LocalizedLaserScan* pScan = dynamic_cast<LocalizedLaserScan*>(pObject);
 
-        if (pScan != NULL)
+        if (pScan != nullptr)
         {
           pScan->SetSensorPose(correction.second);
         }
@@ -2022,9 +2022,9 @@ namespace karto
     , m_pScanSolver(nullptr)
     , m_Initialized(false)
     , m_MultiThreaded(multiThreaded)
-    , m_pSequentialScanMatcher(NULL)
-    , m_pMapperSensorManager(NULL)
-    , m_pGraph(NULL)
+    , m_pSequentialScanMatcher(nullptr)
+    , m_pMapperSensorManager(nullptr)
+    , m_pGraph(nullptr)
   {
     InitializeParameters();
   }
@@ -2037,9 +2037,9 @@ namespace karto
     , m_pScanSolver(nullptr)
     , m_Initialized(false)
     , m_MultiThreaded(multiThreaded)
-    , m_pSequentialScanMatcher(NULL)
-    , m_pMapperSensorManager(NULL)
-    , m_pGraph(NULL)
+    , m_pSequentialScanMatcher(nullptr)
+    , m_pMapperSensorManager(nullptr)
+    , m_pGraph(nullptr)
   {
     InitializeParameters();
   }
@@ -2116,20 +2116,20 @@ namespace karto
     Module::Reset();
 
     delete m_pSequentialScanMatcher;
-    m_pSequentialScanMatcher = NULL;
+    m_pSequentialScanMatcher = nullptr;
 
     delete m_pGraph;
-    m_pGraph = NULL;
+    m_pGraph = nullptr;
 
     delete m_pMapperSensorManager;
-    m_pMapperSensorManager = NULL;
+    m_pMapperSensorManager = nullptr;
 
     m_Initialized = false;
   }
 
   kt_bool OpenMapper::Process(Object* pObject)
   {
-    if (pObject == NULL)
+    if (pObject == nullptr)
     {
       return false;
     }
@@ -2153,15 +2153,15 @@ namespace karto
     }
     
     LocalizedObject* pLocalizedObject = dynamic_cast<LocalizedObject*>(pObject);
-    if (pLocalizedObject != NULL)
+    if (pLocalizedObject != nullptr)
     {
       LocalizedLaserScan* pScan = dynamic_cast<LocalizedLaserScan*>(pObject);
-      if (pScan != NULL)
+      if (pScan != nullptr)
       {
         karto::LaserRangeFinder* pLaserRangeFinder = pScan->GetLaserRangeFinder();
         
         // validate scan
-        if (pLaserRangeFinder == NULL)
+        if (pLaserRangeFinder == nullptr)
         {
           return false;
         }
@@ -2183,7 +2183,7 @@ namespace karto
       LocalizedLaserScan* pLastScan = m_pMapperSensorManager->GetLastScan(pLocalizedObject->GetSensorIdentifier());
       
       // update scans corrected pose based on last correction
-      if (pLastScan != NULL)
+      if (pLastScan != nullptr)
       {
         Transform lastTransform(pLastScan->GetOdometricPose(), pLastScan->GetCorrectedPose());
         pLocalizedObject->SetCorrectedPose(lastTransform.TransformPose(pLocalizedObject->GetOdometricPose()));
@@ -2191,7 +2191,7 @@ namespace karto
       
       // check custom data if object is not a scan or if scan has not moved enough (i.e.,
       // scan is outside minimum boundary or if heading is larger then minimum heading)
-      if (pScan == NULL || (!HasMovedEnough(pScan, pLastScan) && !pScan->IsGpsReadingValid()))
+      if (pScan == nullptr || (!HasMovedEnough(pScan, pLastScan) && !pScan->IsGpsReadingValid()))
       {
         if (pLocalizedObject->HasCustomItem() == true)
         {
@@ -2214,7 +2214,7 @@ namespace karto
       covariance.SetToIdentity();
       
       // correct scan (if not first scan)
-      if (m_pUseScanMatching->GetValue() && pLastScan != NULL)
+      if (m_pUseScanMatching->GetValue() && pLastScan != nullptr)
       {
         Pose2 bestPose;
         m_pSequentialScanMatcher->MatchScan(pScan, m_pMapperSensorManager->GetRunningScans(pScan->GetSensorIdentifier()), bestPose, covariance);
@@ -2254,7 +2254,7 @@ namespace karto
   kt_bool OpenMapper::HasMovedEnough(LocalizedLaserScan* pScan, LocalizedLaserScan* pLastScan) const
   {
     // test if first scan
-    if (pLastScan == NULL)
+    if (pLastScan == nullptr)
     {
       return true;
     }
@@ -2283,7 +2283,7 @@ namespace karto
   {
     LocalizedLaserScanList allScans;
 
-    if (m_pMapperSensorManager != NULL)
+    if (m_pMapperSensorManager != nullptr)
     {
       allScans = m_pMapperSensorManager->GetAllScans();
     }
@@ -2295,7 +2295,7 @@ namespace karto
   {
     LocalizedObjectList allObjects;
 
-    if (m_pMapperSensorManager != NULL)
+    if (m_pMapperSensorManager != nullptr)
     {
       // BUGBUG: inefficient?  should return right away?
       allObjects = m_pMapperSensorManager->GetAllObjects();

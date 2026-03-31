@@ -35,7 +35,7 @@ namespace karto
   {
     std::vector<Sensor*> m_Sensors;
 
-    typedef std::map<Identifier, Sensor*> SensorManagerMap;
+    using SensorManagerMap = std::map<Identifier, Sensor*>;
     SensorManagerMap m_SensorMap;
   };
 
@@ -58,7 +58,7 @@ namespace karto
 
   void SensorRegistry::RegisterSensor(Sensor* pSensor)
   {
-    if (pSensor != NULL)
+    if (pSensor != nullptr)
     {
       if (pSensor->GetIdentifier().GetScope() != "Karto/System")
       {
@@ -84,7 +84,7 @@ namespace karto
 
   void SensorRegistry::UnregisterSensor(Sensor* pSensor)
   {
-    if (pSensor != NULL)
+    if (pSensor != nullptr)
     {
       if (pSensor->GetIdentifier().GetScope() != "Karto/System")
       {
@@ -115,7 +115,7 @@ namespace karto
     {
       Sensor* pSensor = m_pSensorRegistryPrivate->m_SensorMap[rName];
 
-      assert(pSensor != NULL);
+      assert(pSensor != nullptr);
 
       return pSensor;
     }
@@ -135,9 +135,9 @@ namespace karto
 
   void SensorRegistry::Validate(Sensor* pSensor)
   {
-    if (pSensor == NULL)
+    if (pSensor == nullptr)
     {
-      throw Exception("Invalid sensor: NULL");
+      throw Exception("Invalid sensor: nullptr");
     }
     else if (pSensor->GetIdentifier().Size() == 0)
     {

@@ -66,7 +66,7 @@ namespace karto
 
   void AbstractParameter::InitializeParameters()
   {
-    if (m_pParameterSet != NULL)
+    if (m_pParameterSet != nullptr)
     {
       m_pParameterSet->AddParameter(this);
     }
@@ -78,7 +78,7 @@ namespace karto
 
   struct ParameterSetPrivate
   {
-    typedef std::map<std::string, std::shared_ptr<AbstractParameter>> ParameterMap;
+    using ParameterMap = std::map<std::string, std::shared_ptr<AbstractParameter>>;
 
     ParameterList m_Parameters;
     ParameterMap m_ParametersMap;
@@ -96,7 +96,7 @@ namespace karto
 
   void ParameterSet::AddParameter(AbstractParameter* pParameter)
   {
-    if (pParameter != NULL)
+    if (pParameter != nullptr)
     {
       if (m_pPrivate->m_ParametersMap.find(pParameter->GetName()) == m_pPrivate->m_ParametersMap.end())
       {
@@ -113,7 +113,7 @@ namespace karto
 
   void ParameterSet::RemoveParameter(AbstractParameter* pParameter)
   {
-    if (pParameter != NULL)
+    if (pParameter != nullptr)
     {
       ParameterSetPrivate::ParameterMap::iterator iter = m_pPrivate->m_ParametersMap.find(pParameter->GetName());
       if (iter != m_pPrivate->m_ParametersMap.end())
@@ -152,7 +152,7 @@ namespace karto
       return iter->second.get();
     }
 
-    return NULL;
+    return nullptr;
   }
 
   AbstractParameter* ParameterSet::GetParameter(const std::string& rParameterName)
@@ -163,7 +163,7 @@ namespace karto
       return iter->second.get();
     }
 
-    return NULL;
+    return nullptr;
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -172,7 +172,7 @@ namespace karto
 
   struct ParameterEnumPrivate
   {
-    typedef std::vector<EnumPair> EnumPairVector;
+    using EnumPairVector = std::vector<EnumPair>;
     EnumPairVector m_EnumPairs;
   };
 

@@ -154,13 +154,13 @@ namespace karto
     }
 
     /**
-     * Sensor data is valid if it is not NULL
+     * Sensor data is valid if it is not nullptr
      */
     virtual void Validate(SensorData* pSensorData)
     {
-      if (pSensorData == NULL)
+      if (pSensorData == nullptr)
       {
-        throw Exception("SensorData == NULL");
+        throw Exception("SensorData == nullptr");
       }
     }
 
@@ -186,7 +186,7 @@ namespace karto
    * to add them to the description of LaserRangeFinder below.
    * @endcond
    */
-  typedef enum
+  enum LaserRangeFinderType
   {
     LaserRangeFinder_Custom = 0,
 
@@ -195,8 +195,8 @@ namespace karto
     LaserRangeFinder_Sick_LMS291 = 3,
 
     LaserRangeFinder_Hokuyo_UTM_30LX = 4,
-    LaserRangeFinder_Hokuyo_URG_04LX = 5    
-  } LaserRangeFinderType;
+    LaserRangeFinder_Hokuyo_URG_04LX = 5
+  };
 
   KARTO_TYPE(LaserRangeFinderType);
 
@@ -399,7 +399,7 @@ namespace karto
      * @param rName name of sensor
      * @return laser range finder
      */
-    static LaserRangeFinder* CreateLaserRangeFinder(LaserRangeFinderType type, const Identifier& rName);
+    [[nodiscard]] static LaserRangeFinder* CreateLaserRangeFinder(LaserRangeFinderType type, const Identifier& rName);
 
   private:
     /**
