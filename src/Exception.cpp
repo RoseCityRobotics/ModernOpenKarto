@@ -26,7 +26,7 @@ namespace karto
   {
   }
 
-  Exception::Exception(const String& rMessage, kt_int32s errorCode)
+  Exception::Exception(const std::string& rMessage, kt_int32s errorCode)
     : m_Message(rMessage)
     , m_ErrorCode(errorCode)
   {
@@ -53,7 +53,7 @@ namespace karto
     return *this;
   }
 
-  const String& Exception::GetErrorMessage() const
+  const std::string& Exception::GetErrorMessage() const
   {
     return m_Message;
   }

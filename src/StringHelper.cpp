@@ -29,46 +29,38 @@ namespace karto
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
 
-  String StringHelper::ToString(const char* value)
+  std::string StringHelper::ToString(const char* value)
   {
-    return String(value);
+    return std::string(value);
   }
 
-  String StringHelper::ToString(kt_bool value)
+  std::string StringHelper::ToString(kt_bool value)
   {
     if (value == true)
     {
-      return String("true");
+      return std::string("true");
     }
 
-    return String("false");
+    return std::string("false");
   }
 
-  //String StringHelper::ToString(kt_size_t value)
-  //{
-  //  std::stringstream converter;
-  //  converter.precision(std::numeric_limits<double>::digits10);
-  //  converter << value;
-  //  return converter.str().c_str();
-  //}
-
-  String StringHelper::ToString(kt_int16u value)
+  std::string StringHelper::ToString(kt_int16u value)
   {
     std::stringstream converter;
     converter.precision(std::numeric_limits<double>::digits10);
     converter << value;
-    return converter.str().c_str();
+    return converter.str();
   }
 
-  String StringHelper::ToString(kt_int16s value)
+  std::string StringHelper::ToString(kt_int16s value)
   {
     std::stringstream converter;
     converter.precision(std::numeric_limits<double>::digits10);
     converter << value;
-    return converter.str().c_str();
+    return converter.str();
   }
 
-  String StringHelper::ToString(kt_int32u value)
+  std::string StringHelper::ToString(kt_int32u value)
   {
     char buffer[64];
 #ifdef WIN32
@@ -76,10 +68,10 @@ namespace karto
 #else
     sprintf(buffer, "%u", value);
 #endif
-    return String(buffer);
+    return std::string(buffer);
   }
 
-  String StringHelper::ToString(kt_int32s value)
+  std::string StringHelper::ToString(kt_int32s value)
   {
     char buffer[64];
 #ifdef WIN32
@@ -87,36 +79,36 @@ namespace karto
 #else
     sprintf(buffer, "%d", value);
 #endif
-    return String(buffer);
+    return std::string(buffer);
   }
 
-  String StringHelper::ToString(kt_int64u value)
+  std::string StringHelper::ToString(kt_int64u value)
   {
     std::stringstream converter;
     converter.precision(std::numeric_limits<double>::digits10);
     converter << value;
-    return converter.str().c_str();
+    return converter.str();
   }
 
-  String StringHelper::ToString(kt_int64s value)
+  std::string StringHelper::ToString(kt_int64s value)
   {
     std::stringstream converter;
     converter.precision(std::numeric_limits<double>::digits10);
     converter << value;
-    return converter.str().c_str();
+    return converter.str();
   }
 
 #if !KARTO_SIZE_T_SAME_AS_UINT64
-  String StringHelper::ToString(kt_size_t value)
+  std::string StringHelper::ToString(kt_size_t value)
   {
     std::stringstream converter;
     converter.precision(std::numeric_limits<double>::digits10);
     converter << value;
-    return converter.str().c_str();
+    return converter.str();
   }
 #endif
 
-  String StringHelper::ToString(kt_float value)
+  std::string StringHelper::ToString(kt_float value)
   {
     char buffer[64];
 #ifdef WIN32
@@ -124,10 +116,10 @@ namespace karto
 #else
     sprintf(buffer, "%.*g", 8, (double) value);
 #endif
-    return String(buffer);
+    return std::string(buffer);
   }
 
-  String StringHelper::ToString(kt_double value)
+  std::string StringHelper::ToString(kt_double value)
   {
     char buffer[64];
 #ifdef WIN32
@@ -135,10 +127,10 @@ namespace karto
 #else
     sprintf(buffer, "%.*g", 16, value);
 #endif
-    return String(buffer);
+    return std::string(buffer);
   }
 
-  String StringHelper::ToString(kt_float value, kt_int32u precision)
+  std::string StringHelper::ToString(kt_float value, kt_int32u precision)
   {
     char buffer[64];
 #ifdef WIN32
@@ -146,10 +138,10 @@ namespace karto
 #else
     sprintf(buffer, "%.*f", (kt_int32s)precision, (double)value);
 #endif
-    return String(buffer);
+    return std::string(buffer);
   }
 
-  String StringHelper::ToString(kt_double value, kt_int32u precision)
+  std::string StringHelper::ToString(kt_double value, kt_int32u precision)
   {
     char buffer[64];
 #ifdef WIN32
@@ -157,39 +149,39 @@ namespace karto
 #else
     sprintf(buffer, "%.*f", (kt_int32s)precision, value);
 #endif
-    return String(buffer);
+    return std::string(buffer);
   }
 
-  karto::String StringHelper::ToString(const String& rValue)
+  std::string StringHelper::ToString(const std::string& rValue)
   {
     return rValue;
   }
 
-  karto::String StringHelper::ToString(const Quaternion& rValue)
+  std::string StringHelper::ToString(const Quaternion& rValue)
   {
     return rValue.ToString();
   }
 
-  karto::String StringHelper::ToString(const Color& rValue)
+  std::string StringHelper::ToString(const Color& rValue)
   {
     return rValue.ToString();
   }
 
-  karto::String StringHelper::ToString(const Pose2& rValue)
+  std::string StringHelper::ToString(const Pose2& rValue)
   {
     return rValue.ToString();
   }
 
-  karto::String StringHelper::ToString(const Pose3& rValue)
+  std::string StringHelper::ToString(const Pose3& rValue)
   {
     return rValue.ToString();
   }
 
-  kt_bool StringHelper::FromString(const String& rStringValue, kt_bool& rValue)
+  kt_bool StringHelper::FromString(const std::string& rStringValue, kt_bool& rValue)
   {
     rValue = false;
 
-    if (ToLowerCase(rStringValue) == String("true"))
+    if (ToLowerCase(rStringValue) == std::string("true"))
     {
       rValue = true;
     }
@@ -197,124 +189,124 @@ namespace karto
     return true;
   }
 
-  kt_bool StringHelper::FromString(const String& rStringValue, kt_int16s& rValue)
+  kt_bool StringHelper::FromString(const std::string& rStringValue, kt_int16s& rValue)
   {
     int precision = std::numeric_limits<double>::digits10;
     std::stringstream converter;
     converter.precision(precision);
 
-    converter.str(rStringValue.ToCString());
+    converter.str(rStringValue);
 
     converter >> rValue;
 
     return true;
   }
 
-  kt_bool StringHelper::FromString(const String& rStringValue, kt_int16u& rValue)
+  kt_bool StringHelper::FromString(const std::string& rStringValue, kt_int16u& rValue)
   {
     int precision = std::numeric_limits<double>::digits10;
     std::stringstream converter;
     converter.precision(precision);
 
-    converter.str(rStringValue.ToCString());
+    converter.str(rStringValue);
 
     converter >> rValue;
 
     return true;
   }
 
-  kt_bool StringHelper::FromString(const String& rStringValue, kt_int32s& rValue)
+  kt_bool StringHelper::FromString(const std::string& rStringValue, kt_int32s& rValue)
   {
     int precision = std::numeric_limits<double>::digits10;
     std::stringstream converter;
     converter.precision(precision);
 
-    converter.str(rStringValue.ToCString());
+    converter.str(rStringValue);
 
     converter >> rValue;
 
     return true;
   }
 
-  kt_bool StringHelper::FromString(const String& rStringValue, kt_int32u& rValue)
+  kt_bool StringHelper::FromString(const std::string& rStringValue, kt_int32u& rValue)
   {
     int precision = std::numeric_limits<double>::digits10;
     std::stringstream converter;
     converter.precision(precision);
 
-    converter.str(rStringValue.ToCString());
+    converter.str(rStringValue);
 
     converter >> rValue;
 
     return true;
   }
 
-  kt_bool StringHelper::FromString(const String& rStringValue, kt_int64s& rValue)
+  kt_bool StringHelper::FromString(const std::string& rStringValue, kt_int64s& rValue)
   {
     int precision = std::numeric_limits<double>::digits10;
     std::stringstream converter;
     converter.precision(precision);
 
-    converter.str(rStringValue.ToCString());
+    converter.str(rStringValue);
 
     converter >> rValue;
 
     return true;
   }
 
-  kt_bool StringHelper::FromString(const String& rStringValue, kt_int64u& rValue)
+  kt_bool StringHelper::FromString(const std::string& rStringValue, kt_int64u& rValue)
   {
     int precision = std::numeric_limits<double>::digits10;
     std::stringstream converter;
     converter.precision(precision);
 
-    converter.str(rStringValue.ToCString());
+    converter.str(rStringValue);
 
     converter >> rValue;
 
     return true;
   }
 
-  kt_bool StringHelper::FromString(const String& rStringValue, kt_float& rValue)
+  kt_bool StringHelper::FromString(const std::string& rStringValue, kt_float& rValue)
   {
     int precision = std::numeric_limits<double>::digits10;
     std::stringstream converter;
     converter.precision(precision);
 
-    converter.str(rStringValue.ToCString());
+    converter.str(rStringValue);
 
     converter >> rValue;
 
     return true;
   }
 
-  kt_bool StringHelper::FromString(const String& rStringValue, kt_double& rValue)
+  kt_bool StringHelper::FromString(const std::string& rStringValue, kt_double& rValue)
   {
     int precision = std::numeric_limits<double>::digits10;
     std::stringstream converter;
     converter.precision(precision);
 
-    converter.str(rStringValue.ToCString());
+    converter.str(rStringValue);
 
     converter >> rValue;
 
     return true;
   }
 
-  kt_bool StringHelper::FromString(const String& rStringValue, String& rValue)
+  kt_bool StringHelper::FromString(const std::string& rStringValue, std::string& rValue)
   {
     rValue = rStringValue;
 
     return true;
   }
 
-  kt_bool StringHelper::FromString(const String& rStringValue, Quaternion& rValue)
+  kt_bool StringHelper::FromString(const std::string& rStringValue, Quaternion& rValue)
   {
-    kt_size_t index = rStringValue.FindFirstOf(" ");
-    if (index != -1)
+    kt_size_t index = rStringValue.find_first_of(" ");
+    if (index != std::string::npos)
     {
       std::stringstream converter;
-      converter.str(rStringValue.ToCString());
+      converter.str(rStringValue);
 
       kt_double valueX = 0.0;
       kt_double valueY = 0.0;
@@ -337,13 +329,13 @@ namespace karto
     return false;
   }
 
-  kt_bool StringHelper::FromString(const String& rStringValue, Color& rValue)
+  kt_bool StringHelper::FromString(const std::string& rStringValue, Color& rValue)
   {
-    kt_size_t index = rStringValue.FindFirstOf(" ");
-    if (index != -1)
+    kt_size_t index = rStringValue.find_first_of(" ");
+    if (index != std::string::npos)
     {
       std::stringstream converter;
-      converter.str(rStringValue.ToCString());
+      converter.str(rStringValue);
 
       kt_double valueRed = 0.0;
       kt_double valueGreen = 0.0;
@@ -366,13 +358,13 @@ namespace karto
     return false;
   }
 
-  kt_bool StringHelper::FromString(const String& rStringValue, Pose2& rValue)
+  kt_bool StringHelper::FromString(const std::string& rStringValue, Pose2& rValue)
   {
-    kt_size_t index = rStringValue.FindFirstOf(" ");
-    if (index != -1)
+    kt_size_t index = rStringValue.find_first_of(" ");
+    if (index != std::string::npos)
     {
       std::stringstream converter;
-      converter.str(rStringValue.ToCString());
+      converter.str(rStringValue);
 
       kt_double valueX = 0.0;
       kt_double valueY = 0.0;
@@ -392,13 +384,13 @@ namespace karto
     return false;
   }
 
-  kt_bool StringHelper::FromString(const String& rStringValue, Pose3& rValue)
+  kt_bool StringHelper::FromString(const std::string& rStringValue, Pose3& rValue)
   {
-    kt_size_t index = rStringValue.FindFirstOf(" ");
-    if (index != -1)
+    kt_size_t index = rStringValue.find_first_of(" ");
+    if (index != std::string::npos)
     {
       std::stringstream converter;
-      converter.str(rStringValue.ToCString());
+      converter.str(rStringValue);
 
       kt_double valueX = 0.0;
       kt_double valueY = 0.0;
@@ -427,11 +419,11 @@ namespace karto
     return false;
   }
 
-  String StringHelper::Trim(const String& rValue)
+  std::string StringHelper::Trim(const std::string& rValue)
   {
     char const* delims = " \t\r\n";
 
-    std::string result(rValue.ToCString());
+    std::string result(rValue);
     std::string::size_type index = result.find_last_not_of(delims);
     if (index != std::string::npos)
       result.erase(++index);
@@ -446,51 +438,49 @@ namespace karto
       result.erase();
     }
 
-    return String(result.c_str());
+    return result;
   }
 
-  String StringHelper::Replace(const String& rSource, const String& rFind, const String& rReplace)
+  std::string StringHelper::Replace(const std::string& rSource, const std::string& rFind, const std::string& rReplace)
   {
     size_t j;
 
-    std::string retStr = rSource.ToCString();
+    std::string retStr = rSource;
 
     if (rFind == rReplace)
     {
-      return String(retStr.c_str());
+      return retStr;
     }
 
-    for (; ( j = retStr.find(rFind.ToCString()) ) != std::string::npos; )
+    for (; ( j = retStr.find(rFind) ) != std::string::npos; )
     {
-      retStr.replace( j, rFind.Size(), rReplace.ToCString());
+      retStr.replace( j, rFind.size(), rReplace);
     }
 
-    return String(retStr.c_str());
+    return retStr;
   }
 
   kt_bool StringHelper::IsLetter(char ch)
   {
     return isalpha(ch) != 0;
-  }  
-
-  String StringHelper::ToLowerCase(const String &rValue)
-  {
-    std::string value = rValue.ToCString();
-    std::string ext = rValue.ToCString();
-
-    std::transform(value.begin(), value.end(), ext.begin(), tolower);
-
-    return String(ext.c_str());
   }
 
-  String StringHelper::ToUpperCase(const String &rValue)
+  std::string StringHelper::ToLowerCase(const std::string &rValue)
   {
-    std::string value = rValue.ToCString();
-    std::string ext = rValue.ToCString();
+    std::string result = rValue;
 
-    std::transform(value.begin(), value.end(), ext.begin(), toupper);
+    std::transform(rValue.begin(), rValue.end(), result.begin(), tolower);
 
-    return String(ext.c_str());
+    return result;
+  }
+
+  std::string StringHelper::ToUpperCase(const std::string &rValue)
+  {
+    std::string result = rValue;
+
+    std::transform(rValue.begin(), rValue.end(), result.begin(), toupper);
+
+    return result;
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -502,63 +492,63 @@ namespace karto
     m_String = "";
   }
 
-  const String& StringBuilder::ToString() const
+  const std::string& StringBuilder::ToString() const
   {
     return m_String;
   }
 
   //StringBuilder& StringBuilder::operator << (char value)
   //{
-  //  m_String.Append(value);
+  //  m_String.append(value);
 
   //  return *this;
   //}
 
   StringBuilder& StringBuilder::operator << (kt_int8u value)
   {
-    m_String.Append(karto::StringHelper::ToString(value));
+    m_String.append(karto::StringHelper::ToString(value));
 
     return *this;
   }
 
   StringBuilder& StringBuilder::operator << (kt_int16s value)
   {
-    m_String.Append(karto::StringHelper::ToString(value));
+    m_String.append(karto::StringHelper::ToString(value));
 
     return *this;
   }
 
   StringBuilder& StringBuilder::operator << (kt_int16u value)
   {
-    m_String.Append(karto::StringHelper::ToString(value));
+    m_String.append(karto::StringHelper::ToString(value));
 
     return *this;
   }
 
   StringBuilder& StringBuilder::operator << (kt_int32s value)
   {
-    m_String.Append(karto::StringHelper::ToString(value));
+    m_String.append(karto::StringHelper::ToString(value));
 
     return *this;
   }
 
   StringBuilder& StringBuilder::operator << (kt_int32u value)
   {
-    m_String.Append(karto::StringHelper::ToString(value));
+    m_String.append(karto::StringHelper::ToString(value));
 
     return *this;
   }
 
   StringBuilder& StringBuilder::operator << (kt_int64s value)
   {
-    m_String.Append(karto::StringHelper::ToString(value));
+    m_String.append(karto::StringHelper::ToString(value));
 
     return *this;
   }
 
   StringBuilder& StringBuilder::operator << (kt_int64u value)
   {
-    m_String.Append(karto::StringHelper::ToString(value));
+    m_String.append(karto::StringHelper::ToString(value));
 
     return *this;
   }
@@ -566,7 +556,7 @@ namespace karto
 #if !KARTO_SIZE_T_SAME_AS_UINT64
   StringBuilder& StringBuilder::operator << (kt_size_t value)
   {
-    m_String.Append(karto::StringHelper::ToString(value));
+    m_String.append(karto::StringHelper::ToString(value));
 
     return *this;
   }
@@ -574,28 +564,28 @@ namespace karto
 
   StringBuilder& StringBuilder::operator << (kt_float value)
   {
-    m_String.Append(karto::StringHelper::ToString(value));
+    m_String.append(karto::StringHelper::ToString(value));
 
     return *this;
   }
 
   StringBuilder& StringBuilder::operator << (kt_double value)
   {
-    m_String.Append(karto::StringHelper::ToString(value));
+    m_String.append(karto::StringHelper::ToString(value));
 
     return *this;
   }
-  
-	StringBuilder& StringBuilder::operator << (const String& rValue)
+
+	StringBuilder& StringBuilder::operator << (const std::string& rValue)
   {
-    m_String.Append(rValue);
+    m_String.append(rValue);
 
     return *this;
   }
 
   StringBuilder& StringBuilder::operator << (const StringBuilder& rValue)
   {
-    m_String.Append(rValue.ToString());
+    m_String.append(rValue.ToString());
 
     return *this;
   }

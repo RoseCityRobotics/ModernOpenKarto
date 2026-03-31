@@ -20,7 +20,8 @@
 #ifndef __OpenKarto_Parameter_h__
 #define __OpenKarto_Parameter_h__
 
-#include <KartoString.h>
+#include <string>
+
 #include <Geometry.h>
 #include <Event.h>
 #include <SmartPointer.h>
@@ -77,7 +78,7 @@ namespace karto
      * @param rDisplayName how the parameter name is displayed
      * @param rDescription description of the parameter
      */
-    ParameterDescription(const karto::String& rName, const karto::String& rDisplayName = "", const karto::String& rDescription = "");
+    ParameterDescription(const std::string& rName, const std::string& rDisplayName = "", const std::string& rDescription = "");
     virtual ~ParameterDescription();
 
   public:
@@ -85,7 +86,7 @@ namespace karto
      * Gets the name of the parameter
      * @return name of the parameter
      */
-    inline const karto::String& GetName() const
+    inline const std::string& GetName() const
     {
       return m_Name;
     }
@@ -94,7 +95,7 @@ namespace karto
      * Gets the display name of the parameter
      * @return display name of the parameter
      */
-    inline const karto::String& GetDisplayName() const
+    inline const std::string& GetDisplayName() const
     {
       return m_DisplayName;
     }
@@ -103,7 +104,7 @@ namespace karto
      * Gets a description of the parameter
      * @return description of the parameter
      */
-    inline const karto::String& GetDescription() const
+    inline const std::string& GetDescription() const
     {
       return m_Description;
     }
@@ -131,7 +132,7 @@ namespace karto
      * @param index index
      * @return name of field
      */
-    const karto::String& GetFieldName(kt_int32u index) const
+    const std::string& GetFieldName(kt_int32u index) const
     {
       if (index >= 4)
       {
@@ -149,7 +150,7 @@ namespace karto
      * @param rZ name of the Z field
      * @param rW name of the W field
      */
-    void SetFieldNames(const karto::String& rX = "X", const karto::String& rY = "Y", const karto::String& rZ = "Z", const karto::String& rW = "W") 
+    void SetFieldNames(const std::string& rX = "X", const std::string& rY = "Y", const std::string& rZ = "Z", const std::string& rW = "W") 
     { 
       m_FieldNames[0] = rX; 
       m_FieldNames[1] = rY; 
@@ -179,23 +180,23 @@ namespace karto
     /** 
      * Parameter name
      */
-    karto::String m_Name;
+    std::string m_Name;
     
     /**
      * Parameter display name, used in UI as "pretty" name for parameter
      */
-    karto::String m_DisplayName;
+    std::string m_DisplayName;
 
     /**
      * Parameter description
      */
-    karto::String m_Description;
+    std::string m_Description;
 
     /**
      * Parameter field names, currently only up to 4 field names are supported. Field names can be used to
      * change the displayed default field names like (x, y, z) to (myX, myY, myZ)
      */
-    karto::String m_FieldNames[4];
+    std::string m_FieldNames[4];
 
     /**
      * Parameter flags
@@ -248,7 +249,7 @@ namespace karto
      * Gets the name of this parameter
      * @return name
      */
-    inline const karto::String& GetName() const
+    inline const std::string& GetName() const
     {
       return m_pDescription->GetName();
     }
@@ -257,7 +258,7 @@ namespace karto
      * Gets the display name of this parameter
      * @return display name
      */
-    inline const karto::String& GetDisplayName() const
+    inline const std::string& GetDisplayName() const
     {
       return m_pDescription->GetDisplayName();
     }
@@ -266,7 +267,7 @@ namespace karto
      * Gets the description of this parameter
      * @return description
      */
-    inline const karto::String& GetDescription() const
+    inline const std::string& GetDescription() const
     {
       return m_pDescription->GetDescription();
     }
@@ -302,13 +303,13 @@ namespace karto
      * Gets the parameter value as string.
      * @return value as string
      */
-    virtual const karto::String GetValueAsString() const = 0;
+    virtual const std::string GetValueAsString() const = 0;
 
     /**
      * Sets the parameter value from string.
      * @param rStringValue value as string
      */
-    virtual void SetValueFromString(const karto::String& rStringValue) = 0;
+    virtual void SetValueFromString(const std::string& rStringValue) = 0;
 
     /**
      * Sets the parameter to its default value
@@ -385,14 +386,14 @@ namespace karto
      * @param rParameterName name of parameter
      * @return parameter of given name
      */
-    AbstractParameter* GetParameter(const karto::String& rParameterName) const;
+    AbstractParameter* GetParameter(const std::string& rParameterName) const;
 
     /**
      * Gets the parameter with given name
      * @param rParameterName name of parameter
      * @return parameter of given name
      */
-    AbstractParameter* GetParameter(const karto::String& rParameterName);
+    AbstractParameter* GetParameter(const std::string& rParameterName);
 
     /**
      * Removes all parameters
@@ -458,7 +459,7 @@ namespace karto
      * @param rDescription description of the parameter
      * @param rValue parameter value
      */
-    Parameter(ParameterSet* pParameterSet, const karto::String& rName, const karto::String& rDisplayName, const karto::String& rDescription, const T& rValue)
+    Parameter(ParameterSet* pParameterSet, const std::string& rName, const std::string& rDisplayName, const std::string& rDescription, const T& rValue)
       : AbstractParameter(new ParameterDescription(rName, rDisplayName, rDescription), pParameterSet)
       , m_Value(rValue)
     {
@@ -523,7 +524,7 @@ namespace karto
      * Gets value of parameter as string
      * @return string version of value
      */
-    virtual const karto::String GetValueAsString() const
+    virtual const std::string GetValueAsString() const
     {
       return karto::StringHelper::ToString(m_Value);
     }
@@ -532,7 +533,7 @@ namespace karto
      * Sets the value of parameter from string
      * @param rStringValue string
      */
-    virtual void SetValueFromString(const karto::String& rStringValue)
+    virtual void SetValueFromString(const std::string& rStringValue)
     {
       T value;
       if (karto::StringHelper::FromString(rStringValue, value))
@@ -647,9 +648,9 @@ namespace karto
   KARTO_TYPE(Parameter<kt_double>);
 
   /**
-   * Register Parameter<karto::String> with MetaClassManager
+   * Register Parameter<std::string> with MetaClassManager
    */
-  KARTO_TYPE(Parameter<karto::String>);
+  KARTO_TYPE(Parameter<std::string>);
 
   /**
    * Register Parameter<karto::Size2<kt_int32s> > with MetaClassManager
@@ -747,7 +748,7 @@ namespace karto
       return rOther.name == name && rOther.value == value;
     }
 
-    karto::String name;
+    std::string name;
     kt_int64s value;
   };
 
@@ -755,9 +756,9 @@ namespace karto
 
   struct FindByName
   {
-    FindByName(const karto::String& rName) : m_name(rName) {}
+    FindByName(const std::string& rName) : m_name(rName) {}
     kt_bool operator()(const EnumPair& rOther) const { return rOther.name == m_name; }
-    karto::String m_name;
+    std::string m_name;
   };
 
   struct FindByValue
@@ -785,7 +786,7 @@ namespace karto
      * @param rDescription description
      * @param value value
      */
-    ParameterEnum(ParameterSet* pParameterSet, const karto::String& rName, const karto::String& rDisplayName, const karto::String& rDescription, kt_int64s value);
+    ParameterEnum(ParameterSet* pParameterSet, const std::string& rName, const std::string& rDisplayName, const std::string& rDescription, kt_int64s value);
 
   protected:
     //@cond EXCLUDE
@@ -801,14 +802,14 @@ namespace karto
      * @return value as string
      * @throws Exception if unable to convert enum to string
      */
-    virtual const karto::String GetValueAsString() const;
+    virtual const std::string GetValueAsString() const;
 
     /**
      * Sets the parameter value from string.
      * @param rStringValue value as string
      * @throws Exception if unable to set enum value
      */
-    virtual void SetValueFromString(const karto::String& rStringValue);
+    virtual void SetValueFromString(const std::string& rStringValue);
 
   public:
     /**
@@ -816,7 +817,7 @@ namespace karto
      * @param rName name of enum
      * @param value value of enum
      */
-    void DefineEnumValue(const String& rName, kt_int64s value);
+    void DefineEnumValue(const std::string& rName, kt_int64s value);
 
     /**
      * Gets the list of enum pairs associated with this parameter

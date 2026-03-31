@@ -60,7 +60,7 @@ namespace karto
           }
           else
           {
-            Log(LOG_WARNING, String("Invalid ") + GetIdentifier().ToString() + " parameter: " + pParameterFrom->GetName() + " parameter is ignored!");
+            Log(LOG_WARNING, std::string("Invalid ") + GetIdentifier().ToString() + " parameter: " + pParameterFrom->GetName() + " parameter is ignored!");
           }
         }
       }

@@ -30,14 +30,14 @@ namespace karto
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
 
-  ParameterDescription::ParameterDescription(const karto::String& rName, const karto::String& rDisplayName, const karto::String& rDescription)
+  ParameterDescription::ParameterDescription(const std::string& rName, const std::string& rDisplayName, const std::string& rDescription)
     : m_Name(rName)
     , m_DisplayName(rDisplayName)
     , m_Description(rDescription)
     , m_Flags(ParameterFlag_Write | ParameterFlag_Read)
     , m_nDecimalPlaces(4)
   {
-    assert(m_Name.Size() != 0);
+    assert(m_Name.size() != 0);
 
     m_FieldNames[0] = "X";
     m_FieldNames[1] = "Y";
@@ -78,7 +78,7 @@ namespace karto
 
   struct ParameterSetPrivate
   {
-    typedef std::map<karto::String, SmartPointer<AbstractParameter> > ParameterMap;
+    typedef std::map<std::string, SmartPointer<AbstractParameter> > ParameterMap;
 
     ParameterList m_Parameters;
     ParameterMap m_ParametersMap;
@@ -140,7 +140,7 @@ namespace karto
     return m_pPrivate->m_Parameters;
   }
 
-  AbstractParameter* ParameterSet::GetParameter(const karto::String& rParameterName) const
+  AbstractParameter* ParameterSet::GetParameter(const std::string& rParameterName) const
   {
     ParameterSetPrivate::ParameterMap::const_iterator iter = m_pPrivate->m_ParametersMap.find(rParameterName);
     if (iter != m_pPrivate->m_ParametersMap.end())
@@ -151,7 +151,7 @@ namespace karto
     return NULL;
   }
 
-  AbstractParameter* ParameterSet::GetParameter(const karto::String& rParameterName)
+  AbstractParameter* ParameterSet::GetParameter(const std::string& rParameterName)
   {
     ParameterSetPrivate::ParameterMap::iterator iter = m_pPrivate->m_ParametersMap.find(rParameterName);
     if (iter != m_pPrivate->m_ParametersMap.end())
@@ -172,7 +172,7 @@ namespace karto
     EnumPairVector m_EnumPairs;
   };
 
-  ParameterEnum::ParameterEnum(ParameterSet* pParent, const karto::String& rName, const karto::String& rDisplayName, const karto::String& rDescription, kt_int64s value)
+  ParameterEnum::ParameterEnum(ParameterSet* pParent, const std::string& rName, const std::string& rDisplayName, const std::string& rDescription, kt_int64s value)
     : Parameter<kt_int64s>(pParent, rName, rDisplayName, rDescription, value)
     , m_pPrivate(new ParameterEnumPrivate)
   {
@@ -183,7 +183,7 @@ namespace karto
     delete m_pPrivate;
   }
 
-  void ParameterEnum::SetValueFromString(const String& rStringValue)
+  void ParameterEnum::SetValueFromString(const std::string& rStringValue)
   {
     ParameterEnumPrivate::EnumPairVector::const_iterator iter = std::find_if(m_pPrivate->m_EnumPairs.begin(), m_pPrivate->m_EnumPairs.end(), FindByName(rStringValue));
     if (iter == m_pPrivate->m_EnumPairs.end())
@@ -203,7 +203,7 @@ namespace karto
     }
   }
 
-  const String ParameterEnum::GetValueAsString() const
+  const std::string ParameterEnum::GetValueAsString() const
   {
     ParameterEnumPrivate::EnumPairVector::const_iterator iter = std::find_if(m_pPrivate->m_EnumPairs.begin(), m_pPrivate->m_EnumPairs.end(), FindByValue(m_Value));
     if (iter == m_pPrivate->m_EnumPairs.end())
@@ -216,7 +216,7 @@ namespace karto
     }
   }
 
-  void ParameterEnum::DefineEnumValue(const String& rName, kt_int64s value)
+  void ParameterEnum::DefineEnumValue(const std::string& rName, kt_int64s value)
   {
     ParameterEnumPrivate::EnumPairVector::iterator iter = std::find_if(m_pPrivate->m_EnumPairs.begin(), m_pPrivate->m_EnumPairs.end(), FindByName(rName));
     if (iter == m_pPrivate->m_EnumPairs.end())

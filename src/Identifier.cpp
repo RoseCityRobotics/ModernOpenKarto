@@ -30,7 +30,7 @@ namespace karto
     Parse(pString);
   }
 
-  Identifier::Identifier(const String& rString)
+  Identifier::Identifier(const std::string& rString)
   {
     Parse(rString);
   }
@@ -44,18 +44,16 @@ namespace karto
   {
   }
 
-  const String& Identifier::GetName() const
+  const std::string& Identifier::GetName() const
   {
     return m_Name;
   }
 
-  void Identifier::SetName(const String& rName)
+  void Identifier::SetName(const std::string& rName)
   {
-    if (rName.Size() != 0)
+    if (rName.size() != 0)
     {
-      std::string name(rName.ToCString());
-
-      std::string::size_type pos = name.find_last_of('/');
+      std::string::size_type pos = rName.find_last_of('/');
       if (pos != 0 && pos != std::string::npos)
       {
         throw Exception("Name can't contain a scope!");
@@ -65,54 +63,52 @@ namespace karto
     }
     else
     {
-      m_Name.Clear();
+      m_Name.clear();
     }
 
     Update();
   }
 
-  const String& Identifier::GetScope() const
+  const std::string& Identifier::GetScope() const
   {
     return m_Scope;
   }
 
-  void Identifier::SetScope(const String& rScope)
+  void Identifier::SetScope(const std::string& rScope)
   {
-    if (rScope.Size() != 0)
+    if (rScope.size() != 0)
     {
       m_Scope = rScope;
     }
     else
     {
-      m_Scope.Clear();
+      m_Scope.clear();
     }
 
     Update();
   }
 
-  const String& Identifier::ToString() const
+  const std::string& Identifier::ToString() const
   {
     return m_FullName;
   }
 
   void Identifier::Clear()
   {
-    m_Name.Clear();
-    m_Scope.Clear();
-    m_FullName.Clear();
+    m_Name.clear();
+    m_Scope.clear();
+    m_FullName.clear();
   }
 
-  void Identifier::Parse(const String& rString)
+  void Identifier::Parse(const std::string& rString)
   {
-    if (rString.Size() == 0)
+    if (rString.size() == 0)
     {
       Clear();
       return;
     }
 
-    std::string id(rString.ToCString());
-
-    std::string::size_type pos = id.find_last_of('/');
+    std::string::size_type pos = rString.find_last_of('/');
 
     if (pos == std::string::npos)
     {
@@ -120,34 +116,32 @@ namespace karto
     }
     else
     {
-      m_Scope = rString.SubString(0, pos);
-      m_Name = rString.SubString(pos+1, rString.Size());
+      m_Scope = rString.substr(0, pos);
+      m_Name = rString.substr(pos+1, rString.size());
 
       // remove '/' from m_Scope if first!!
-      if (m_Scope.Size() > 0 && m_Scope[0] == '/')
+      if (m_Scope.size() > 0 && m_Scope[0] == '/')
       {
-        m_Scope = m_Scope.SubString(1, m_Scope.Size());
+        m_Scope = m_Scope.substr(1, m_Scope.size());
       }
     }
 
     Update();
   }
 
-  void Identifier::Validate(const String& rString)
+  void Identifier::Validate(const std::string& rString)
   {
-    if (rString.Size() == 0)
+    if (rString.size() == 0)
     {
       return;
     }
 
-    std::string id(rString.ToCString());
-
-    char c = id[0];
+    char c = rString[0];
     if (IsValidFirst(c))
     {
-      for (size_t i = 1; i < id.size(); ++i)
+      for (size_t i = 1; i < rString.size(); ++i)
       {
-        c = id[i];
+        c = rString[i];
         if (!IsValid(c))
         {
           throw Exception("Invalid character in name. Valid characters must be within the ranges A-Z, a-z, 0-9, '/', '_' and '-'.");
@@ -162,15 +156,15 @@ namespace karto
 
   void Identifier::Update()
   {
-    m_FullName.Clear();
+    m_FullName.clear();
 
-    if (m_Scope.Size() > 0)
+    if (m_Scope.size() > 0)
     {
-      m_FullName.Append("/");
-      m_FullName.Append(m_Scope);
-      m_FullName.Append("/");
+      m_FullName.append("/");
+      m_FullName.append(m_Scope);
+      m_FullName.append("/");
     }
-    m_FullName.Append(m_Name);
+    m_FullName.append(m_Name);
   }
 
   Identifier& Identifier::operator=(const Identifier& rOther)
@@ -197,7 +191,7 @@ namespace karto
 
   kt_size_t Identifier::Size() const
   {
-    return m_FullName.Size();
+    return m_FullName.size();
   }
 
 }

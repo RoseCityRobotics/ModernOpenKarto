@@ -138,9 +138,9 @@ namespace karto
       }
       else
       {
-        String errorMessage;
-        errorMessage.Append("Invalid resolution for Sick LMS100: ");
-        errorMessage.Append(karto::StringHelper::ToString(angularResolution));
+        std::string errorMessage;
+        errorMessage.append("Invalid resolution for Sick LMS100: ");
+        errorMessage.append(karto::StringHelper::ToString(angularResolution));
         throw Exception(errorMessage);
       }
     }
@@ -160,9 +160,9 @@ namespace karto
       }
       else
       {
-        String errorMessage;
-        errorMessage.Append("Invalid resolution for Sick LMS291: ");
-        errorMessage.Append(karto::StringHelper::ToString(angularResolution));
+        std::string errorMessage;
+        errorMessage.append("Invalid resolution for Sick LMS291: ");
+        errorMessage.append(karto::StringHelper::ToString(angularResolution));
         throw Exception(errorMessage);
       }
     }
@@ -189,7 +189,7 @@ namespace karto
     if (math::InRange(GetRangeThreshold(), GetMinimumRange(), GetMaximumRange()) == false)
     {
       kt_double newValue = karto::math::Clip(GetRangeThreshold(), GetMinimumRange(), GetMaximumRange());
-      Log(LOG_INFORMATION, String("Updating RangeThreshold from ") + StringHelper::ToString(GetRangeThreshold()) + " to " + StringHelper::ToString(newValue));
+      Log(LOG_INFORMATION, std::string("Updating RangeThreshold from ") + StringHelper::ToString(GetRangeThreshold()) + " to " + StringHelper::ToString(newValue));
       SetRangeThreshold(newValue);
     }
   }
