@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(KARTO_SOURCE_FILES
-  src/Any.cpp
   src/Event.cpp
   src/Exception.cpp
   src/Geometry.cpp
