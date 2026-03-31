@@ -313,3 +313,119 @@ TEST(SensorRegistryFix, TwoMappersWithSameSensorName) {
 
     delete laser2;
 }
+
+// ---------------------------------------------------------------------------
+// Frame round-trip tests for slam_toolbox PR #362 port
+// ---------------------------------------------------------------------------
+
+TEST(FrameRoundTrip, GetSensorAtAndGetCorrectedAtAreInverses) {
+    // With zero offset, GetSensorAt and GetCorrectedAt should be identity-like
+    karto::LaserRangeFinder* laser = Create180Laser("laser_roundtrip_zero");
+
+    const karto::RangeReadingsList readings(181, 5.0);
+    karto::LocalizedRangeScan* scan =
+        new karto::LocalizedRangeScan(laser->GetIdentifier(), readings);
+    scan->SetOdometricPose(karto::Pose2(0.0, 0.0, 0.0));
+    scan->SetCorrectedPose(karto::Pose2(1.0, 2.0, 0.5));
+
+    // With zero offset pose (default), sensor pose == corrected pose
+    karto::Pose2 sensorPose = scan->GetSensorPose();
+    karto::Pose2 recoveredRobotPose = scan->GetCorrectedAt(sensorPose);
+
+    EXPECT_NEAR(recoveredRobotPose.GetX(), 1.0, 1e-6);
+    EXPECT_NEAR(recoveredRobotPose.GetY(), 2.0, 1e-6);
+    EXPECT_NEAR(recoveredRobotPose.GetHeading(), 0.5, 1e-6);
+
+    delete scan;
+    delete laser;
+}
+
+TEST(FrameRoundTrip, GetSensorAtAndGetCorrectedAtWithOffset) {
+    // With a non-zero sensor offset, the round-trip should still recover the robot pose
+    karto::LaserRangeFinder* laser = Create180Laser("laser_roundtrip_offset");
+
+    // Set a sensor offset: 0.1m forward, 0.05m left, rotated 10 degrees
+    laser->SetOffsetPose(karto::Pose2(0.1, 0.05, karto::math::DegreesToRadians(10.0)));
+
+    const karto::RangeReadingsList readings(181, 5.0);
+    karto::LocalizedRangeScan* scan =
+        new karto::LocalizedRangeScan(laser->GetIdentifier(), readings);
+    scan->SetOdometricPose(karto::Pose2(0.0, 0.0, 0.0));
+    scan->SetCorrectedPose(karto::Pose2(3.0, 4.0, 1.0));
+
+    // GetSensorAt computes sensor pose from robot pose
+    karto::Pose2 sensorPose = scan->GetSensorAt(scan->GetCorrectedPose());
+
+    // GetCorrectedAt should recover the original robot pose
+    karto::Pose2 recovered = scan->GetCorrectedAt(sensorPose);
+
+    EXPECT_NEAR(recovered.GetX(), 3.0, 1e-4);
+    EXPECT_NEAR(recovered.GetY(), 4.0, 1e-4);
+    EXPECT_NEAR(recovered.GetHeading(), 1.0, 1e-4);
+
+    delete scan;
+    delete laser;
+}
+
+TEST(FrameRoundTrip, SetCorrectedPoseAndUpdateRefreshesPoints) {
+    karto::LaserRangeFinder* laser = Create180Laser("laser_update_test");
+
+    const karto::RangeReadingsList readings(181, 5.0);
+    karto::LocalizedRangeScan* scan =
+        new karto::LocalizedRangeScan(laser->GetIdentifier(), readings);
+    scan->SetOdometricPose(karto::Pose2(0.0, 0.0, 0.0));
+    scan->SetCorrectedPose(karto::Pose2(0.0, 0.0, 0.0));
+
+    // Force computation of point readings at origin
+    const karto::Vector2dList& points1 = scan->GetPointReadings();
+    EXPECT_FALSE(points1.empty());
+    karto::Vector2d firstPoint1 = points1[0];
+
+    // Move the scan to a new pose using SetCorrectedPoseAndUpdate
+    scan->SetCorrectedPoseAndUpdate(karto::Pose2(5.0, 5.0, 0.0));
+
+    // Point readings should have been recomputed at the new pose
+    const karto::Vector2dList& points2 = scan->GetPointReadings();
+    EXPECT_FALSE(points2.empty());
+    karto::Vector2d firstPoint2 = points2[0];
+
+    // Points should differ (scan moved by 5m)
+    double dist = firstPoint1.Distance(firstPoint2);
+    EXPECT_GT(dist, 1.0);
+
+    delete scan;
+    delete laser;
+}
+
+TEST(FrameRoundTrip, ScanMatchingWithSensorOffset) {
+    // Verify that scan matching works correctly when the sensor has a non-zero offset
+    karto::LaserRangeFinder* laser = Create180Laser("laser_offset_match");
+    laser->SetOffsetPose(karto::Pose2(0.15, 0.0, 0.0)); // 15cm forward offset
+
+    karto::OpenMapper mapper("mapper_offset");
+
+    double angRes = karto::math::DegreesToRadians(1.0);
+
+    const karto::RangeReadingsList r1 = GenerateRoomScan(0.0, 0.0, 0.0, 10.0, 10.0,
+        -karto::KT_PI_2, karto::KT_PI_2, angRes, 50.0);
+    karto::LocalizedRangeScan* scan1 =
+        new karto::LocalizedRangeScan(laser->GetIdentifier(), r1);
+    scan1->SetOdometricPose(karto::Pose2(0.0, 0.0, 0.0));
+    scan1->SetCorrectedPose(karto::Pose2(0.0, 0.0, 0.0));
+    EXPECT_TRUE(mapper.Process(scan1));
+
+    const karto::RangeReadingsList r2 = GenerateRoomScan(1.0, 0.0, 0.0, 10.0, 10.0,
+        -karto::KT_PI_2, karto::KT_PI_2, angRes, 50.0);
+    karto::LocalizedRangeScan* scan2 =
+        new karto::LocalizedRangeScan(laser->GetIdentifier(), r2);
+    scan2->SetOdometricPose(karto::Pose2(1.0, 0.0, 0.0));
+    scan2->SetCorrectedPose(karto::Pose2(1.0, 0.0, 0.0));
+    EXPECT_TRUE(mapper.Process(scan2));
+
+    // Corrected pose should be reasonable even with sensor offset
+    karto::Pose2 corrected = scan2->GetCorrectedPose();
+    EXPECT_NEAR(corrected.GetX(), 1.0, 1.0);
+    EXPECT_NEAR(corrected.GetY(), 0.0, 0.5);
+
+    delete laser;
+}

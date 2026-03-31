@@ -598,8 +598,21 @@ namespace karto
     virtual inline void SetCorrectedPose(const Pose2& rCorrectedPose)
     {
       LocalizedObject::SetCorrectedPose(rCorrectedPose);
-      
+
       m_IsDirty = true;
+    }
+
+    /**
+     * Sets the corrected robot pose and updates point readings.
+     * Use this instead of SetSensorPose() when the pose is already in robot frame
+     * (e.g., corrections from a pose graph solver).
+     * @param rCorrectedPose new corrected robot pose
+     */
+    virtual inline void SetCorrectedPoseAndUpdate(const Pose2& rCorrectedPose)
+    {
+      LocalizedObject::SetCorrectedPose(rCorrectedPose);
+      m_IsDirty = true;
+      Update();
     }
     
     /**
@@ -670,8 +683,27 @@ namespace karto
     inline Pose2 GetSensorAt(const Pose2& rPose) const
     {
       return Transform(rPose).TransformPose(GetLaserRangeFinder()->GetOffsetPose());
-    }    
-    
+    }
+
+    /**
+     * Computes the corrected robot pose given a hypothesized sensor pose.
+     * Inverse of GetSensorAt(): converts sensor-frame pose to robot-frame pose.
+     * @param rSensorPose hypothesized sensor pose
+     * @return corresponding robot pose
+     */
+    inline Pose2 GetCorrectedAt(const Pose2& rSensorPose) const
+    {
+      Pose2 deviceOffsetPose2 = GetLaserRangeFinder()->GetOffsetPose();
+      kt_double offsetLength = deviceOffsetPose2.GetPosition().Length();
+      kt_double offsetHeading = deviceOffsetPose2.GetHeading();
+      kt_double angleoffset = atan2(deviceOffsetPose2.GetY(), deviceOffsetPose2.GetX());
+      kt_double correctedHeading = math::NormalizeAngle(rSensorPose.GetHeading());
+      Pose2 worldSensorOffset = Pose2(offsetLength * cos(correctedHeading + angleoffset - offsetHeading),
+                                      offsetLength * sin(correctedHeading + angleoffset - offsetHeading),
+                                      offsetHeading);
+      return rSensorPose - worldSensorOffset;
+    }
+
     /**
      * Gets the bounding box of this scan
      * @return bounding box of this scan

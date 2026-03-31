@@ -1099,7 +1099,20 @@ namespace karto
   Vector2dList ScanMatcher::FindValidPoints(LocalizedLaserScan* pScan, const Vector2d& rViewPoint)
   {
     const Vector2dList& rPointReadings = pScan->GetPointReadings(true);
-    
+
+    // For 360-degree lidars, the viewpoint occlusion test assumes a convex
+    // semicircular point fan and rejects valid points at the wraparound boundary.
+    // Skip the test entirely for full-rotation sensors.
+    LaserRangeFinder* pLaser = pScan->GetLaserRangeFinder();
+    if (pLaser != nullptr)
+    {
+      kt_double angularRange = pLaser->GetMaximumAngle() - pLaser->GetMinimumAngle();
+      if (angularRange >= KT_2PI - KT_TOLERANCE)
+      {
+        return rPointReadings;
+      }
+    }
+
     // points must be at least 10 cm away when making comparisons of inside/outside of viewpoint
     const kt_double minSquareDistance = math::Square(0.1); // in m^2
 
@@ -1123,20 +1136,14 @@ namespace karto
       Vector2d delta = firstPoint - currentPoint;
       if (delta.SquaredLength() > minSquareDistance)
       {
-        // This compute the Determinant (viewPoint FirstPoint, viewPoint currentPoint)
-        // Which computes the direction of rotation, if the rotation is counterclock
-        // wise then we are looking at data we should keep. If it's negative rotation
-        // we should not included in in the matching
-        // have enough distance, check viewpoint
         double a = rViewPoint.GetY() - firstPoint.GetY();
         double b = firstPoint.GetX() - rViewPoint.GetX();
         double c = firstPoint.GetY() * rViewPoint.GetX() - firstPoint.GetX() * rViewPoint.GetY();
         double ss = currentPoint.GetX() * a + currentPoint.GetY() * b + c;
 
-        // reset beginning point
         firstPoint = currentPoint;
 
-        if (ss < 0.0)	// wrong side, skip and keep going
+        if (ss < 0.0)
         {
           trailingPointIndex = i;
         }
@@ -1590,10 +1597,18 @@ namespace karto
     // only attach link information if the edge is new
     if (isNewEdge == true)
     {
-      LocalizedLaserScan* pScan = dynamic_cast<LocalizedLaserScan*>(pFromObject);
-      if (pScan != nullptr)
+      // Both poses must be in the same frame for the relative transform to be correct.
+      // Use robot frame (GetCorrectedPose) consistently. rMean from MatchScan() is in
+      // sensor frame, so convert it via GetCorrectedAt(). (slam_toolbox PR #362 fix)
+      LocalizedLaserScan* pFromScan = dynamic_cast<LocalizedLaserScan*>(pFromObject);
+      LocalizedLaserScan* pToScan = dynamic_cast<LocalizedLaserScan*>(pToObject);
+      if (pFromScan != nullptr && pToScan != nullptr)
       {
-        pEdge->SetLabel(new LinkInfo(pScan->GetSensorPose(), rMean, rCovariance));
+        pEdge->SetLabel(new LinkInfo(pFromScan->GetCorrectedPose(), pToScan->GetCorrectedAt(rMean), rCovariance));
+      }
+      else if (pFromScan != nullptr)
+      {
+        pEdge->SetLabel(new LinkInfo(pFromScan->GetCorrectedPose(), rMean, rCovariance));
       }
       else
       {
@@ -2000,7 +2015,10 @@ namespace karto
 
         if (pScan != nullptr)
         {
-          pScan->SetSensorPose(correction.second);
+          // Solver corrections are in robot frame, not sensor frame.
+          // Use SetCorrectedPoseAndUpdate() to set the robot pose directly
+          // and refresh point readings. (slam_toolbox PR #362 fix)
+          pScan->SetCorrectedPoseAndUpdate(correction.second);
         }
         else
         {
