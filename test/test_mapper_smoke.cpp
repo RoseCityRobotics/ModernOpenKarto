@@ -89,7 +89,7 @@ TEST(MapperSmoke, CreateAndDestroyMapper) {
 TEST(MapperSmoke, ProcessSingleScan) {
     karto::OpenMapper mapper("test_mapper");
 
-    karto::LaserRangeFinder* laser = CreateTestLaser("laser0");
+    karto::LaserRangeFinder* laser = CreateTestLaser("laser_single");
 
     // Generate a scan at origin facing forward
     karto::RangeReadingsList readings = GenerateRoomScan(
@@ -109,12 +109,14 @@ TEST(MapperSmoke, ProcessSingleScan) {
     karto::Pose2 corrected = scan->GetCorrectedPose();
     EXPECT_NEAR(corrected.GetX(), 0.0, 0.5);
     EXPECT_NEAR(corrected.GetY(), 0.0, 0.5);
+
+    delete laser;
 }
 
 TEST(MapperSmoke, ProcessMultipleScans) {
     karto::OpenMapper mapper("test_mapper");
 
-    karto::LaserRangeFinder* laser = CreateTestLaser("laser0");
+    karto::LaserRangeFinder* laser = CreateTestLaser("laser_multi");
 
     // Feed several scans along a straight line
     double step = 0.5; // 50cm steps
@@ -134,12 +136,14 @@ TEST(MapperSmoke, ProcessMultipleScans) {
         kt_bool result = mapper.Process(scan);
         EXPECT_TRUE(result);
     }
+
+    delete laser;
 }
 
 TEST(MapperSmoke, CorrectedPosesAreReasonable) {
     karto::OpenMapper mapper("test_mapper");
 
-    karto::LaserRangeFinder* laser = CreateTestLaser("laser0");
+    karto::LaserRangeFinder* laser = CreateTestLaser("laser_corrected");
 
     // Feed two scans with a known displacement
     karto::RangeReadingsList readings1 = GenerateRoomScan(
@@ -165,4 +169,6 @@ TEST(MapperSmoke, CorrectedPosesAreReasonable) {
     karto::Pose2 corrected = scan2->GetCorrectedPose();
     EXPECT_NEAR(corrected.GetX(), 1.0, 1.0);  // within 1m
     EXPECT_NEAR(corrected.GetY(), 0.0, 0.5);
+
+    delete laser;
 }
