@@ -22,10 +22,11 @@
 
 #include <string>
 
+#include <memory>
+
 #include <Exception.h>
 #include <Geometry.h>
 #include <Event.h>
-#include <SmartPointer.h>
 #include <Meta.h>
 
 namespace karto
@@ -70,7 +71,7 @@ namespace karto
    * Parameter description contains metadata information for parameters like name, description, display name and so on.
    * This class is primarily used by the KartoViwer application to display parameter information to the user
    */ 
-  class KARTO_EXPORT ParameterDescription : public Referenced
+  class KARTO_EXPORT ParameterDescription
   {
   public:
     /**
@@ -219,7 +220,7 @@ namespace karto
   /** 
    * Abstract base class for parameters
    */ 
-  class KARTO_EXPORT AbstractParameter : public Referenced
+  class KARTO_EXPORT AbstractParameter
   {
     KARTO_RTTI();
 
@@ -231,13 +232,10 @@ namespace karto
      */
     AbstractParameter(ParameterDescription* pDescription, ParameterSet* pParameterSet = NULL);
 
-  protected:
-    //@cond EXCLUDE
     /**
      * Destructor
      */
     virtual ~AbstractParameter();
-    //@endcond
 
   public:
     /**
@@ -286,18 +284,18 @@ namespace karto
      * Gets the parameter description for this parameter (const version)
      * @return parameter description
      */
-    inline const ParameterDescription* GetParameterDescription() const 
+    inline const ParameterDescription* GetParameterDescription() const
     {
-      return m_pDescription;
+      return m_pDescription.get();
     }
 
     /**
      * Gets the parameter description for this parameter
      * @return parameter description
      */
-    inline ParameterDescription* GetParameterDescription() 
+    inline ParameterDescription* GetParameterDescription()
     {
-      return m_pDescription;
+      return m_pDescription.get();
     }
 
     /**
@@ -329,7 +327,7 @@ namespace karto
     const AbstractParameter& operator=(const AbstractParameter&);
 
   private:
-    karto::SmartPointer<ParameterDescription> m_pDescription;
+    std::shared_ptr<ParameterDescription> m_pDescription;
     ParameterSet* m_pParameterSet;
   };
 
@@ -341,7 +339,7 @@ namespace karto
   /**
    * Type declaration of AbstractParameter List
    */
-  using ParameterList = std::vector<SmartPointer<AbstractParameter> >;
+  using ParameterList = std::vector<std::shared_ptr<AbstractParameter>>;
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -352,7 +350,7 @@ namespace karto
   /**
    * Parameter container. 
    */
-  class KARTO_EXPORT ParameterSet : public Referenced
+  class KARTO_EXPORT ParameterSet
   {
   public:
     /**
@@ -360,13 +358,10 @@ namespace karto
      */
     ParameterSet();
 
-  protected:
-    //@cond EXCLUDE
     /**
      * Destructor
      */
     virtual ~ParameterSet();
-    //@endcond
 
   public:
     /**
@@ -423,9 +418,9 @@ namespace karto
   }; // class ParameterSet
 
   /**
-   * Type declaration of ParameterSet managed by SmartPointer
+   * Type declaration of ParameterSet managed by std::shared_ptr
    */
-  typedef SmartPointer<ParameterSet> ParameterSetPtr;
+  using ParameterSetPtr = std::shared_ptr<ParameterSet>;
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -467,15 +462,13 @@ namespace karto
       InitializeParameters();
     }
 
-  protected:
-    //@cond EXCLUDE
+  public:
     /**
      * Destructor
      */
     virtual ~Parameter()
     {
     }
-    //@endcond
 
   public:
     /**
@@ -789,13 +782,11 @@ namespace karto
      */
     ParameterEnum(ParameterSet* pParameterSet, const std::string& rName, const std::string& rDisplayName, const std::string& rDescription, kt_int64s value);
 
-  protected:
-    //@cond EXCLUDE
+  public:
     /**
      * Destructor
      */
     virtual ~ParameterEnum();
-    //@endcond
 
   public:
     /**

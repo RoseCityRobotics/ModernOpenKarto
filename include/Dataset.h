@@ -20,7 +20,7 @@
 #ifndef __OpenKarto_Dataset_h__
 #define __OpenKarto_Dataset_h__
 
-#include <Referenced.h>
+#include <memory>
 #include <Objects.h>
 
 namespace karto
@@ -39,7 +39,7 @@ namespace karto
    * Container for Karto objects.
    * @deprecated Please use ObjectList instead.
    */
-  class KARTO_DEPRECATED KARTO_EXPORT Dataset : public Referenced
+  class KARTO_DEPRECATED KARTO_EXPORT Dataset
   {
   public:
     /**
@@ -47,14 +47,12 @@ namespace karto
      */
     Dataset();
 
-  protected:
-    //@cond EXCLUDE
+  public:
     /**
      * Destructor
      */
     virtual ~Dataset();
-    //@endcond
-    
+
   public:
     /**
      * Adds given object to this dataset
@@ -97,9 +95,9 @@ namespace karto
   }; // class Dataset
 
   /**
-   * Type declaration of Dataset managed by SmartPointer
+   * Type declaration of Dataset managed by std::shared_ptr
    */
-  typedef SmartPointer<Dataset> DatasetPtr;
+  using DatasetPtr = std::shared_ptr<Dataset>;
 
   //@}
 

@@ -71,14 +71,12 @@ namespace karto
      */
     OccupancyGrid(kt_int32s width, kt_int32s height, const Vector2d& rOffset, kt_double resolution);
     
-  protected:
-    //@cond EXCLUDE
+  public:
     /**
      * Destructor
      */
     virtual ~OccupancyGrid();
-    //@endcond
-    
+
   public:
     /**
      * Occupancy grid from the given scans using the given resolution
@@ -98,7 +96,7 @@ namespace karto
      * @warning Throws exception in Windows
      * @return occupancy grid from the given scans using the given resolution
      */
-    static KARTO_DEPRECATED  OccupancyGrid* CreateFromScans(const std::vector< SmartPointer<LocalizedRangeScan> >& rScans, kt_double resolution);
+    static KARTO_DEPRECATED  OccupancyGrid* CreateFromScans(const std::vector<std::shared_ptr<LocalizedRangeScan>>& rScans, kt_double resolution);
 
     /**
      * Occupancy grid from the scans in the given mapper using the given resolution
@@ -143,7 +141,7 @@ namespace karto
      */
     Grid<kt_int32u>* GetCellHitsCounts()
     {
-      return m_pCellHitsCnt;
+      return m_pCellHitsCnt.get();
     }
 
     /**
@@ -152,7 +150,7 @@ namespace karto
      */
     Grid<kt_int32u>* GetCellPassCounts()
     {
-      return m_pCellPassCnt;
+      return m_pCellPassCnt.get();
     }
     
     /**
@@ -215,12 +213,12 @@ namespace karto
     /**
      * Counters of number of times a beam passed through a cell
      */
-    SmartPointer< Grid<kt_int32u> > m_pCellPassCnt;
-    
+    std::shared_ptr<Grid<kt_int32u>> m_pCellPassCnt;
+
     /**
-     * Counters of number of times a beam ended at a cell    
+     * Counters of number of times a beam ended at a cell
      */
-    SmartPointer< Grid<kt_int32u> >  m_pCellHitsCnt;
+    std::shared_ptr<Grid<kt_int32u>> m_pCellHitsCnt;
 
   private:
     CellUpdater* m_pCellUpdater;
@@ -231,10 +229,10 @@ namespace karto
 
     // Number of beams that must pass through a cell before it will be considered to be occupied
     // or unoccupied.  This prevents stray beams from messing up the map.
-    SmartPointer<Parameter<kt_int32u> > m_pMinPassThrough;
+    std::shared_ptr<Parameter<kt_int32u>> m_pMinPassThrough;
 
     // Minimum ratio of beams hitting cell to beams passing through cell for cell to be marked as occupied
-    SmartPointer<Parameter<kt_double> > m_pOccupancyThreshold;
+    std::shared_ptr<Parameter<kt_double>> m_pOccupancyThreshold;
 
   private:
     // restrict the following functions
@@ -248,9 +246,9 @@ namespace karto
   KARTO_TYPE(OccupancyGrid);
 
   /**
-   * Type declaration of OccupancyGrid managed by SmartPointer
+   * Type declaration of OccupancyGrid managed by std::shared_ptr
    */
-  typedef SmartPointer<OccupancyGrid> OccupancyGridPtr;
+  using OccupancyGridPtr = std::shared_ptr<OccupancyGrid>;
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////

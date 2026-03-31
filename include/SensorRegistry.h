@@ -20,7 +20,6 @@
 #ifndef __OpenKarto_SensorRegistry_h__
 #define __OpenKarto_SensorRegistry_h__
 
-#include <Referenced.h>
 #include <Identifier.h>
 
 namespace karto
@@ -40,7 +39,7 @@ namespace karto
    * Sensors registry. Manages all sensors in Karto and is used internally by Karto. 
    * This class is subject to change and it is not recommend to call any of the SensorRegistry's methods.
    */
-  class KARTO_EXPORT SensorRegistry : public Referenced
+  class KARTO_EXPORT SensorRegistry
   {
     friend class Sensor;
     

@@ -3,7 +3,6 @@
 #include <StringHelper.h>
 #include <Identifier.h>
 #include <Parameter.h>
-#include <SmartPointer.h>
 
 // Phase 4: Verify std::string works throughout Identifier, StringHelper,
 // and Parameter after replacing karto::String.
@@ -127,45 +126,41 @@ TEST(Identifier, FromStdString) {
 }
 
 // --- Parameter (string serialization) ---
-// Parameter<T> has a protected destructor (ref-counted via Referenced),
-// so we must allocate on the heap. SmartPointer handles cleanup.
+// Destructors are now public, so we can allocate on the stack or use
+// std::shared_ptr for heap allocation.
 
 TEST(Parameter, Int32GetSetValueAsString) {
-    karto::SmartPointer<karto::Parameter<kt_int32s>> param =
-        new karto::Parameter<kt_int32s>(nullptr, "TestParam", "Test", "A test param", 42);
-    EXPECT_EQ(param->GetValue(), 42);
-    EXPECT_EQ(param->GetValueAsString(), "42");
+    karto::Parameter<kt_int32s> param(nullptr, "TestParam", "Test", "A test param", 42);
+    EXPECT_EQ(param.GetValue(), 42);
+    EXPECT_EQ(param.GetValueAsString(), "42");
 
-    param->SetValueFromString("-7");
-    EXPECT_EQ(param->GetValue(), -7);
+    param.SetValueFromString("-7");
+    EXPECT_EQ(param.GetValue(), -7);
 }
 
 TEST(Parameter, DoubleGetSetValueAsString) {
-    karto::SmartPointer<karto::Parameter<kt_double>> param =
-        new karto::Parameter<kt_double>(nullptr, "DoubleParam", "Double", "A double param", 1.5);
-    EXPECT_EQ(param->GetValue(), 1.5);
+    karto::Parameter<kt_double> param(nullptr, "DoubleParam", "Double", "A double param", 1.5);
+    EXPECT_EQ(param.GetValue(), 1.5);
 
-    param->SetValueFromString("2.75");
-    EXPECT_NEAR(param->GetValue(), 2.75, 1e-10);
+    param.SetValueFromString("2.75");
+    EXPECT_NEAR(param.GetValue(), 2.75, 1e-10);
 }
 
 TEST(Parameter, BoolGetSetValueAsString) {
-    karto::SmartPointer<karto::Parameter<kt_bool>> param =
-        new karto::Parameter<kt_bool>(nullptr, "BoolParam", "Bool", "A bool param", true);
-    EXPECT_EQ(param->GetValueAsString(), "true");
+    karto::Parameter<kt_bool> param(nullptr, "BoolParam", "Bool", "A bool param", true);
+    EXPECT_EQ(param.GetValueAsString(), "true");
 
-    param->SetValueFromString("false");
-    EXPECT_FALSE(param->GetValue());
+    param.SetValueFromString("false");
+    EXPECT_FALSE(param.GetValue());
 }
 
 TEST(Parameter, DefaultValue) {
-    karto::SmartPointer<karto::Parameter<kt_int32s>> param =
-        new karto::Parameter<kt_int32s>(nullptr, "P", "P", "", 10);
-    EXPECT_EQ(param->GetDefaultValue(), 10);
+    karto::Parameter<kt_int32s> param(nullptr, "P", "P", "", 10);
+    EXPECT_EQ(param.GetDefaultValue(), 10);
 
-    param->SetValue(99);
-    EXPECT_EQ(param->GetValue(), 99);
+    param.SetValue(99);
+    EXPECT_EQ(param.GetValue(), 99);
 
-    param->SetToDefaultValue();
-    EXPECT_EQ(param->GetValue(), 10);
+    param.SetToDefaultValue();
+    EXPECT_EQ(param.GetValue(), 10);
 }

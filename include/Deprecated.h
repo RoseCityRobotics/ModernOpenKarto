@@ -46,12 +46,12 @@ namespace karto
   /**
    * Type declaration of LocalizedRangeScan vector.  Please use more general class LocalizedLaserScan instead along with LocalizedLaserScanList.
    */
-  typedef KARTO_DEPRECATED std::vector<SmartPointer<LocalizedRangeScan> > LocalizedRangeScanVector;
+  typedef KARTO_DEPRECATED std::vector<std::shared_ptr<LocalizedRangeScan>> LocalizedRangeScanVector;
 
   /**
    * Type declaration of ObjectVector.  Please use ObjectList instead.
    */
-  typedef KARTO_DEPRECATED std::vector<ObjectPtr> ObjectVector;
+  typedef KARTO_DEPRECATED std::vector<Object*> ObjectVector;
 
 }
 

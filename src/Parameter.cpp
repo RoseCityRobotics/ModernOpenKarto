@@ -54,7 +54,7 @@ namespace karto
   ////////////////////////////////////////////////////////////////////////////////////////
 
   AbstractParameter::AbstractParameter(ParameterDescription* pDescription, ParameterSet* pParameterSet)
-    : m_pDescription(pDescription)
+    : m_pDescription(std::shared_ptr<ParameterDescription>(pDescription))
     , m_pParameterSet(pParameterSet)
   {
     InitializeParameters();
@@ -78,7 +78,7 @@ namespace karto
 
   struct ParameterSetPrivate
   {
-    typedef std::map<std::string, SmartPointer<AbstractParameter> > ParameterMap;
+    typedef std::map<std::string, std::shared_ptr<AbstractParameter>> ParameterMap;
 
     ParameterList m_Parameters;
     ParameterMap m_ParametersMap;
@@ -100,8 +100,9 @@ namespace karto
     {
       if (m_pPrivate->m_ParametersMap.find(pParameter->GetName()) == m_pPrivate->m_ParametersMap.end())
       {
-        m_pPrivate->m_ParametersMap[pParameter->GetName()] = pParameter;
-        m_pPrivate->m_Parameters.push_back(pParameter);
+        std::shared_ptr<AbstractParameter> pShared(pParameter, [](AbstractParameter*){});
+        m_pPrivate->m_ParametersMap[pParameter->GetName()] = pShared;
+        m_pPrivate->m_Parameters.push_back(pShared);
       }
       else
       {
@@ -119,7 +120,10 @@ namespace karto
       {
         m_pPrivate->m_ParametersMap.erase(iter);
 
-        m_pPrivate->m_Parameters.erase(std::remove(m_pPrivate->m_Parameters.begin(), m_pPrivate->m_Parameters.end(), pParameter), m_pPrivate->m_Parameters.end());
+        m_pPrivate->m_Parameters.erase(
+          std::remove_if(m_pPrivate->m_Parameters.begin(), m_pPrivate->m_Parameters.end(),
+            [pParameter](const std::shared_ptr<AbstractParameter>& p) { return p.get() == pParameter; }),
+          m_pPrivate->m_Parameters.end());
       }
     }
   }
@@ -145,7 +149,7 @@ namespace karto
     ParameterSetPrivate::ParameterMap::const_iterator iter = m_pPrivate->m_ParametersMap.find(rParameterName);
     if (iter != m_pPrivate->m_ParametersMap.end())
     {
-      return iter->second;
+      return iter->second.get();
     }
 
     return NULL;
@@ -156,7 +160,7 @@ namespace karto
     ParameterSetPrivate::ParameterMap::iterator iter = m_pPrivate->m_ParametersMap.find(rParameterName);
     if (iter != m_pPrivate->m_ParametersMap.end())
     {
-      return iter->second;
+      return iter->second.get();
     }
 
     return NULL;

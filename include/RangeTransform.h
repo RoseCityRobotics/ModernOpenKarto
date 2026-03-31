@@ -20,7 +20,6 @@
 #ifndef __OpenKarto_RangeTransform_h__
 #define __OpenKarto_RangeTransform_h__
 
-#include <Referenced.h>
 
 namespace karto
 {

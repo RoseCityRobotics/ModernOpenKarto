@@ -46,14 +46,12 @@ namespace karto
      */
     ModuleParameters(const Identifier& rName);
 
-  protected:
-    //@cond EXCLUDE
+  public:
     /**
      * Destructor
      */
     virtual ~ModuleParameters();
-    //@endcond
-    
+
   private:
     // restrict the following functions
     ModuleParameters(const ModuleParameters&);
@@ -66,9 +64,9 @@ namespace karto
   KARTO_TYPE(ModuleParameters);
 
   /**
-   * Type declaration of Parameters managed by SmartPointer
+   * Type declaration of Parameters managed by std::shared_ptr
    */
-  typedef SmartPointer<ModuleParameters> ParametersPtr;
+  using ParametersPtr = std::shared_ptr<ModuleParameters>;
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -93,15 +91,12 @@ namespace karto
      */
     CustomItem(const Identifier& rName);
 
-  protected:
-    //@cond EXCLUDE
+  public:
     /**
      * Destructor
      */
     virtual ~CustomItem();
-    //@endcond
-    
-  public:
+
     /**
      * Write out this custom item as a string
      * @return string representation of this custom item
@@ -126,14 +121,14 @@ namespace karto
   KARTO_TYPE(CustomItem);
 
   /**
-   * Type declaration of CustomItem managed by SmartPointer
+   * Type declaration of CustomItem managed by std::shared_ptr
    */
-  typedef SmartPointer<CustomItem> CustomItemPtr;
+  using CustomItemPtr = std::shared_ptr<CustomItem>;
 
   /**
-   * Type declaration of CustomItem List
+   * Type declaration of CustomItem List (non-owning)
    */
-  using CustomItemList = std::vector<CustomItemPtr>;
+  using CustomItemList = std::vector<CustomItem*>;
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -153,15 +148,12 @@ namespace karto
      */
     DatasetInfo();
   
-  protected:
-    //@cond EXCLUDE
+  public:
     /**
      * Destructor
      */
     virtual ~DatasetInfo();
-    //@endcond
-    
-  public:
+
     /**
      * Gets title of the dataset
      * @return title of the dataset
@@ -204,9 +196,9 @@ namespace karto
   KARTO_TYPE(DatasetInfo);
 
   /**
-   * Type declaration of DatasetInfo managed by SmartPointer
+   * Type declaration of DatasetInfo managed by std::shared_ptr
    */
-  typedef SmartPointer<DatasetInfo> DatasetInfoPtr;
+  using DatasetInfoPtr = std::shared_ptr<DatasetInfo>;
 
   //@}
 

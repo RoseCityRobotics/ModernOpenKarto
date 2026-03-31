@@ -559,7 +559,7 @@ namespace karto
   /**
    * Graph for graph SLAM algorithm
    */
-  class KARTO_EXPORT MapperGraph : public Graph<LocalizedObjectPtr>
+  class KARTO_EXPORT MapperGraph : public Graph<LocalizedObject*>
   {
   public:
     /**
@@ -589,7 +589,7 @@ namespace karto
      * @param rIsNewEdge set to true if the edge is new
      * @return edge between source and target vertices
      */
-    Edge<LocalizedObjectPtr>* AddEdge(LocalizedObject* pSourceObject, LocalizedObject* pTargetObject, kt_bool& rIsNewEdge);
+    Edge<LocalizedObject*>* AddEdge(LocalizedObject* pSourceObject, LocalizedObject* pTargetObject, kt_bool& rIsNewEdge);
 
     /**
      * Links object to last scan
@@ -651,7 +651,7 @@ namespace karto
      * @param pScan scan
      * @return vertex of scan
      */
-    inline Vertex<LocalizedObjectPtr>* GetVertex(LocalizedObject* pObject)
+    inline Vertex<LocalizedObject*>* GetVertex(LocalizedObject* pObject)
     {
       return m_Vertices[pObject->GetUniqueId()];
     }
@@ -724,7 +724,7 @@ namespace karto
     /**
      * Traversal algorithm to find near linked scans
      */
-    GraphTraversal<LocalizedObjectPtr>* m_pTraversal;    
+    GraphTraversal<LocalizedObject*>* m_pTraversal;    
   }; // MapperGraph
 
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -734,7 +734,7 @@ namespace karto
   /**
    * Graph optimization algorithm
    */
-  class ScanSolver : public Referenced
+  class ScanSolver
   {
   public:
     /**
@@ -749,15 +749,12 @@ namespace karto
     {
     }
 
-  protected:
-    //@cond EXCLUDE
     /**
      * Destructor
      */
     virtual ~ScanSolver()
     {
     }
-    //@endcond
 
   public:
     /**
@@ -774,7 +771,7 @@ namespace karto
     /**
      * Adds a node to the solver
      */
-    virtual void AddNode(Vertex<LocalizedObjectPtr>* /*pVertex*/)
+    virtual void AddNode(Vertex<LocalizedObject*>* /*pVertex*/)
     {
     }
 
@@ -788,7 +785,7 @@ namespace karto
     /**
      * Adds a constraint to the solver
      */
-    virtual void AddConstraint(Edge<LocalizedObjectPtr>* /*pEdge*/)
+    virtual void AddConstraint(Edge<LocalizedObject*>* /*pEdge*/)
     {
     }
     
@@ -813,9 +810,8 @@ namespace karto
    * Correlation grid used for scan matching
    */
   class CorrelationGrid : public Grid<kt_int8u>
-  {    
-  protected:
-    //@cond EXCLUDE
+  {
+  public:
     /**
      * Destructor
      */
@@ -823,8 +819,7 @@ namespace karto
     {
       delete [] m_pKernel;
     }
-    //@endcond
-    
+
   public:
     /**
      * Creates a correlation grid of given size and parameters
@@ -1043,14 +1038,14 @@ namespace karto
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
 
-  class ScanMatcherGridSet : public Referenced
+  class ScanMatcherGridSet
   {
   public:
     ScanMatcherGridSet(CorrelationGrid* pCorrelationGrid,
       Grid<kt_double>* pSearchSpaceProbs,
       GridIndexLookup<kt_int8u>* pGridLookup)
-      : m_pCorrelationGrid(pCorrelationGrid)
-      , m_pSearchSpaceProbs(pSearchSpaceProbs)
+      : m_pCorrelationGrid(std::shared_ptr<CorrelationGrid>(pCorrelationGrid))
+      , m_pSearchSpaceProbs(std::shared_ptr<Grid<kt_double>>(pSearchSpaceProbs))
       , m_pGridLookup(pGridLookup)
     {
     }
@@ -1060,8 +1055,8 @@ namespace karto
       delete m_pGridLookup;
     }
 
-    SmartPointer<CorrelationGrid> m_pCorrelationGrid;
-    SmartPointer<Grid<kt_double> > m_pSearchSpaceProbs;
+    std::shared_ptr<CorrelationGrid> m_pCorrelationGrid;
+    std::shared_ptr<Grid<kt_double>> m_pSearchSpaceProbs;
     GridIndexLookup<kt_int8u>* m_pGridLookup;
   };
 
@@ -1214,7 +1209,7 @@ namespace karto
      */
     ScanMatcher(OpenMapper* pOpenMapper)
       : m_pOpenMapper(pOpenMapper)
-      , m_pScanMatcherGridSet(NULL)
+      , m_pScanMatcherGridSet(nullptr)
       , m_pScanMatcherGridSetBank(NULL)
     {
     }
@@ -1222,7 +1217,7 @@ namespace karto
   private:
     OpenMapper* m_pOpenMapper;
     
-    SmartPointer<ScanMatcherGridSet> m_pScanMatcherGridSet;
+    std::shared_ptr<ScanMatcherGridSet> m_pScanMatcherGridSet;
     ScanMatcherGridSetBank* m_pScanMatcherGridSetBank;
   }; // ScanMatcher
   
@@ -1572,14 +1567,12 @@ namespace karto
      */    
     BasicEvent<EventArguments> ScansUpdated;
 
-  protected:
-    //@cond EXCLUDE
+  public:
     /**
      * Destructor
      */
     virtual ~OpenMapper();
-    //@endcond
-    
+
   public:
     /** 
      * Is mapper multi threaded
@@ -1724,7 +1717,7 @@ namespace karto
     /**
      * Solver used to optimize scan poses on pose graph
      */
-    SmartPointer<ScanSolver> m_pScanSolver;
+    std::shared_ptr<ScanSolver> m_pScanSolver;
 
   private:
     kt_bool m_Initialized;

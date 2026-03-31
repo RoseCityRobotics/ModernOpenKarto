@@ -40,14 +40,12 @@ namespace karto
      */
     Module(const Identifier& rName);
 
-  protected:
-    //@cond EXCLUDE
+  public:
     /**
      * Destructor
      */
     virtual ~Module();
-    //@endcond
-    
+
   public:
     /**
      * Resets the module

@@ -71,13 +71,11 @@ namespace karto
      */
     SensorData(const Identifier& rSensorIdentifier);
 
-    //@cond EXCLUDE
     /**
      * Destructor
      */
     virtual ~SensorData();
-    //@endcond
-    
+
   public:
     /**
      * Gets sensor data id
@@ -228,14 +226,11 @@ namespace karto
      */
     LaserRangeScan(const Identifier& rSensorIdentifier, const RangeReadingsList& rRangeReadings);
 
-  protected:
-    //@cond EXCLUDE
     /**
      * Destructor
      */
     virtual ~LaserRangeScan();
-    //@endcond
-    
+
   public:
     /**
      * Gets the range readings of this scan
@@ -299,17 +294,14 @@ namespace karto
     {
     }
 
-  protected:
-    //@cond EXCLUDE
+  public:
     /**
      * Destructor
      */
     virtual ~DrivePose()
     {
     }
-    //@endcond
 
-  public:
     /**
      * Gets the odometric pose of this scan
      * @return odometric pose of this scan
@@ -362,15 +354,12 @@ namespace karto
      * @param rSensorIdentifier sensor identifier
      */
     LocalizedObject(const Identifier& rSensorIdentifier);
-    
-  protected:
-    //@cond EXCLUDE
+
     /**
      * Destructor
      */
     virtual ~LocalizedObject();
-    //@endcond
-    
+
   public:
     /**
      * Gets the odometric pose of this object
@@ -545,14 +534,14 @@ namespace karto
   KARTO_TYPE(LocalizedObject);
 
   /**
-   * Type declaration of LocalizedObject managed by SmartPointer
+   * Type declaration of LocalizedObject managed by std::shared_ptr
    */
-  typedef SmartPointer<LocalizedObject> LocalizedObjectPtr;
+  using LocalizedObjectPtr = std::shared_ptr<LocalizedObject>;
 
   /**
-   * Type declaration of LocalizedObject List
+   * Type declaration of LocalizedObject List (non-owning)
    */
-  using LocalizedObjectList = std::vector<LocalizedObjectPtr>;
+  using LocalizedObjectList = std::vector<LocalizedObject*>;
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -698,13 +687,15 @@ namespace karto
       return m_RangeReadings.size();
     }
 
+  public:
+    virtual ~LocalizedLaserScan();
+
   protected:
     /**
      * Localized laser scan from the given sensor
      * @param rSensorIdentifier sensor identifier
      */
     LocalizedLaserScan(const Identifier& rSensorIdentifier);
-    virtual ~LocalizedLaserScan();
 
     /**
      * Computes the point readings, bounding box, and barycenter of the scan
@@ -779,14 +770,14 @@ namespace karto
   KARTO_TYPE(LocalizedLaserScan);
 
   /**
-   * Type declaration of LocalizedLaserScan managed by SmartPointer
+   * Type declaration of LocalizedLaserScan managed by std::shared_ptr
    */
-  typedef SmartPointer<LocalizedLaserScan> LocalizedLaserScanPtr;
-  
+  using LocalizedLaserScanPtr = std::shared_ptr<LocalizedLaserScan>;
+
   /**
-   * Type declaration of LocalizedLaserScan List
+   * Type declaration of LocalizedLaserScan List (non-owning)
    */
-  using LocalizedLaserScanList = std::vector<LocalizedLaserScanPtr>;
+  using LocalizedLaserScanList = std::vector<LocalizedLaserScan*>;
   
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -816,14 +807,12 @@ namespace karto
       return m_LocalAngles;
     }    
     
-  protected:
-    //@cond EXCLUDE
+  public:
     /**
      * Destructor
      */
     virtual ~LocalizedPointScan();
-    //@endcond
-    
+
   private:
     /**
      * Computes filtered and unfiltered points
@@ -894,14 +883,12 @@ namespace karto
       m_RangeReadings = rRangeReadings;
     }
   
-  protected:
-    //@cond EXCLUDE
+  public:
     /**
      * Destructor
      */
     virtual ~LocalizedRangeScan();
-    //@endcond
-    
+
   private:
     /**
      * Computes point readings based on range readings

@@ -28,7 +28,7 @@ namespace karto
   struct DatasetPrivate
   {
     ObjectList m_Objects;
-    SmartPointer<DatasetInfo> m_pDatasetInfo;
+    DatasetInfo* m_pDatasetInfo;
   };
 
   Dataset::Dataset()

@@ -4,6 +4,8 @@ add_executable(openkarto_tests
   test_meta_removal.cpp
   test_string_conversion.cpp
   test_geometry.cpp
+  test_any_removal.cpp
+  test_mapper_smoke.cpp
 )
 
 target_link_libraries(openkarto_tests PRIVATE

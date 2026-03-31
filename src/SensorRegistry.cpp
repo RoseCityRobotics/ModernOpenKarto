@@ -35,7 +35,6 @@ namespace karto
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
 
-  // Note to not change the Sensor* to SensorPtr or SmartPointer<Sensor>. 
   struct SensorRegistryPrivate
   {
     std::vector<Sensor*> m_Sensors;
@@ -57,13 +56,8 @@ namespace karto
 
   SensorRegistry* SensorRegistry::GetInstance()
   {
-#ifdef USE_TBB
-    static tbb::mutex myMutex;
-    tbb::mutex::scoped_lock lock(myMutex);
-#endif
-
-    static SmartPointer<SensorRegistry> sInstance = new SensorRegistry();
-    return sInstance;
+    static SensorRegistry instance;
+    return &instance;
   }
 
   void SensorRegistry::RegisterSensor(Sensor* pSensor)
