@@ -17,6 +17,7 @@
 
 #include <thread>
 #include <vector>
+#include <memory>
 #include <sstream>
 
 #include <stdexcept>
@@ -77,19 +78,19 @@ namespace karto
     inline void AddObject(LocalizedObject* pObject, int32_t uniqueId)
     {
       // assign state id to object
-      pObject->SetStateId(static_cast<uint32_t>(m_Objects.size()));
+      pObject->SetStateId(static_cast<uint32_t>(m_OwnedObjects.size()));
 
       // assign unique id to object
       pObject->SetUniqueId(uniqueId);
 
-      m_Objects.push_back(pObject);
+      m_OwnedObjects.emplace_back(pObject);
 
       // if object is scan and it was scan-matched, add it to scan buffer
       LocalizedLaserScan* pScan = dynamic_cast<LocalizedLaserScan*>(pObject);
       if (pScan != nullptr)
       {
         m_Scans.push_back(pScan);
-      }      
+      }
     }
 
     /**
@@ -114,9 +115,14 @@ namespace karto
      * Gets objects
      * @return objects
      */
-    inline LocalizedObjectList& GetObjects()
+    inline LocalizedObject* GetObject(size_t index)
     {
-      return m_Objects;
+      return m_OwnedObjects[index].get();
+    }
+
+    inline size_t GetObjectCount() const
+    {
+      return m_OwnedObjects.size();
     }
     
     /**
@@ -187,10 +193,10 @@ namespace karto
      */
     void Clear()
     {
-      m_Objects.clear();
       m_Scans.clear();
       m_RunningScans.clear();
       m_pLastScan = nullptr;
+      m_OwnedObjects.clear();  // deletes all owned scans via unique_ptr
     }
 
   private:
@@ -200,8 +206,8 @@ namespace karto
     }
     
   private:
-    LocalizedObjectList m_Objects;
-    
+    std::vector<std::unique_ptr<LocalizedObject>> m_OwnedObjects;
+
     LocalizedLaserScanList m_Scans;
     LocalizedLaserScanList m_RunningScans;
     LocalizedLaserScan* m_pLastScan;
@@ -257,7 +263,7 @@ namespace karto
     SensorDataManager* pSensorDataManager = GetSensorDataManager(rSensorName);
     if (pSensorDataManager != nullptr)
     {
-      return pSensorDataManager->GetObjects()[stateId];
+      return pSensorDataManager->GetObject(stateId);
     }
 
     assert(false);
@@ -343,8 +349,11 @@ namespace karto
 
     for (auto& entry : m_pMapperSensorManagerPrivate->m_SensorDataManagers)
     {
-      LocalizedObjectList& rObjects = entry.second->GetObjects();
-      objects.insert(objects.end(), rObjects.begin(), rObjects.end());
+      SensorDataManager* pMgr = entry.second;
+      for (size_t i = 0; i < pMgr->GetObjectCount(); i++)
+      {
+        objects.push_back(pMgr->GetObject(i));
+      }
     }
 
     return objects;
