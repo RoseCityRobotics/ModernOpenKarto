@@ -20,14 +20,334 @@
 #ifndef __OpenKarto_Geometry_h__
 #define __OpenKarto_Geometry_h__
 
-#include <vector>
-#include <StringHelper.h>
-#include <KartoMath.h>
-
+#include <algorithm>
+#include <cassert>
+#include <cmath>
+#include <cfloat>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <limits>
+#include <sstream>
+#include <string>
 #include <string.h>
+#include <vector>
 
 namespace karto
 {
+
+  ////////////////////////////////////////////////////////////////////////////////////////
+  // Math utilities (formerly KartoMath.h)
+  ////////////////////////////////////////////////////////////////////////////////////////
+
+  /** Tolerance for floating-point comparisons */
+  constexpr double KT_TOLERANCE = 1e-06;
+
+  /** Converts degrees to radians */
+  inline double DegreesToRadians(double degrees)
+  {
+    return degrees * M_PI / 180.0;
+  }
+
+  /** Converts radians to degrees */
+  inline double RadiansToDegrees(double radians)
+  {
+    return radians * 180.0 / M_PI;
+  }
+
+  /** Checks whether two doubles are equal within KT_TOLERANCE */
+  inline bool DoubleEqual(double a, double b)
+  {
+    double delta = a - b;
+    return delta < 0.0 ? delta >= -KT_TOLERANCE : delta <= KT_TOLERANCE;
+  }
+
+  /**
+   * Normalizes angle to be in the range of [-pi, pi]
+   */
+  inline double NormalizeAngle(double angle)
+  {
+    while (angle < -M_PI)
+    {
+      if (angle < -(2.0 * M_PI))
+      {
+        angle += (uint32_t)(angle / -(2.0 * M_PI)) * (2.0 * M_PI);
+      }
+      else
+      {
+        angle += (2.0 * M_PI);
+      }
+    }
+
+    while (angle > M_PI)
+    {
+      if (angle > (2.0 * M_PI))
+      {
+        angle -= (uint32_t)(angle / (2.0 * M_PI)) * (2.0 * M_PI);
+      }
+      else
+      {
+        angle -= (2.0 * M_PI);
+      }
+    }
+
+    assert(angle >= -M_PI && angle <= M_PI);
+
+    return angle;
+  }
+
+  /**
+   * Returns an equivalent angle to the first parameter such that the difference
+   * when the second parameter is subtracted from this new value is an angle
+   * in the normalized range of [-pi, pi].
+   */
+  inline double NormalizeAngleDifference(double minuend, double subtrahend)
+  {
+    while (minuend - subtrahend < -M_PI)
+    {
+      minuend += (2.0 * M_PI);
+    }
+
+    while (minuend - subtrahend > M_PI)
+    {
+      minuend -= (2.0 * M_PI);
+    }
+
+    return minuend;
+  }
+
+  /**
+   * Square function
+   */
+  template<typename T>
+  inline T Square(T value)
+  {
+    return (value * value);
+  }
+
+  /**
+   * Checks whether value is in the range [a;b]
+   */
+  template<typename T>
+  inline bool InRange(const T& value, const T& a, const T& b)
+  {
+    return (value >= a && value <= b);
+  }
+
+  /**
+   * Checks whether value is in the range [0;maximum)
+   */
+  template<typename T>
+  inline bool IsUpTo(const T& value, const T& maximum)
+  {
+    return (value >= 0 && value < maximum);
+  }
+
+  /**
+   * Specialized version for uint32_t (always >= 0)
+   */
+  template<>
+  inline bool IsUpTo<uint32_t>(const uint32_t& value, const uint32_t& maximum)
+  {
+    return (value < maximum);
+  }
+
+  /**
+   * Aligns a value to the alignValue.
+   * The alignValue should be the power of two (2, 4, 8, 16, 32 and so on)
+   */
+  template<class T>
+  inline T AlignValue(size_t value, size_t alignValue = 8)
+  {
+    return static_cast<T> ((value + (alignValue - 1)) & ~(alignValue - 1));
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////
+  // String conversion utilities (formerly StringHelper)
+  ////////////////////////////////////////////////////////////////////////////////////////
+
+  inline std::string ToString(const char* value) { return std::string(value); }
+
+  inline std::string ToString(bool value) { return value ? "true" : "false"; }
+
+  inline std::string ToString(int16_t value)
+  {
+    std::stringstream converter;
+    converter.precision(std::numeric_limits<double>::digits10);
+    converter << value;
+    return converter.str();
+  }
+
+  inline std::string ToString(uint16_t value)
+  {
+    std::stringstream converter;
+    converter.precision(std::numeric_limits<double>::digits10);
+    converter << value;
+    return converter.str();
+  }
+
+  inline std::string ToString(int32_t value)
+  {
+    char buffer[64];
+    snprintf(buffer, sizeof(buffer), "%d", value);
+    return std::string(buffer);
+  }
+
+  inline std::string ToString(uint32_t value)
+  {
+    char buffer[64];
+    snprintf(buffer, sizeof(buffer), "%u", value);
+    return std::string(buffer);
+  }
+
+  inline std::string ToString(int64_t value)
+  {
+    std::stringstream converter;
+    converter.precision(std::numeric_limits<double>::digits10);
+    converter << value;
+    return converter.str();
+  }
+
+  inline std::string ToString(uint64_t value)
+  {
+    std::stringstream converter;
+    converter.precision(std::numeric_limits<double>::digits10);
+    converter << value;
+    return converter.str();
+  }
+
+  // size_t and uint64_t are the same type on ARM64 Linux but different on macOS
+#if !(defined(__linux__) && defined(__aarch64__))
+  inline std::string ToString(size_t value)
+  {
+    std::stringstream converter;
+    converter.precision(std::numeric_limits<double>::digits10);
+    converter << value;
+    return converter.str();
+  }
+#endif
+
+  inline std::string ToString(float value)
+  {
+    char buffer[64];
+    snprintf(buffer, sizeof(buffer), "%.*g", 8, (double) value);
+    return std::string(buffer);
+  }
+
+  inline std::string ToString(double value)
+  {
+    char buffer[64];
+    snprintf(buffer, sizeof(buffer), "%.*g", 16, value);
+    return std::string(buffer);
+  }
+
+  inline std::string ToString(float value, uint32_t precision)
+  {
+    char buffer[64];
+    snprintf(buffer, sizeof(buffer), "%.*f", (int32_t)precision, (double)value);
+    return std::string(buffer);
+  }
+
+  inline std::string ToString(double value, uint32_t precision)
+  {
+    char buffer[64];
+    snprintf(buffer, sizeof(buffer), "%.*f", (int32_t)precision, value);
+    return std::string(buffer);
+  }
+
+  inline std::string ToString(const std::string& rValue) { return rValue; }
+
+  // FromString utilities for primitives
+
+  inline bool FromString(const std::string& rStringValue, bool& rValue)
+  {
+    rValue = false;
+    std::string lower = rStringValue;
+    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+    if (lower == "true")
+    {
+      rValue = true;
+    }
+    return true;
+  }
+
+  inline bool FromString(const std::string& rStringValue, int16_t& rValue)
+  {
+    std::stringstream converter;
+    converter.precision(std::numeric_limits<double>::digits10);
+    converter.str(rStringValue);
+    converter >> rValue;
+    return true;
+  }
+
+  inline bool FromString(const std::string& rStringValue, uint16_t& rValue)
+  {
+    std::stringstream converter;
+    converter.precision(std::numeric_limits<double>::digits10);
+    converter.str(rStringValue);
+    converter >> rValue;
+    return true;
+  }
+
+  inline bool FromString(const std::string& rStringValue, int32_t& rValue)
+  {
+    std::stringstream converter;
+    converter.precision(std::numeric_limits<double>::digits10);
+    converter.str(rStringValue);
+    converter >> rValue;
+    return true;
+  }
+
+  inline bool FromString(const std::string& rStringValue, uint32_t& rValue)
+  {
+    std::stringstream converter;
+    converter.precision(std::numeric_limits<double>::digits10);
+    converter.str(rStringValue);
+    converter >> rValue;
+    return true;
+  }
+
+  inline bool FromString(const std::string& rStringValue, int64_t& rValue)
+  {
+    std::stringstream converter;
+    converter.precision(std::numeric_limits<double>::digits10);
+    converter.str(rStringValue);
+    converter >> rValue;
+    return true;
+  }
+
+  inline bool FromString(const std::string& rStringValue, uint64_t& rValue)
+  {
+    std::stringstream converter;
+    converter.precision(std::numeric_limits<double>::digits10);
+    converter.str(rStringValue);
+    converter >> rValue;
+    return true;
+  }
+
+  inline bool FromString(const std::string& rStringValue, float& rValue)
+  {
+    std::stringstream converter;
+    converter.precision(std::numeric_limits<double>::digits10);
+    converter.str(rStringValue);
+    converter >> rValue;
+    return true;
+  }
+
+  inline bool FromString(const std::string& rStringValue, double& rValue)
+  {
+    std::stringstream converter;
+    converter.precision(std::numeric_limits<double>::digits10);
+    converter.str(rStringValue);
+    converter >> rValue;
+    return true;
+  }
+
+  inline bool FromString(const std::string& rStringValue, std::string& rValue)
+  {
+    rValue = rStringValue;
+    return true;
+  }
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -116,9 +436,9 @@ namespace karto
     inline const std::string ToString() const
     {
       std::string valueString;
-      valueString.append(StringHelper::ToString(GetWidth()));
+      valueString.append(karto::ToString(GetWidth()));
       valueString.append(" ");
-      valueString.append(StringHelper::ToString(GetHeight()));
+      valueString.append(karto::ToString(GetHeight()));
       return valueString;
     }
 
@@ -137,7 +457,7 @@ namespace karto
     /**
      * Equality operator
      */
-    inline kt_bool operator==(const Size2& rOther) const
+    inline bool operator==(const Size2& rOther) const
     {
       return (m_Width == rOther.m_Width && m_Height == rOther.m_Height);
     }
@@ -145,7 +465,7 @@ namespace karto
     /**
      * Inequality operator
      */
-    inline kt_bool operator!=(const Size2& rOther) const
+    inline bool operator!=(const Size2& rOther) const
     {
       return (m_Width != rOther.m_Width || m_Height != rOther.m_Height);
     }
@@ -153,7 +473,7 @@ namespace karto
     /**
      * Write size onto output stream
      */
-    friend KARTO_FORCEINLINE std::ostream& operator << (std::ostream& rStream, const Size2& rSize)
+    friend inline std::ostream& operator << (std::ostream& rStream, const Size2& rSize)
     {
       rStream << rSize.ToString();
       return rStream;
@@ -163,154 +483,6 @@ namespace karto
     T m_Width;
     T m_Height;
   }; // class Size2<T>
-
-  ////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////
-
-  /**
-   * A 3-dimensional size (width, height, depth)
-   */
-  template<typename T>
-  class Size3
-  {
-  public:
-    /**
-     * A size with a width, height, and depth of 0
-     */
-    inline Size3()
-      : m_Width(0.0)
-      , m_Height(0.0)
-      , m_Depth(0.0)
-    {
-    }
-
-    /**
-     * A size with the given width, height, and depth
-     * @param width width
-     * @param height height
-     * @param depth depth
-     **/
-    inline Size3(T width, T height, T depth)
-      : m_Width(width)
-      , m_Height(height)
-      , m_Depth(depth)
-    {
-    }		
-
-    /**
-     * Copy constructor
-     */
-    inline Size3(const Size3& rOther)
-      : m_Width(rOther.m_Width)
-      , m_Height(rOther.m_Height)
-    {
-    }
-
-  public:
-    /**
-     * Returns the width
-     * @return the width
-     */
-    inline T GetWidth() const
-    {
-      return m_Width;
-    }
-    
-    /**
-     * Sets the width
-     * @param width width
-     */
-    inline void SetWidth(T width)
-    {
-      m_Width = width;
-    }
-
-    /**
-     * Returns the height
-     * @return the height
-     */
-    inline T GetHeight() const
-    {
-      return m_Height;
-    }
-    
-    /**
-     * Sets the height
-     * @param height height
-     */
-    inline void SetHeight(T height)
-    {
-      m_Height = height;
-    }
-
-    /**
-     * Returns the depth
-     * @return the depth
-     */
-    inline T GetDepth() const
-    {
-      return m_Depth;
-    }
-
-    /**
-     * Sets the depth
-     * @param depth depth
-     */
-    inline void SetDepth(T depth)
-    {
-      m_Depth = depth;
-    }
-
-    /**
-     * Returns a string representation of this size object
-     * @return string representation of this size object
-     */
-    inline const std::string ToString() const
-    {
-      std::string valueString;
-      valueString.append(StringHelper::ToString(GetWidth()));
-      valueString.append(" ");
-      valueString.append(StringHelper::ToString(GetHeight()));
-      valueString.append(" ");
-      valueString.append(StringHelper::ToString(GetDepth()));
-      return valueString;
-    }
-
-  public:
-    /**
-     * Assignment operator
-     */
-    inline Size3& operator=(const Size3& rOther)
-    {
-      m_Width = rOther.m_Width;
-      m_Height = rOther.m_Height;
-      m_Depth = rOther.m_Depth;
-
-      return *this;
-    }
-
-    /**
-     * Equality operator
-     */
-    kt_bool operator==(const Size3& rOther) const 
-    {
-      return m_Width == rOther.m_Width && m_Height == rOther.m_Height && m_Depth == rOther.m_Depth; 
-    }
-    
-    /**
-     * Inequality operator
-     */
-    kt_bool operator!=(const Size3& rOther) const 
-    {
-      return m_Width != rOther.m_Width || m_Height != rOther.m_Height || m_Depth != rOther.m_Depth; 
-    }
-
-  private:
-    T m_Width;
-    T m_Height;
-    T m_Depth;
-  }; // class Size3
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -411,16 +583,16 @@ namespace karto
      * Returns the square of the length of the vector
      * @return square of the length of the vector
      */
-    inline kt_double SquaredLength() const
+    inline double SquaredLength() const
     {
-      return math::Square(m_Values[0]) + math::Square(m_Values[1]);
+      return (m_Values[0] * m_Values[0]) + (m_Values[1] * m_Values[1]);
     }
     
     /**
      * Returns the length of the vector
      * @return length of the vector
      */
-    inline kt_double Length() const
+    inline double Length() const
     {
       return sqrt(SquaredLength());
     }
@@ -430,7 +602,7 @@ namespace karto
      * @param rOther vector
      * @returns square of the distance to the given vector
      */
-    inline kt_double SquaredDistance(const Vector2& rOther) const
+    inline double SquaredDistance(const Vector2& rOther) const
     {
       return (*this - rOther).SquaredLength();
     }
@@ -440,7 +612,7 @@ namespace karto
      * @param rOther vector
      * @return distance to given vector
      */
-    inline kt_double Distance(const Vector2& rOther) const
+    inline double Distance(const Vector2& rOther) const
     {
       return sqrt(SquaredDistance(rOther));
     }
@@ -452,9 +624,9 @@ namespace karto
     inline const std::string ToString() const
     {
       std::string valueString;
-      valueString.append(StringHelper::ToString(GetX()));
+      valueString.append(karto::ToString(GetX()));
       valueString.append(" ");
-      valueString.append(StringHelper::ToString(GetY()));
+      valueString.append(karto::ToString(GetY()));
       return valueString;
     }
 
@@ -513,7 +685,7 @@ namespace karto
     /**
      * Vector dot-product
      */
-    inline kt_double operator*(const Vector2& rOther) const
+    inline double operator*(const Vector2& rOther) const
     {
       return m_Values[0] * rOther.m_Values[0] + m_Values[1] * rOther.m_Values[1];
     }    
@@ -546,7 +718,7 @@ namespace karto
     /**
      * Equality operator
      */
-    inline kt_bool operator==(const Vector2& rOther) const
+    inline bool operator==(const Vector2& rOther) const
     {
       return (m_Values[0] == rOther.m_Values[0] && m_Values[1] == rOther.m_Values[1]);
     }
@@ -554,7 +726,7 @@ namespace karto
     /**
      * Inequality operator
      */
-    inline kt_bool operator!=(const Vector2& rOther) const
+    inline bool operator!=(const Vector2& rOther) const
     {
       return (m_Values[0] != rOther.m_Values[0] || m_Values[1] != rOther.m_Values[1]);
     }
@@ -565,7 +737,7 @@ namespace karto
      * @return true if left vector is 'less' than right vector by comparing corresponding x coordinates and then
      * corresponding y coordinates
      */
-    inline kt_bool operator<(const Vector2& rOther) const
+    inline bool operator<(const Vector2& rOther) const
     {
       if (m_Values[0] < rOther.m_Values[0])
       {
@@ -584,7 +756,7 @@ namespace karto
     /**
      * Write vector onto output stream
      */
-    friend KARTO_FORCEINLINE std::ostream& operator<<(std::ostream& rStream, const Vector2& rVector)
+    friend inline std::ostream& operator<<(std::ostream& rStream, const Vector2& rVector)
     {
       rStream << rVector.ToString();
       return rStream;
@@ -595,19 +767,14 @@ namespace karto
   }; // class Vector2<T>
 
   /**
-   * Type declaration of kt_int32s Vector2 as Vector2i
+   * Type declaration of int32_t Vector2 as Vector2i
    */
-  using Vector2i = Vector2<kt_int32s>;
+  using Vector2i = Vector2<int32_t>;
 
   /**
-   * Type declaration of kt_int32u Vector2 as Vector2iu
+   * Type declaration of double Vector2 as Vector2d
    */
-  using Vector2iu = Vector2<kt_int32u>;
-
-  /**
-   * Type declaration of kt_double Vector2 as Vector2d
-   */
-  using Vector2d = Vector2<kt_double>;
+  using Vector2d = Vector2<double>;
   
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -754,16 +921,16 @@ namespace karto
      * Returns the square of the length of the vector
      * @return square of the length of the vector
      */
-    inline kt_double SquaredLength() const
+    inline double SquaredLength() const
     {
-      return math::Square(m_Values[0]) + math::Square(m_Values[1]) + math::Square(m_Values[2]);
+      return (m_Values[0] * m_Values[0]) + (m_Values[1] * m_Values[1]) + (m_Values[2] * m_Values[2]);
     }
 
     /**
      * Returns the length of the vector.
      * @return length of the vector
      */
-    inline kt_double Length() const
+    inline double Length() const
     {
       return sqrt(SquaredLength());
     }
@@ -773,10 +940,10 @@ namespace karto
      */ 
     inline void Normalize()
     {
-      kt_double length = Length();
+      double length = Length();
       if (length > 0.0)
       {
-        kt_double inversedLength = 1.0 / length;
+        double inversedLength = 1.0 / length;
 
         m_Values[0] *= inversedLength;
         m_Values[1] *= inversedLength;
@@ -791,11 +958,11 @@ namespace karto
     inline const std::string ToString() const
     {
       std::string valueString;
-      valueString.append(StringHelper::ToString(GetX()));
+      valueString.append(karto::ToString(GetX()));
       valueString.append(" ");
-      valueString.append(StringHelper::ToString(GetY()));
+      valueString.append(karto::ToString(GetY()));
       valueString.append(" ");
-      valueString.append(StringHelper::ToString(GetZ()));
+      valueString.append(karto::ToString(GetZ()));
       return valueString;
     }
 
@@ -823,7 +990,7 @@ namespace karto
     /**
      * Vector-scalar addition
      */
-    inline const Vector3 operator+(kt_double scalar) const
+    inline const Vector3 operator+(double scalar) const
     {
       return Vector3(m_Values[0] + scalar, m_Values[1] + scalar, m_Values[2] + scalar);
     }
@@ -839,7 +1006,7 @@ namespace karto
     /**
      * Vector-scalar subtraction
      */
-    inline const Vector3 operator-(kt_double scalar) const
+    inline const Vector3 operator-(double scalar) const
     {
       return Vector3(m_Values[0] - scalar, m_Values[1] - scalar, m_Values[2] - scalar);
     }
@@ -977,7 +1144,7 @@ namespace karto
      * @return true if left vector is 'less' than right vector by comparing corresponding x coordinates, then
      * corresponding y coordinates, and then corresponding z coordinates
      */
-    inline kt_bool operator<(const Vector3& rOther) const
+    inline bool operator<(const Vector3& rOther) const
     {
       if (m_Values[0] < rOther.m_Values[0])
       {
@@ -1004,7 +1171,7 @@ namespace karto
     /**
      * Equality operator
      */
-    inline kt_bool operator==(const Vector3& rOther) const
+    inline bool operator==(const Vector3& rOther) const
     {
       return (m_Values[0] == rOther.m_Values[0] && m_Values[1] == rOther.m_Values[1] && m_Values[2] == rOther.m_Values[2]);
     }
@@ -1012,7 +1179,7 @@ namespace karto
     /**
      * Inequality operator
      */
-    inline kt_bool operator!=(const Vector3& rOther) const
+    inline bool operator!=(const Vector3& rOther) const
     {
       return (m_Values[0] != rOther.m_Values[0] || m_Values[1] != rOther.m_Values[1] || m_Values[2] != rOther.m_Values[2]);
     }
@@ -1020,7 +1187,7 @@ namespace karto
     /**
      * Write vector onto output stream
      */
-    friend KARTO_FORCEINLINE std::ostream& operator << (std::ostream& rStream, const Vector3& rVector)
+    friend inline std::ostream& operator << (std::ostream& rStream, const Vector3& rVector)
     {
       rStream << rVector.ToString();
       return rStream;
@@ -1031,557 +1198,14 @@ namespace karto
   }; // class Vector3<T>
 
   /**
-   * Type declaration of kt_int32s Vector3 as Vector3i
+   * Type declaration of int32_t Vector3 as Vector3i
    */
-  using Vector3i = Vector3<kt_int32s>;
+  using Vector3i = Vector3<int32_t>;
 
   /**
-   * Type declaration of kt_int32u Vector3 as Vector3iu
+   * Type declaration of double Vector3 as Vector3d
    */
-  using Vector3iu = Vector3<kt_int32u>;
-
-  /**
-   * Type declaration of kt_double Vector3 as Vector3d
-   */
-  using Vector3d = Vector3<kt_double>;
-
-  ////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////
-
-  /**
-   * Represents a 4-dimensional vector (x, y, z, w)
-   */
-  template<typename T>
-  class Vector4
-  {
-  public:
-    /**
-     * Vector at the origin
-     */
-    Vector4()
-    {
-      m_Values[0] = 0;
-      m_Values[1] = 0;
-      m_Values[2] = 0;
-      m_Values[3] = 0;
-    }
-
-    /**
-     * Vector at the given location
-     * @param x x
-     * @param y y
-     * @param z z
-     * @param w w
-     */
-    Vector4(T x, T y, T z, T w)
-    {
-      m_Values[0] = x;
-      m_Values[1] = y;
-      m_Values[2] = z;
-      m_Values[3] = w;
-    }
-
-    /**
-     * Copy constructor
-     */
-    Vector4(const Vector4& rOther)
-    {
-      m_Values[0] = rOther.m_Values[0];
-      m_Values[1] = rOther.m_Values[1];
-      m_Values[2] = rOther.m_Values[2];
-      m_Values[3] = rOther.m_Values[3];
-    }
-
-  public:
-    /**
-     * Gets the x-component of this vector
-     * @return x-component
-     */
-    inline const T& GetX() const 
-    {
-      return m_Values[0]; 
-    }
-
-    /**
-     * Sets the x-component of this vector
-     * @param x x
-     */
-    inline void SetX(const T& x)
-    {
-      m_Values[0] = x; 
-    }
-
-    /**
-     * Gets the y-component of this vector
-     * @return y-component
-     */
-    inline const T& GetY() const 
-    {
-      return m_Values[1]; 
-    }
-
-    /**
-     * Sets the y-component of this vector
-     * @param y y
-     */
-    inline void SetY(const T& y)
-    {
-      m_Values[1] = y;
-    }
-
-    /**
-     * Gets the z-component of this vector
-     * @return z-component
-     */
-    inline const T& GetZ() const
-    {
-      return m_Values[2];
-    }
-
-    /**
-     * Sets the z-component of this vector
-     * @param z z
-     */
-    inline void SetZ(const T& z)
-    {
-      m_Values[2] = z;
-    } 
-
-    /**
-     * Gets the w-component of this vector
-     * @return w-component
-     */
-    inline const T& GetW() const
-    {
-      return m_Values[3];
-    }
-
-    /**
-     * Sets the w-component of this vector
-     * @param w w
-     */
-    inline void SetW(const T& w)
-    {
-      m_Values[3] = w;
-    } 
-
-    /**
-     * Returns a string representation of this vector
-     * @return string representation of this vector
-     */
-    inline const std::string ToString() const
-    {
-      std::string valueString;
-      valueString.append(StringHelper::ToString(GetX()));
-      valueString.append(" ");
-      valueString.append(StringHelper::ToString(GetY()));
-      valueString.append(" ");
-      valueString.append(StringHelper::ToString(GetZ()));
-      valueString.append(" ");
-      valueString.append(StringHelper::ToString(GetW()));
-      return valueString;
-    }
-
-  public:
-    /**
-     * Assignment operator
-     */
-    inline Vector4& operator = (const Vector4& rOther)
-    {
-      m_Values[0] = rOther.m_Values[0];
-      m_Values[1] = rOther.m_Values[1];
-      m_Values[2] = rOther.m_Values[2];
-      m_Values[3] = rOther.m_Values[3];
-
-      return *this;
-    }
-
-    /**
-     * Less than operator
-     * @param rOther vector
-     * @return true if left vector is 'less' than right vector by comparing corresponding x coordinates, then
-     * corresponding y coordinates, then corresponding z coordinates, and then corresponding w coordinates
-     */
-    inline kt_bool operator<(const Vector4& rOther) const
-    {
-      if (m_Values[0] < rOther.m_Values[0])
-      {
-        return true;
-      }
-      else if (m_Values[0] > rOther.m_Values[0]) 
-      {
-        return false;
-      }
-      else if (m_Values[1] < rOther.m_Values[1])
-      {
-        return true;
-      }
-      else if (m_Values[1] > rOther.m_Values[1]) 
-      {
-        return false;
-      }
-      else if (m_Values[2] < rOther.m_Values[2])
-      {
-        return true;
-      }
-      else if (m_Values[2] > rOther.m_Values[2])
-      {
-        return false;
-      }
-      else
-      {
-        return (m_Values[3] < rOther.m_Values[3]);
-      }
-    }
-
-    /**
-     * Equality operator
-     */
-    inline kt_bool operator==(const Vector4& rOther) const
-    {
-      return (m_Values[0] == rOther.m_Values[0] && m_Values[1] == rOther.m_Values[1] && m_Values[2] == rOther.m_Values[2] && m_Values[3] == rOther.m_Values[3]);
-    }
-
-    /**
-     * Inequality operator
-     */
-    inline kt_bool operator!=(const Vector4& rOther) const
-    {
-      return (m_Values[0] != rOther.m_Values[0] || m_Values[1] != rOther.m_Values[1] || m_Values[2] != rOther.m_Values[2] || m_Values[3] != rOther.m_Values[3]);
-    }
-
-    /**
-     * Write vector onto output stream
-     */
-    friend KARTO_FORCEINLINE std::ostream& operator<<(std::ostream& rStream, const Vector4& rVector)
-    {
-      rStream << rVector.ToString();
-      return rStream;
-    }
-
-  private:
-    T m_Values[4];
-  }; // class Vector4<T>
-
-  /**
-   * Type declaration of kt_int32s Vector4 as Vector4i
-   */
-  using Vector4i = Vector4<kt_int32s>;
-
-  /**
-   * Type declaration of kt_int32u Vector4 as Vector4iu
-   */
-  using Vector4iu = Vector4<kt_int32u>;
-
-  /**
-   * Type declaration of double Vector4 as Vector4d
-   */
-  using Vector4d = Vector4<kt_double>;
-
-  ////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////
-
-  /**
-   * Defines an orientation as a quaternion rotation using the positive Z axis as the zero reference.
-   * <BR>
-   * Q = w + ix + jy + kz <BR>
-   * w = c_1 * c_2 * c_3 - s_1 * s_2 * s_3 <BR>
-   * x = s_1 * s_2 * c_3 + c_1 * c_2 * s_3 <BR>
-   * y = s_1 * c_2 * c_3 + c_1 * s_2 * s_3 <BR>
-   * z = c_1 * s_2 * c_3 - s_1 * c_2 * s_3 <BR>
-   * where <BR>
-   * c_1 = cos(theta/2) <BR>
-   * c_2 = cos(phi/2) <BR>
-   * c_3 = cos(psi/2) <BR>
-   * s_1 = sin(theta/2) <BR>
-   * s_2 = sin(phi/2) <BR>
-   * s_3 = sin(psi/2) <BR>
-   * and <BR>
-   * theta is the angle of rotation about the Y axis measured from the Z axis. <BR>
-   * phi is the angle of rotation about the Z axis measured from the X axis. <BR>
-   * psi is the angle of rotation about the X axis measured from the Y axis. <BR>
-   * (All angles are right-handed.)
-   */
-  class KARTO_EXPORT Quaternion
-  {
-  public:
-    /**
-     * Quaternion with default (x=0, y=0, z=0, w=1) values
-     */
-    inline Quaternion()
-    {
-      m_Values[0] = 0.0;
-      m_Values[1] = 0.0;
-      m_Values[2] = 0.0;
-      m_Values[3] = 1.0; 
-    }
-
-    /**
-     * Quaternion using given x, y, z, w values.
-     * @param x x
-     * @param y y
-     * @param z z
-     * @param w w
-     */
-    inline Quaternion(kt_double x, kt_double y, kt_double z, kt_double w)
-    {
-      m_Values[0] = x;
-      m_Values[1] = y;
-      m_Values[2] = z;
-      m_Values[3] = w;
-    }
-
-    /**
-    * Quaternion from given Vector4d
-     */
-    inline Quaternion(const Vector4d& rVector)
-    {
-      m_Values[0] = rVector.GetX();
-      m_Values[1] = rVector.GetY();
-      m_Values[2] = rVector.GetZ();
-      m_Values[3] = rVector.GetW();
-    }
-
-    /**
-     * Copy constructor
-     */
-    inline Quaternion(const Quaternion& rOther)
-    {
-      m_Values[0] = rOther.m_Values[0];
-      m_Values[1] = rOther.m_Values[1];
-      m_Values[2] = rOther.m_Values[2];
-      m_Values[3] = rOther.m_Values[3];
-    }
-
-  public:
-    /**
-     * Returns the x-value
-     * @return the x-value of this quaternion
-     */
-    inline kt_double GetX() const
-    {
-      return m_Values[0]; 
-    }
-
-    /**
-     * Sets the x-value
-     * @param x x-value
-     */
-    inline void SetX(kt_double x)
-    {
-      m_Values[0] = x; 
-    }
-
-    /**
-     * Returns the y-value
-     * @return the y-value of this quaternion
-     */
-    inline kt_double GetY() const
-    {
-      return m_Values[1]; 
-    }
-
-    /**
-     * Sets the y-value
-     * @param y y-value
-     */
-    inline void SetY(kt_double y)
-    {
-      m_Values[1] = y; 
-    }
-
-    /**
-     * Returns the z-value
-     * @return the z-value of this quaternion
-     */
-    inline kt_double GetZ() const
-    {
-      return m_Values[2]; 
-    }
-
-    /**
-     * Sets the z-value
-     * @param z z-value
-     */
-    inline void SetZ(kt_double z)
-    {
-      m_Values[2] = z; 
-    }
-
-    /**
-     * Returns the w-value
-     * @return the w-value of this quaternion
-     */
-    inline kt_double GetW() const
-    {
-      return m_Values[3]; 
-    }
-
-    /**
-     * Sets the w-value
-     * @param w w-value
-     */
-    inline void SetW(kt_double w)
-    {
-      m_Values[3] = w; 
-    }
-
-    /**
-     * This quaternion as a 4D vector
-     * @return 4D vector representation of this quaternion
-     */
-    inline const Vector4d GetAsVector4() const 
-    {
-      return Vector4d(m_Values[0], m_Values[1], m_Values[2], m_Values[3]);
-    }
-
-    /**
-     * This quaternion in angle-axis form
-     * @param rAngle output parameter angle
-     * @param rAxis output parameter axis
-     */
-    void ToAngleAxis(kt_double& rAngle, karto::Vector3d& rAxis) const;
-
-    /**
-     * Computes the equivalent quaternion from the given angle-axis form
-     */
-    void FromAngleAxis(kt_double angleInRadians, const karto::Vector3d& rAxis);
-
-    /**
-     * Converts this quaternion into Euler angles
-     * Source: http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/index.htm
-     * @param rYaw yaw
-     * @param rPitch pitch
-     * @param rRoll roll
-     */
-    void ToEulerAngles(kt_double& rYaw, kt_double& rPitch, kt_double& rRoll) const;
-
-    /**
-     * Set x,y,z,w values of the quaternion based on Euler angles. 
-     * Source: http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/index.htm
-     * @param yaw yaw
-     * @param pitch pitch
-     * @param roll roll
-     */
-    void FromEulerAngles(kt_double yaw, kt_double pitch, kt_double roll);
-
-    /**
-     * Length of this quaternion
-     * @return length of this quaternion
-     */
-    inline kt_double Length() const
-    {
-      return sqrt(Norm());
-    }
-
-    /** 
-     * Returns the norm of this quaternion
-     * @return norm of this quaternion
-     */ 
-    inline kt_double Norm() const
-    {
-      return m_Values[0]*m_Values[0] + m_Values[1]*m_Values[1] + m_Values[2]*m_Values[2] + m_Values[3]*m_Values[3];
-    }
-
-    /** 
-     * Normalize the quaternion
-     */ 
-    inline void Normalize()
-    {
-      kt_double length = Length();
-      if (length > 0.0)
-      {
-        kt_double inversedLength = 1.0 / length;
-
-        m_Values[0] *= inversedLength;
-        m_Values[1] *= inversedLength;
-        m_Values[2] *= inversedLength;
-        m_Values[3] *= inversedLength;
-      }
-    }
-
-    /**
-     * String representation of this quaternion
-     * @return string representation of this quaternion
-     */
-    const std::string ToString() const;
-
-  public:
-    /**
-     * Assignment operator
-     */
-    inline Quaternion& operator=(const Quaternion& rOther)
-    {
-      m_Values[0] = rOther.m_Values[0];
-      m_Values[1] = rOther.m_Values[1];
-      m_Values[2] = rOther.m_Values[2];
-      m_Values[3] = rOther.m_Values[3];
-
-      return(*this);
-    }
-
-    /**
-     * Quaternion multiplication; note that quaternion multiplication is not commutative (a * b != b * a)
-     */
-    inline const Quaternion operator*(const Quaternion& rOther) const
-    {
-      return Quaternion(
-        rOther.m_Values[3] * m_Values[0] + rOther.m_Values[0] * m_Values[3] + rOther.m_Values[1] * m_Values[2] - rOther.m_Values[2] * m_Values[1],
-        rOther.m_Values[3] * m_Values[1] - rOther.m_Values[0] * m_Values[2] + rOther.m_Values[1] * m_Values[3] + rOther.m_Values[2] * m_Values[0],
-        rOther.m_Values[3] * m_Values[2] + rOther.m_Values[0] * m_Values[1] - rOther.m_Values[1] * m_Values[0] + rOther.m_Values[2] * m_Values[3],
-        rOther.m_Values[3] * m_Values[3] - rOther.m_Values[0] * m_Values[0] - rOther.m_Values[1] * m_Values[1] - rOther.m_Values[2] * m_Values[2] );
-    }
-    
-    /**
-     * Equality operator
-     */
-    inline kt_bool operator==(const Quaternion& rOther) const
-    {
-      return (m_Values[0] == rOther.m_Values[0] && m_Values[1] == rOther.m_Values[1] && m_Values[2] == rOther.m_Values[2] && m_Values[3] == rOther.m_Values[3]);
-    }
-
-    /**
-     * Inequality operator
-     */
-    inline kt_bool operator!=(const Quaternion& rOther) const
-    {
-      return (m_Values[0] != rOther.m_Values[0] || m_Values[1] != rOther.m_Values[1] || m_Values[2] != rOther.m_Values[2] || m_Values[3] != rOther.m_Values[3]);
-    }
-
-    /**
-     * Rotate a vector by this quaternion
-     * @param rVector vector
-     * @return result of multiplying this quaternion by the given vector
-     */
-    karto::Vector3d operator*(const karto::Vector3d& rVector) const
-    {
-      // nVidia SDK implementation
-      karto::Vector3d uv, uuv; 
-      karto::Vector3d qvec(m_Values[0], m_Values[1], m_Values[2]);
-
-      uv = qvec ^ rVector;
-      uuv = qvec ^ uv; 
-
-      uv *= ( 2.0 * m_Values[3] ); 
-      uuv *= 2.0; 
-
-      return rVector + uv + uuv;
-    }
-
-    /**
-     * Write this quaternion onto output stream
-     */
-    friend KARTO_FORCEINLINE std::ostream& operator<<(std::ostream& rStream, const Quaternion& rQuaternion)
-    {
-      rStream << rQuaternion.ToString();
-      return rStream;
-    }
-
-  private:
-    kt_double m_Values[4];
-  }; // class Quaternion
+  using Vector3d = Vector3<double>;
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -1590,7 +1214,7 @@ namespace karto
   /**
    * Defines a 2-dimensional bounding box.
    */
-  class KARTO_EXPORT BoundingBox2
+  class BoundingBox2
   {
   public:
     /*
@@ -1646,11 +1270,11 @@ namespace karto
      * Get the size of this bounding box
      * @return bounding box size
      */
-    inline Size2<kt_double> GetSize() const
+    inline Size2<double> GetSize() const
     {
       Vector2d size = m_Maximum - m_Minimum;
 
-      return Size2<kt_double>(size.GetX(), size.GetY());
+      return Size2<double>(size.GetX(), size.GetY());
     }
 
     /**
@@ -1678,10 +1302,10 @@ namespace karto
      * @param rPoint point
      * @return whether the given point is in the bounds of this box
      */
-    inline kt_bool Contains(const Vector2d& rPoint) const
+    inline bool Contains(const Vector2d& rPoint) const
     {
-      return (math::InRange(rPoint.GetX(), m_Minimum.GetX(), m_Maximum.GetX()) &&
-              math::InRange(rPoint.GetY(), m_Minimum.GetY(), m_Maximum.GetY()));
+      return (InRange(rPoint.GetX(), m_Minimum.GetX(), m_Maximum.GetX()) &&
+              InRange(rPoint.GetY(), m_Minimum.GetY(), m_Maximum.GetY()));
     }
 
     /** 
@@ -1689,7 +1313,7 @@ namespace karto
      * @param rOther bounding box
      * @return true if this bounding box intersects with the given bounding box
      */
-    inline kt_bool Intersects(const BoundingBox2& rOther) const
+    inline bool Intersects(const BoundingBox2& rOther) const
     { 
       if ((m_Maximum.GetX() < rOther.m_Minimum.GetX()) || (m_Minimum.GetX() > rOther.m_Maximum.GetX()))
       {
@@ -1709,7 +1333,7 @@ namespace karto
      * @param rOther bounding box
      * @return true if this bounding box contains the given bounding box
      */
-    inline kt_bool Contains(const BoundingBox2& rOther) const
+    inline bool Contains(const BoundingBox2& rOther) const
     {
       if ((m_Maximum.GetX() < rOther.m_Minimum.GetX()) || (m_Minimum.GetX() > rOther.m_Maximum.GetX()))
       {
@@ -1735,61 +1359,6 @@ namespace karto
     Vector2d m_Maximum;
   }; // class BoundingBox2
 
-  /**
-   * Defines a 3-dimensional bounding box
-   */
-  class KARTO_EXPORT BoundingBox3
-  {
-  public:
-    BoundingBox3();
-    virtual ~BoundingBox3();
-
-  public:
-    /** 
-     * Get bounding box minimum
-     * return bounding box minimum
-     */
-    inline const Vector3d& GetMinimum() const
-    { 
-      return m_Minimum; 
-    }
-
-    /** 
-     * Set bounding box minimum
-     * @param rMinimum bounding box minimum
-     */
-    inline void SetMinimum(const Vector3d& rMinimum)
-    {
-      m_Minimum = rMinimum;
-    }
-
-    /** 
-     * Get bounding box maximum
-     * @return bounding box maximum
-     */
-    inline const Vector3d& GetMaximum() const
-    { 
-      return m_Maximum;
-    }
-
-    /** 
-     * Set bounding box maximum
-     * @param rMaximum bounding box maximum
-     */
-    inline void SetMaximum(const Vector3d& rMaximum)
-    {
-      m_Maximum = rMaximum;
-    }
-
-  private:
-    Vector3d m_Minimum;
-    Vector3d m_Maximum;
-  };
-
-  ////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////
-  
   /**
    * Stores x, y, width and height that represents the location and size of a rectangle.
    * Note that (x, y) is at bottom-left in the mapper!
@@ -2090,7 +1659,7 @@ namespace karto
      * @param rOther rectangle
      * @return true if this rectangle contains the given rectangle, false otherwise
      */
-    inline kt_bool Contains(const Rectangle2<T>& rOther)
+    inline bool Contains(const Rectangle2<T>& rOther)
     {
       T l1 = m_Position.GetX();
       T r1 = m_Position.GetX();
@@ -2152,7 +1721,7 @@ namespace karto
     /**
      * Equality operator
      */
-    inline kt_bool operator == (const Rectangle2& rOther) const
+    inline bool operator == (const Rectangle2& rOther) const
     {
       return (m_Position == rOther.m_Position && m_Size == rOther.m_Size);
     }
@@ -2160,7 +1729,7 @@ namespace karto
     /**
      * Inequality operator
      */
-    inline kt_bool operator != (const Rectangle2& rOther) const
+    inline bool operator != (const Rectangle2& rOther) const
     {
       return (m_Position != rOther.m_Position || m_Size != rOther.m_Size);
     }
@@ -2174,12 +1743,10 @@ namespace karto
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
 
-  class Pose3;
-
   /**
    * Defines a pose (position and heading) in 2-dimensional space.
    */
-  class KARTO_EXPORT Pose2
+  class Pose2
   {
   public:
     /**
@@ -2192,7 +1759,7 @@ namespace karto
      * @param rPosition position
      * @param heading heading
      **/
-    Pose2(const Vector2d& rPosition, kt_double heading = 0);
+    Pose2(const Vector2d& rPosition, double heading = 0);
 
     /**
      * Pose with given position and heading
@@ -2200,12 +1767,7 @@ namespace karto
      * @param y y-coordinate
      * @param heading heading
      **/
-    Pose2(kt_double x, kt_double y, kt_double heading);
-
-    /**
-     * Pose2 object from a Pose3 (ignores z-coordinate)
-     */
-    Pose2(const Pose3& rPose);
+    Pose2(double x, double y, double heading);
 
     /**
      * Copy constructor
@@ -2217,7 +1779,7 @@ namespace karto
      * Returns the x-coordinate
      * @return the x-coordinate of this pose
      */
-    inline kt_double GetX() const
+    inline double GetX() const
     {
       return m_Position.GetX();
     }
@@ -2226,7 +1788,7 @@ namespace karto
      * Sets the x-coordinate
      * @param x new x-coordinate
      */
-    inline void SetX(kt_double x)
+    inline void SetX(double x)
     {
       m_Position.SetX(x);
     }
@@ -2235,7 +1797,7 @@ namespace karto
      * Returns the y-coordinate
      * @return the y-coordinate of this pose
      */
-    inline kt_double GetY() const
+    inline double GetY() const
     {
       return m_Position.GetY();
     }
@@ -2244,7 +1806,7 @@ namespace karto
      * Sets the y-coordinate
      * @param y new y-coordinate
      */
-    inline void SetY(kt_double y)
+    inline void SetY(double y)
     {
       m_Position.SetY(y);
     }
@@ -2271,7 +1833,7 @@ namespace karto
      * Returns the heading of the pose (in radians)
      * @return the heading of this pose
      */
-    inline kt_double GetHeading() const
+    inline double GetHeading() const
     {
       return m_Heading;
     }
@@ -2280,7 +1842,7 @@ namespace karto
      * Sets the heading
      * @param heading new heading
      */
-    inline void SetHeading(kt_double heading)
+    inline void SetHeading(double heading)
     {
       m_Heading = heading;
     }
@@ -2290,7 +1852,7 @@ namespace karto
      * @param rOther pose
      * @return squared distance between this pose and the given pose
      */
-    inline kt_double SquaredDistance(const Pose2& rOther) const
+    inline double SquaredDistance(const Pose2& rOther) const
     {
       return m_Position.SquaredDistance(rOther.m_Position);
     }
@@ -2300,10 +1862,10 @@ namespace karto
      * @param rVector vector
      * @return angle to given vector
      */
-    inline kt_double AngleTo(const Vector2d& rVector) const
+    inline double AngleTo(const Vector2d& rVector) const
     {
-      kt_double angle = atan2(rVector.GetY() - GetY(), rVector.GetX() - GetX());
-      return karto::math::NormalizeAngle(angle - GetHeading());
+      double angle = atan2(rVector.GetY() - GetY(), rVector.GetX() - GetX());
+      return karto::NormalizeAngle(angle - GetHeading());
     }
     
     /**
@@ -2311,14 +1873,14 @@ namespace karto
      * @param precision precision, default 4
      * @return string representation of this pose
      */
-    inline const std::string ToString(kt_int32u precision = 4) const
+    inline const std::string ToString(uint32_t precision = 4) const
     {
       std::string valueString;
-      valueString.append(StringHelper::ToString(m_Position.GetX(), precision));
+      valueString.append(karto::ToString(m_Position.GetX(), precision));
       valueString.append(" ");
-      valueString.append(StringHelper::ToString(m_Position.GetY(), precision));
+      valueString.append(karto::ToString(m_Position.GetY(), precision));
       valueString.append(" ");
-      valueString.append(StringHelper::ToString(m_Heading, precision));
+      valueString.append(karto::ToString(m_Heading, precision));
       return valueString;
     }
 
@@ -2337,7 +1899,7 @@ namespace karto
     /**
      * Equality operator
      */
-    inline kt_bool operator==(const Pose2& rOther) const
+    inline bool operator==(const Pose2& rOther) const
     {
       return (m_Position == rOther.m_Position && m_Heading == rOther.m_Heading);
     }
@@ -2345,7 +1907,7 @@ namespace karto
     /**
      * Inequality operator
      */
-    inline kt_bool operator!=(const Pose2& rOther) const
+    inline bool operator!=(const Pose2& rOther) const
     {
       return (m_Position != rOther.m_Position || m_Heading != rOther.m_Heading);
     }
@@ -2356,7 +1918,7 @@ namespace karto
     inline void operator+=(const Pose2& rOther)
     {
       m_Position += rOther.m_Position;
-      m_Heading = math::NormalizeAngle(m_Heading + rOther.m_Heading);
+      m_Heading = NormalizeAngle(m_Heading + rOther.m_Heading);
     }
 
     /**
@@ -2364,7 +1926,7 @@ namespace karto
      */
     inline Pose2 operator+(const Pose2& rOther) const
     {
-      return Pose2(m_Position + rOther.m_Position, math::NormalizeAngle(m_Heading + rOther.m_Heading));
+      return Pose2(m_Position + rOther.m_Position, NormalizeAngle(m_Heading + rOther.m_Heading));
     }
 
     /**
@@ -2372,13 +1934,13 @@ namespace karto
      */
     inline Pose2 operator-(const Pose2& rOther) const
     {
-      return Pose2(m_Position - rOther.m_Position, math::NormalizeAngle(m_Heading - rOther.m_Heading));
+      return Pose2(m_Position - rOther.m_Position, NormalizeAngle(m_Heading - rOther.m_Heading));
     }
 
     /**
      * Write this pose onto output stream
      */
-    friend KARTO_FORCEINLINE std::ostream& operator << (std::ostream& rStream, const Pose2& rPose)
+    friend inline std::ostream& operator << (std::ostream& rStream, const Pose2& rPose)
     {
       rStream << rPose.ToString();
       return rStream;
@@ -2387,7 +1949,7 @@ namespace karto
   private:
     Vector2d m_Position;
 
-    kt_double m_Heading;
+    double m_Heading;
   }; // class Pose2
 
   /**
@@ -2399,158 +1961,6 @@ namespace karto
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
 
-  /**
-   * Defines a position and orientation in 3-dimensional space.
-   * Karto uses a right-handed coordinate system with X, Y as the 2-D ground plane and X is forward and Y is left.
-   * Values in Vector3 used to define position must have units of meters.
-   * The value of angle when defining orientation in two dimensions must be in units of radians.
-   * The definition of orientation in three dimensions uses quaternions.  
-   */
-  class Pose3
-  {
-  public:
-    /**
-     * Pose at the origin and quaternion with components (0, 0, 0, 1)
-     */
-    Pose3()
-    {
-    }
-
-    /**
-     * Pose object at the given position.
-     * @param rPosition vector
-     */
-    Pose3(const Vector3d& rPosition)
-      : m_Position(rPosition)
-    {
-    }
-
-    /**
-     * Pose at the given position and orientation.
-     * @param rPosition position vector
-     * @param rOrientation quaternion orientation
-     */
-    Pose3(const Vector3d& rPosition, const karto::Quaternion& rOrientation)
-      : m_Position(rPosition)
-      , m_Orientation(rOrientation)
-    {
-    }
-
-    /**
-     * Copy constructor
-     */
-    Pose3(const Pose3& rOther)
-      : m_Position(rOther.m_Position)
-      , m_Orientation(rOther.m_Orientation)
-    {
-    }
-
-    /**
-     * Constructs a pose object from a Pose2.
-     * @param rPose pose
-     */
-    Pose3(const Pose2& rPose)
-    {
-      m_Position = Vector3d(rPose.GetX(), rPose.GetY(), 0.0);
-      m_Orientation.FromEulerAngles(rPose.GetHeading(), 0.0, 0.0);
-    }
-
-  public:
-    /**
-     * Gets the position of this pose
-     * @return position of this pose
-     */
-    inline const Vector3d& GetPosition() const
-    {
-      return m_Position;
-    }
-
-    /**
-     * Sets the position of this pose
-     * @param rPosition new position
-     */
-    inline void SetPosition(const Vector3d& rPosition)
-    {
-      m_Position = rPosition;
-    }
-
-    /**
-     * Gets the orientation quaternion of this pose
-     * @return orientation quaternion
-     */
-    inline const Quaternion& GetOrientation() const
-    {
-      return m_Orientation;
-    }
-
-    /**
-     * Sets the orientation quaternion of this pose
-     * @param rOrientation orientation quaternion
-     */
-    inline void SetOrientation(const Quaternion& rOrientation)
-    {
-      m_Orientation = rOrientation;
-    }
-
-    /**
-     * Returns a string representation of this pose
-     * @return string representation of this pose
-     */
-    inline const std::string ToString() const
-    {
-      std::string valueString;
-      valueString.append(GetPosition().ToString());
-      valueString.append(" ");
-      valueString.append(GetOrientation().ToString());
-      return valueString;
-    }
-    
-  public:
-    /**
-     * Assignment operator
-     */
-    inline Pose3& operator = (const Pose3& rOther)
-    {
-      m_Position = rOther.m_Position;
-      m_Orientation = rOther.m_Orientation;
-
-      return *this;
-    }
-
-    /**
-     * Equality operator
-     */
-    inline kt_bool operator == (const Pose3& rOther) const
-    {
-      return (m_Position == rOther.m_Position && m_Orientation == rOther.m_Orientation);
-    }
-
-    /**
-     * Inequality operator
-     */
-    inline kt_bool operator != (const Pose3& rOther) const
-    {
-      return (m_Position != rOther.m_Position || m_Orientation != rOther.m_Orientation);
-    }
-
-    /**
-     * Write pose onto output stream
-     */
-    friend KARTO_FORCEINLINE std::ostream& operator << (std::ostream& rStream, const Pose3& rPose)
-    {
-      rStream << rPose.ToString();
-      return rStream;
-    }
-
-  private:
-    Vector3d m_Position;
-    Quaternion m_Orientation;
-  }; // class Pose3
-
-  ////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////
-  
   /**
    * Defines a 3x3 matrix
    */
@@ -2570,7 +1980,7 @@ namespace karto
      */
     inline Matrix3(const Matrix3& rOther)
     {
-      memcpy(m_Matrix, rOther.m_Matrix, 9*sizeof(kt_double));
+      memcpy(m_Matrix, rOther.m_Matrix, 9*sizeof(double));
     }
 
   public:
@@ -2579,9 +1989,9 @@ namespace karto
      */
     void SetToIdentity()
     {
-      memset(m_Matrix, 0, 9*sizeof(kt_double));
+      memset(m_Matrix, 0, 9*sizeof(double));
 
-      for (kt_int32s i = 0; i < 3; i++)
+      for (int32_t i = 0; i < 3; i++)
       {
         m_Matrix[i][i] = 1.0;
       }
@@ -2592,7 +2002,7 @@ namespace karto
      */
     void Clear()
     {
-      memset(m_Matrix, 0, 9*sizeof(kt_double));
+      memset(m_Matrix, 0, 9*sizeof(double));
     }
 
     /**
@@ -2602,23 +2012,23 @@ namespace karto
      * @param z z-coordinate of axis
      * @param radians amount of rotation
      */
-    void FromAxisAngle(kt_double x, kt_double y, kt_double z, const kt_double radians)
+    void FromAxisAngle(double x, double y, double z, const double radians)
     {
-      kt_double cosRadians = cos(radians);
-      kt_double sinRadians = sin(radians);
-      kt_double oneMinusCos = 1.0 - cosRadians;
+      double cosRadians = cos(radians);
+      double sinRadians = sin(radians);
+      double oneMinusCos = 1.0 - cosRadians;
 
-      kt_double xx = x * x;
-      kt_double yy = y * y;
-      kt_double zz = z * z;
+      double xx = x * x;
+      double yy = y * y;
+      double zz = z * z;
 
-      kt_double xyMCos = x * y * oneMinusCos;
-      kt_double xzMCos = x * z * oneMinusCos;
-      kt_double yzMCos = y * z * oneMinusCos;
+      double xyMCos = x * y * oneMinusCos;
+      double xzMCos = x * z * oneMinusCos;
+      double yzMCos = y * z * oneMinusCos;
 
-      kt_double xSin = x * sinRadians;
-      kt_double ySin = y * sinRadians;
-      kt_double zSin = z * sinRadians;
+      double xSin = x * sinRadians;
+      double ySin = y * sinRadians;
+      double zSin = z * sinRadians;
 
       m_Matrix[0][0] = xx * oneMinusCos + cosRadians;
       m_Matrix[0][1] = xyMCos - zSin;
@@ -2641,9 +2051,9 @@ namespace karto
     {
       Matrix3 transpose;
 
-      for (kt_int32u row = 0; row < 3; row++)
+      for (uint32_t row = 0; row < 3; row++)
       {
-        for (kt_int32u col = 0; col < 3; col++)
+        for (uint32_t col = 0; col < 3; col++)
         {
           transpose.m_Matrix[row][col] = m_Matrix[col][row];
         }
@@ -2659,7 +2069,7 @@ namespace karto
     Matrix3 Inverse() const
     {
       Matrix3 kInverse = *this;
-      kt_bool haveInverse = InverseFast(kInverse, 1e-14);
+      bool haveInverse = InverseFast(kInverse, 1e-14);
       if (haveInverse == false)
       {
         assert(false);
@@ -2679,7 +2089,7 @@ namespace karto
       {
         for (int col = 0; col < 3; col++)
         {
-          valueString.append(StringHelper::ToString(m_Matrix[row][col]));
+          valueString.append(karto::ToString(m_Matrix[row][col]));
           valueString.append(" ");
         }
       }
@@ -2693,7 +2103,7 @@ namespace karto
      */
     inline Matrix3& operator = (const Matrix3& rOther)
     {
-      memcpy(m_Matrix, rOther.m_Matrix, 9*sizeof(kt_double));
+      memcpy(m_Matrix, rOther.m_Matrix, 9*sizeof(double));
       return *this;
     }
 
@@ -2703,7 +2113,7 @@ namespace karto
      * @param column column
      * @return reference to mat(r,c)
      */
-    inline kt_double& operator()(kt_int32u row, kt_int32u column)
+    inline double& operator()(uint32_t row, uint32_t column)
     {
       return m_Matrix[row][column];
     }
@@ -2714,7 +2124,7 @@ namespace karto
      * @param column column
      * @return element at mat(r,c)
      */
-    inline kt_double operator()(kt_int32u row, kt_int32u column) const
+    inline double operator()(uint32_t row, uint32_t column) const
     {
       return m_Matrix[row][column];
     }
@@ -2756,9 +2166,9 @@ namespace karto
      */
     inline void operator+=(const Matrix3& rkMatrix)
     {
-      for (kt_int32u row = 0; row < 3; row++)
+      for (uint32_t row = 0; row < 3; row++)
       {
-        for (kt_int32u col = 0; col < 3; col++)
+        for (uint32_t col = 0; col < 3; col++)
         {
           m_Matrix[row][col] += rkMatrix.m_Matrix[row][col];
         }
@@ -2768,13 +2178,13 @@ namespace karto
     /**
      * Equality operator
      */
-    inline kt_bool operator==(const Matrix3& rkMatrix)
+    inline bool operator==(const Matrix3& rkMatrix)
     {
-      for (kt_int32u row = 0; row < 3; row++)
+      for (uint32_t row = 0; row < 3; row++)
       {
-        for (kt_int32u col = 0; col < 3; col++)
+        for (uint32_t col = 0; col < 3; col++)
         {
-          if (math::DoubleEqual(m_Matrix[row][col], rkMatrix.m_Matrix[row][col]) == false)
+          if (DoubleEqual(m_Matrix[row][col], rkMatrix.m_Matrix[row][col]) == false)
           {
             return false;
           }
@@ -2787,7 +2197,7 @@ namespace karto
     /**
      * Write matrix onto output stream
      */
-    friend KARTO_FORCEINLINE std::ostream& operator << (std::ostream& rStream, const Matrix3& rMatrix)
+    friend inline std::ostream& operator << (std::ostream& rStream, const Matrix3& rMatrix)
     {
       rStream << rMatrix.ToString();
       return rStream;
@@ -2802,7 +2212,7 @@ namespace karto
      * @return whether this matrix was successfully inverted; if so,
      * the inverse will be in rkInverse
      */
-    kt_bool InverseFast(Matrix3& rkInverse, kt_double fTolerance = KT_TOLERANCE) const
+    bool InverseFast(Matrix3& rkInverse, double fTolerance = KT_TOLERANCE) const
     {
       // Invert a 3x3 using cofactors.  This is about 8 times faster than
       // the Numerical Recipes code which uses Gaussian elimination.
@@ -2816,14 +2226,14 @@ namespace karto
       rkInverse.m_Matrix[2][1] = m_Matrix[0][1]*m_Matrix[2][0] - m_Matrix[0][0]*m_Matrix[2][1];
       rkInverse.m_Matrix[2][2] = m_Matrix[0][0]*m_Matrix[1][1] - m_Matrix[0][1]*m_Matrix[1][0];
       
-      kt_double fDet = m_Matrix[0][0]*rkInverse.m_Matrix[0][0] + m_Matrix[0][1]*rkInverse.m_Matrix[1][0]+ m_Matrix[0][2]*rkInverse.m_Matrix[2][0];
+      double fDet = m_Matrix[0][0]*rkInverse.m_Matrix[0][0] + m_Matrix[0][1]*rkInverse.m_Matrix[1][0]+ m_Matrix[0][2]*rkInverse.m_Matrix[2][0];
       
       if (fabs(fDet) <= fTolerance)
       {
         return false;
       }
       
-      kt_double fInvDet = 1.0/fDet;
+      double fInvDet = 1.0/fDet;
       for (size_t row = 0; row < 3; row++)
       {
         for (size_t col = 0; col < 3; col++)
@@ -2836,202 +2246,13 @@ namespace karto
     }
     
   private:
-    kt_double m_Matrix[3][3];
+    double m_Matrix[3][3];
   }; // class Matrix3
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
 
-  class Color
-  {
-  public:
-    /**
-      * Black color
-      */
-    Color()
-      : m_Red(0.0)
-      , m_Green(0.0)
-      , m_Blue(0.0)
-      , m_Alpha(1.0)
-    {
-    }
-
-    /**
-      * Copy constructor
-      */
-    Color(const Color& rOther)
-      : m_Red(rOther.m_Red)
-      , m_Green(rOther.m_Green)
-      , m_Blue(rOther.m_Blue)
-      , m_Alpha(rOther.m_Alpha)
-    {
-    }
-
-    /**
-     * Color with given RGBA values
-     * @param red red
-     * @param green green
-     * @param blue blue
-     * @param alpha alpha
-     */
-    Color(kt_double red, kt_double green, kt_double blue, kt_double alpha = 1.0)
-      : m_Red(red)
-      , m_Green(green)
-      , m_Blue(blue)
-      , m_Alpha(alpha)
-    {
-    }
-
-    /**
-     * Color with given RGBA values
-     * @param red
-     * @param green
-     * @param blue
-     * @param alpha
-     */
-    Color(kt_int8u red, kt_int8u green, kt_int8u blue, kt_int8u alpha = 255)
-      : m_Red((kt_double)red/255.0)
-      , m_Green((kt_double)green/255.0)
-      , m_Blue((kt_double)blue/255.0)
-      , m_Alpha((kt_double)alpha/255.0)
-    {
-    }
-
-    /**
-      * Destructor
-      */
-    virtual ~Color()
-    {
-    }
-
-  public:
-    /**
-     * Red component of this color
-     * @return red component
-     */
-    const kt_double GetRed() const
-    {
-      return m_Red;
-    }
-
-    /**
-     * Set the red component of this color
-     * param red red component
-     */
-    void SetRed(kt_double red)
-    {
-      m_Red = red;
-    }
-
-    /**
-     * Green component of this color
-     * @return green component
-     */
-    const kt_double GetGreen() const
-    {
-      return m_Green;
-    }
-
-    /**
-     * Set the green component of this color
-     * param green green component
-     */
-    void SetGreen(kt_double green)
-    {
-      m_Green = green;
-    }
-
-    /**
-     * Blue component of this color
-     * @return blue component
-     */
-    const kt_double GetBlue() const
-    {
-      return m_Blue;
-    }
-
-    /**
-     * Set the blue component of this color
-     * param blue blue component
-     */
-    void SetBlue(kt_double blue)
-    {
-      m_Blue = blue;
-    }
-
-    /**
-     * Alpha value of this color
-     * @return alpha value
-     */
-    const kt_double GetAlpha() const
-    {
-      return m_Alpha;
-    }
-
-    /**
-     * Set the alpha value of this color
-     * param alpha alpha value
-     */
-    void SetAlpha(kt_double alpha)
-    {
-      m_Alpha = alpha;
-    }
-
-    /**
-     * Returns a string representation of this color
-     * @return string representation of this color
-     */
-    const std::string ToString() const
-    {
-      std::string valueString;
-      valueString.append(StringHelper::ToString(GetRed()));
-      valueString.append(" ");
-      valueString.append(StringHelper::ToString(GetGreen()));
-      valueString.append(" ");
-      valueString.append(StringHelper::ToString(GetBlue()));
-      valueString.append(" ");
-      valueString.append(StringHelper::ToString(GetAlpha()));
-      return valueString;
-    }
-
-    public:
-    /**
-     * Equality operator
-     */
-    inline kt_bool operator == (const Color& rOther) const
-    {
-      return (m_Red == rOther.m_Red && m_Green == rOther.m_Green && m_Blue == rOther.m_Blue && m_Alpha == rOther.m_Alpha);
-    }
-
-    /**
-     * Inequality operator
-     */
-    inline kt_bool operator != (const Color& rOther) const
-    {
-      return (m_Red != rOther.m_Red || m_Green != rOther.m_Green || m_Blue != rOther.m_Blue || m_Alpha != rOther.m_Alpha);
-    }
-
-    /**
-     * Write color onto output stream
-     */
-    friend KARTO_FORCEINLINE std::ostream& operator << (std::ostream& rStream, const Color& rColor)
-    {
-      rStream << rColor.ToString();
-      return rStream;
-    }
-
-  private:
-    kt_double m_Red;
-    kt_double m_Green;
-    kt_double m_Blue;
-    kt_double m_Alpha;
-  }; // class Color
-
-  ////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////
- 
   namespace gps
   {
     /**
@@ -3052,7 +2273,7 @@ namespace karto
        * @param latitude latitude
        * @param longitude longitude
        */
-      PointGps(kt_double latitude, kt_double longitude)
+      PointGps(double latitude, double longitude)
       {
         SetX(longitude);
         SetY(latitude);
@@ -3072,7 +2293,7 @@ namespace karto
        * Gets the latitude
        * @return latitude
        */
-      inline kt_double GetLatitude() const
+      inline double GetLatitude() const
       {
         return GetY();
       }
@@ -3081,7 +2302,7 @@ namespace karto
        * Sets the latitude
        * @param latitude new latitude
        */
-      inline void SetLatitude(kt_double latitude)
+      inline void SetLatitude(double latitude)
       {
         SetY(latitude);
       }
@@ -3090,7 +2311,7 @@ namespace karto
        * Gets the longitude
        * @return longitude
        */
-      inline kt_double GetLongitude() const
+      inline double GetLongitude() const
       {
         return GetX();
       }
@@ -3099,7 +2320,7 @@ namespace karto
        * Sets the longitude 
        * @param longitude new longitude
        */
-      inline void SetLongitude(kt_double longitude)
+      inline void SetLongitude(double longitude)
       {
         SetX(longitude);
       }
@@ -3110,19 +2331,19 @@ namespace karto
        * @param rOther GPS point
        * @return bearing to given GPS point
        */
-      inline kt_double GetBearing(const PointGps& rOther)
+      inline double GetBearing(const PointGps& rOther)
       {
-        kt_double lat1 = math::DegreesToRadians(GetLatitude());
-        kt_double long1 = math::DegreesToRadians(GetLongitude());
-        kt_double lat2 = math::DegreesToRadians(rOther.GetLatitude());
-        kt_double long2 = math::DegreesToRadians(rOther.GetLongitude());
+        double lat1 = DegreesToRadians(GetLatitude());
+        double long1 = DegreesToRadians(GetLongitude());
+        double lat2 = DegreesToRadians(rOther.GetLatitude());
+        double long2 = DegreesToRadians(rOther.GetLongitude());
         
-        kt_double deltaLong = long2 - long1;
+        double deltaLong = long2 - long1;
         
-        kt_double y = sin(deltaLong) * cos(lat2);
-        kt_double x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(deltaLong);
+        double y = sin(deltaLong) * cos(lat2);
+        double x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(deltaLong);
         
-        return math::RadiansToDegrees(atan2(y, x));
+        return RadiansToDegrees(atan2(y, x));
       }
       
       /**
@@ -3139,7 +2360,7 @@ namespace karto
        * @param latitude amount to offset this GPS point by in the latitude direction
        * @param longitude amount to offset this GPS point by in the longitude direction
        */
-      void AddOffset(kt_double latitude, kt_double longitude)
+      void AddOffset(double latitude, double longitude)
       {
         SetX(GetLongitude() + longitude);
         SetY(GetLatitude() - latitude);
@@ -3151,25 +2372,25 @@ namespace karto
        * @param rOther GPS point
        * @return distance between this point and the given point
        */
-      kt_double Distance(const PointGps& rOther)
+      double Distance(const PointGps& rOther)
       {
-        kt_double dlon = rOther.GetLongitude() - GetLongitude();
+        double dlon = rOther.GetLongitude() - GetLongitude();
 
-        const kt_double slat1 = sin(math::DegreesToRadians(GetLatitude()));
-        const kt_double clat1 = cos(math::DegreesToRadians(GetLatitude()));
+        const double slat1 = sin(DegreesToRadians(GetLatitude()));
+        const double clat1 = cos(DegreesToRadians(GetLatitude()));
 
-        const kt_double slat2 = sin(math::DegreesToRadians(rOther.GetLatitude()));
-        const kt_double clat2 = cos(math::DegreesToRadians(rOther.GetLatitude()));
+        const double slat2 = sin(DegreesToRadians(rOther.GetLatitude()));
+        const double clat2 = cos(DegreesToRadians(rOther.GetLatitude()));
 
-        const kt_double sdlon = sin(math::DegreesToRadians(dlon));
-        const kt_double cdlon = cos(math::DegreesToRadians(dlon));
+        const double sdlon = sin(DegreesToRadians(dlon));
+        const double cdlon = cos(DegreesToRadians(dlon));
 
-        const kt_double t1 = clat2 * sdlon;
-        const kt_double t2 = clat1 * slat2 - slat1 * clat2 * cdlon;
-        const kt_double t3 = slat1 * slat2 + clat1 * clat2 * cdlon;
-        const kt_double dist = atan2(sqrt(t1*t1 + t2*t2), t3);
+        const double t1 = clat2 * sdlon;
+        const double t2 = clat1 * slat2 - slat1 * clat2 * cdlon;
+        const double t3 = slat1 * slat2 + clat1 * clat2 * cdlon;
+        const double dist = atan2(sqrt(t1*t1 + t2*t2), t3);
 
-        const kt_double earthRadius = 6372.795;
+        const double earthRadius = 6372.795;
         return dist * earthRadius;
       }
 
@@ -3180,16 +2401,16 @@ namespace karto
       inline const std::string ToString() const
       {
         std::string valueString;
-        valueString.append(StringHelper::ToString(GetLatitude()));
+        valueString.append(karto::ToString(GetLatitude()));
         valueString.append(" ");
-        valueString.append(StringHelper::ToString(GetLongitude()));
+        valueString.append(karto::ToString(GetLongitude()));
         return valueString;
       }
       
       /**
        * Write this GPS point onto output stream
        */
-      friend KARTO_FORCEINLINE std::ostream& operator << (std::ostream& rStream, const PointGps& rPointGps)
+      friend inline std::ostream& operator << (std::ostream& rStream, const PointGps& rPointGps)
       {
         rStream << rPointGps.ToString();
         return rStream;
@@ -3225,34 +2446,81 @@ namespace karto
   ////////////////////////////////////////////////////////////////////////////////////////
 
   template<typename T>
-  inline std::string StringHelper::ToString(const Size2<T>& rValue)
+  inline std::string ToString(const Size2<T>& rValue)
   {
     return rValue.ToString();
   }
 
   template<typename T>
-  inline std::string StringHelper::ToString(const Vector2<T>& rValue)
+  inline std::string ToString(const Vector2<T>& rValue)
   {
     return rValue.ToString();
   }
 
   template<typename T>
-  inline std::string StringHelper::ToString(const Vector3<T>& rValue)
+  inline std::string ToString(const Vector3<T>& rValue)
+  {
+    return rValue.ToString();
+  }
+
+  inline std::string ToString(const Pose2& rValue)
   {
     return rValue.ToString();
   }
 
   template<typename T>
-  inline std::string StringHelper::ToString(const Vector4<T>& rValue)
+  inline bool FromString(const std::string& rStringValue, Size2<T>& rValue)
   {
-    return rValue.ToString();
+    size_t index = rStringValue.find_first_of(" ");
+    if (index != std::string::npos)
+    {
+      std::string stringValue;
+      T value;
+
+      stringValue = rStringValue.substr(0, index);
+      value = 0;
+      FromString(stringValue, value);
+      rValue.SetWidth(value);
+
+      stringValue = rStringValue.substr(index + 1, rStringValue.size());
+      value = 0;
+      FromString(stringValue, value);
+      rValue.SetHeight(value);
+
+      return true;
+    }
+    return false;
   }
 
   template<typename T>
-  inline static kt_bool FromString(const std::string& rStringValue, Vector3<T>& rValue)
+  inline bool FromString(const std::string& rStringValue, Vector2<T>& rValue)
+  {
+    size_t index = rStringValue.find_first_of(" ");
+    if (index != std::string::npos)
+    {
+      std::string stringValue;
+      T value;
+
+      stringValue = rStringValue.substr(0, index);
+      value = 0;
+      FromString(stringValue, value);
+      rValue.SetX(value);
+
+      stringValue = rStringValue.substr(index + 1, rStringValue.size());
+      value = 0;
+      FromString(stringValue, value);
+      rValue.SetY(value);
+
+      return true;
+    }
+    return false;
+  }
+
+  template<typename T>
+  inline bool FromString(const std::string& rStringValue, Vector3<T>& rValue)
   {
     std::string tempString = rStringValue;
-    kt_size_t index = tempString.find_first_of(" ");
+    size_t index = tempString.find_first_of(" ");
     if (index != std::string::npos)
     {
       std::string stringValue;
@@ -3288,6 +2556,26 @@ namespace karto
       return true;
     }
 
+    return false;
+  }
+
+  // FromString for Pose2
+  inline bool FromString(const std::string& rStringValue, Pose2& rValue)
+  {
+    size_t index = rStringValue.find_first_of(" ");
+    if (index != std::string::npos)
+    {
+      std::stringstream converter;
+      converter.str(rStringValue);
+
+      double valueX = 0.0, valueY = 0.0, valueHeading = 0.0;
+      converter >> valueX >> valueY >> valueHeading;
+
+      rValue.SetX(valueX);
+      rValue.SetY(valueY);
+      rValue.SetHeading(valueHeading);
+      return true;
+    }
     return false;
   }
 

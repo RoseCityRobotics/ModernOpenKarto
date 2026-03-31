@@ -15,12 +15,12 @@ namespace {
 karto::LaserRangeFinder* CreateTestLaser(const char* name) {
     karto::LaserRangeFinder* laser =
         karto::LaserRangeFinder::CreateLaserRangeFinder(
-            karto::LaserRangeFinder_Custom, karto::Identifier(name));
+            karto::LaserRangeFinder_Custom, name);
     laser->SetMinimumRange(0.1);
     laser->SetMaximumRange(50.0);
-    laser->SetMinimumAngle(-karto::KT_PI_2);
-    laser->SetMaximumAngle(karto::KT_PI_2);
-    laser->SetAngularResolution(karto::math::DegreesToRadians(1.0));
+    laser->SetMinimumAngle(-M_PI_2);
+    laser->SetMaximumAngle(M_PI_2);
+    laser->SetAngularResolution(karto::DegreesToRadians(1.0));
     laser->SetRangeThreshold(12.0);
     return laser;
 }
@@ -74,20 +74,22 @@ karto::Pose2 RunTwoScans(bool multiThreaded, const char* laserName) {
 
     karto::LaserRangeFinder* laser = CreateTestLaser(laserName);
 
-    double angRes = karto::math::DegreesToRadians(1.0);
+    double angRes = karto::DegreesToRadians(1.0);
 
     const karto::RangeReadingsList r1 = GenerateRoomScan(0.0, 0.0, 0.0, 10.0, 10.0,
-        -karto::KT_PI_2, karto::KT_PI_2, angRes);
+        -M_PI_2, M_PI_2, angRes);
     karto::LocalizedRangeScan* scan1 =
-        new karto::LocalizedRangeScan(laser->GetIdentifier(), r1);
+        new karto::LocalizedRangeScan(laser->GetName(), r1);
+    scan1->SetLaserRangeFinder(laser);
     scan1->SetOdometricPose(karto::Pose2(0.0, 0.0, 0.0));
     scan1->SetCorrectedPose(karto::Pose2(0.0, 0.0, 0.0));
     mapper.Process(scan1);
 
     const karto::RangeReadingsList r2 = GenerateRoomScan(0.5, 0.0, 0.0, 10.0, 10.0,
-        -karto::KT_PI_2, karto::KT_PI_2, angRes);
+        -M_PI_2, M_PI_2, angRes);
     karto::LocalizedRangeScan* scan2 =
-        new karto::LocalizedRangeScan(laser->GetIdentifier(), r2);
+        new karto::LocalizedRangeScan(laser->GetName(), r2);
+    scan2->SetLaserRangeFinder(laser);
     scan2->SetOdometricPose(karto::Pose2(0.5, 0.0, 0.0));
     scan2->SetCorrectedPose(karto::Pose2(0.5, 0.0, 0.0));
     mapper.Process(scan2);

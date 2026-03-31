@@ -37,15 +37,15 @@ namespace karto
 
   void LookupArray::Clear()
   {
-    memset(m_pArray, 0, sizeof(kt_int32s) * m_Capacity);
+    memset(m_pArray, 0, sizeof(int32_t) * m_Capacity);
   }
 
-  kt_int32u LookupArray::GetSize() const
+  uint32_t LookupArray::GetSize() const
   {
     return m_Size;
   }
 
-  void LookupArray::SetSize(kt_int32u size)
+  void LookupArray::SetSize(uint32_t size)
   {
     assert(size != 0);
 
@@ -56,7 +56,7 @@ namespace karto
         delete [] m_pArray;
       }
       m_Capacity = size;
-      m_pArray = new kt_int32s[m_Capacity];
+      m_pArray = new int32_t[m_Capacity];
     }
 
     m_Size = size;

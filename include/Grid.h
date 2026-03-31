@@ -20,7 +20,7 @@
 #ifndef __OpenKarto_Grid_h__
 #define __OpenKarto_Grid_h__
 
-#include <Object.h>
+#include <sstream>
 #include <CoordinateConverter.h>
 
 namespace karto
@@ -36,13 +36,13 @@ namespace karto
   /**
    * Functor
    */
-  class KARTO_EXPORT Functor
+  class Functor
   {
   public:
     /**
      * Functor function
      */
-    virtual void operator() (kt_int32u) {};
+    virtual void operator() (uint32_t) {};
   }; // Functor
 
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -53,9 +53,8 @@ namespace karto
    * Defines a grid
    */
   template<typename T>
-  class Grid : public Object
+  class Grid
   {
-    KARTO_RTTI();
 
   public:
     /**
@@ -65,7 +64,7 @@ namespace karto
      * @param resolution resolution
      * @return grid pointer
      */
-    [[nodiscard]] static Grid* CreateGrid(kt_int32s width, kt_int32s height, kt_double resolution)
+    [[nodiscard]] static Grid* CreateGrid(int32_t width, int32_t height, double resolution)
     {
       Grid* pGrid = new Grid(width, height);
       
@@ -112,11 +111,11 @@ namespace karto
      * @param width new width
      * @param height new height
      */
-    virtual void Resize(kt_int32s width, kt_int32s height)
+    virtual void Resize(int32_t width, int32_t height)
     {
       m_Width = width;
       m_Height = height;
-      m_WidthStep = math::AlignValue<kt_int32s>(width, 8);
+      m_WidthStep = AlignValue<int32_t>(width, 8);
       
       if (m_pData != nullptr)
       {
@@ -133,7 +132,7 @@ namespace karto
           m_pCoordinateConverter = new CoordinateConverter();
         }
 
-        m_pCoordinateConverter->SetSize(Size2<kt_int32s>(width, height));
+        m_pCoordinateConverter->SetSize(Size2<int32_t>(width, height));
       }
       catch (...)
       {
@@ -152,9 +151,9 @@ namespace karto
      * @param rGrid grid index
      * @return whether the given coordinate is a valid grid index
      */
-    inline kt_bool IsValidGridIndex(const Vector2i& rGrid) const
+    inline bool IsValidGridIndex(const Vector2i& rGrid) const
     {
-      return (math::IsUpTo(rGrid.GetX(), GetWidth()) && math::IsUpTo(rGrid.GetY(), GetHeight()));
+      return (IsUpTo(rGrid.GetX(), GetWidth()) && IsUpTo(rGrid.GetY(), GetHeight()));
     }
     
     /**
@@ -164,23 +163,23 @@ namespace karto
      * @throws Exception if boundaryCheck is true and the grid index falls outside the grid boundaries
      * @return index into the grid data pointer of the given grid coordinate
      */
-    virtual kt_int32s GridIndex(const Vector2i& rGrid, kt_bool boundaryCheck = true) const
+    virtual int32_t GridIndex(const Vector2i& rGrid, bool boundaryCheck = true) const
     {
       if (boundaryCheck == true)
       { 
         if (IsValidGridIndex(rGrid) == false)
         {
-          StringBuilder errorMessage;
+          std::ostringstream errorMessage;
           errorMessage << "Index (" << rGrid.GetX() << ", " << rGrid.GetY() << ")" << " out of range.  Index must be between [0; " << GetWidth() << ") and [0; " << GetHeight() << ")";
-          throw Exception(errorMessage.ToString());          
+          throw std::runtime_error(errorMessage.str());          
         }
       }
 
-      kt_int32s index = rGrid.GetX() + (rGrid.GetY() * m_WidthStep);
+      int32_t index = rGrid.GetX() + (rGrid.GetY() * m_WidthStep);
       
       if (boundaryCheck == true)
       {
-        assert(math::IsUpTo(index, GetDataSize()));
+        assert(IsUpTo(index, GetDataSize()));
       }
       
       return index;
@@ -191,7 +190,7 @@ namespace karto
      * @param index index
      * @return grid coordinate from index
      */
-    Vector2i IndexToGrid(kt_int32s index) const
+    Vector2i IndexToGrid(int32_t index) const
     {
       Vector2i grid;
 
@@ -207,7 +206,7 @@ namespace karto
      * @param flipY whether to flip the y-coordinate (useful for drawing applications with inverted y-coordinates)
      * @return equivalent grid coordinate of given world coordinate
      */
-    inline Vector2i WorldToGrid(const Vector2d& rWorld, kt_bool flipY = false) const
+    inline Vector2i WorldToGrid(const Vector2d& rWorld, bool flipY = false) const
     {
       return GetCoordinateConverter()->WorldToGrid(rWorld, flipY);
     }
@@ -218,7 +217,7 @@ namespace karto
      * @param flipY whether to flip the y-coordinate (useful for drawing applications with inverted y-coordinates)
      * @return equivalent world coordinate of given grid coordinate
      */
-    inline Vector2d GridToWorld(const Vector2i& rGrid, kt_bool flipY = false) const
+    inline Vector2d GridToWorld(const Vector2i& rGrid, bool flipY = false) const
     {      
       return GetCoordinateConverter()->GridToWorld(rGrid, flipY);
     }    
@@ -230,7 +229,7 @@ namespace karto
      */
     T* GetDataPointer(const Vector2i& rGrid)
     {
-      kt_int32s index = GridIndex(rGrid, true);      
+      int32_t index = GridIndex(rGrid, true);      
       return m_pData + index;
     }
 
@@ -241,7 +240,7 @@ namespace karto
      */
     T* GetDataPointer(const Vector2i& rGrid) const
     {
-      kt_int32s index = GridIndex(rGrid, true);      
+      int32_t index = GridIndex(rGrid, true);      
       return m_pData + index;
     }
 
@@ -249,7 +248,7 @@ namespace karto
      * Gets the width of this grid
      * @return width of this grid
      */
-    inline kt_int32s GetWidth() const
+    inline int32_t GetWidth() const
     {
       return m_Width;
     };
@@ -258,25 +257,25 @@ namespace karto
      * Gets the height of this grid
      * @return height of this grid
      */
-    inline kt_int32s GetHeight() const
+    inline int32_t GetHeight() const
     {
       return m_Height;
     };
 
     /**
-     * Get the size as a Size2<kt_int32s>
+     * Get the size as a Size2<int32_t>
      * @return size of this grid
      */
-    inline const Size2<kt_int32s> GetSize() const
+    inline const Size2<int32_t> GetSize() const
     {
-      return Size2<kt_int32s>(GetWidth(), GetHeight());
+      return Size2<int32_t>(GetWidth(), GetHeight());
     }
 
     /**
      * Get actual allocated grid width.  Note: The width of the grid is 8-byte aligned.
      * @return width step
      */
-    inline kt_int32s GetWidthStep() const
+    inline int32_t GetWidthStep() const
     {
       return m_WidthStep;
     }
@@ -303,7 +302,7 @@ namespace karto
      * Gets the allocated grid size in bytes
      * @return allocated grid size in bytes
      */
-    inline kt_int32s GetDataSize() const
+    inline int32_t GetDataSize() const
     {
       return m_WidthStep * GetHeight();
     }
@@ -315,7 +314,7 @@ namespace karto
      */
     inline T GetValue(const Vector2i& rGrid) const
     {
-      kt_int32s index = GridIndex(rGrid);
+      int32_t index = GridIndex(rGrid);
       return m_pData[index];
     }
     
@@ -326,7 +325,7 @@ namespace karto
      */
     inline void SetValue(const Vector2i& rGrid, T rValue) const
     {
-      kt_int32s index = GridIndex(rGrid);
+      int32_t index = GridIndex(rGrid);
       m_pData[index] = rValue;
     }
 
@@ -343,7 +342,7 @@ namespace karto
      * Gets the resolution
      * @return resolution
      */
-    inline kt_double GetResolution() const
+    inline double GetResolution() const
     {
       return GetCoordinateConverter()->GetResolution();
     }
@@ -366,25 +365,25 @@ namespace karto
      * @param y1 y1
      * @param f functor
      */
-    void TraceLine(kt_int32s x0, kt_int32s y0, kt_int32s x1, kt_int32s y1, Functor* f = nullptr)
+    void TraceLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, Functor* f = nullptr)
     {
-      kt_bool steep = abs(y1 - y0) > abs(x1 - x0);
+      bool steep = abs(y1 - y0) > abs(x1 - x0);
       if (steep)
       {
-        math::Swap(x0, y0);
-        math::Swap(x1, y1);
+        std::swap(x0, y0);
+        std::swap(x1, y1);
       }
       if (x0 > x1)
       {
-        math::Swap(x0, x1);
-        math::Swap(y0, y1);
+        std::swap(x0, x1);
+        std::swap(y0, y1);
       }
 
-      kt_int32s deltaX = x1 - x0;
-      kt_int32s deltaY = abs(y1 - y0);
-      kt_int32s error = 0;
-      kt_int32s ystep;
-      kt_int32s y = y0;
+      int32_t deltaX = x1 - x0;
+      int32_t deltaY = abs(y1 - y0);
+      int32_t error = 0;
+      int32_t ystep;
+      int32_t y = y0;
 
       if (y0 < y1)
       {
@@ -395,9 +394,9 @@ namespace karto
         ystep = -1;
       }
 
-      kt_int32s pointX;
-      kt_int32s pointY;
-      for (kt_int32s x = x0; x <= x1; x++)
+      int32_t pointX;
+      int32_t pointY;
+      for (int32_t x = x0; x <= x1; x++)
       {
         if (steep)
         {
@@ -421,7 +420,7 @@ namespace karto
         Vector2i gridIndex(pointX, pointY);
         if (IsValidGridIndex(gridIndex))
         {
-          kt_int32s index = GridIndex(gridIndex, false);
+          int32_t index = GridIndex(gridIndex, false);
           T* pGridPointer = GetDataPointer();
           pGridPointer[index]++;
           
@@ -439,7 +438,7 @@ namespace karto
      * @param width width
      * @param height height
      */
-    Grid(kt_int32s width, kt_int32s height)
+    Grid(int32_t width, int32_t height)
       : m_Width(0)
       , m_Height(0)
       , m_WidthStep(0)
@@ -455,33 +454,13 @@ namespace karto
     const Grid& operator=(const Grid&);
 
   private:
-    kt_int32s m_Width;       // width of grid
-    kt_int32s m_Height;      // height of grid
-    kt_int32s m_WidthStep;   // 8-byte aligned width of grid
+    int32_t m_Width;       // width of grid
+    int32_t m_Height;      // height of grid
+    int32_t m_WidthStep;   // 8-byte aligned width of grid
     T* m_pData;              // grid data
 
     CoordinateConverter* m_pCoordinateConverter; // coordinate converter to convert between world coordinates and grid coordinates
   }; // Grid
-
-  /**
-   * Register Grid<kt_int8u> with MetaClassManager
-   */
-  KARTO_TYPE(Grid<kt_int8u>);
-
-  /**
-   * Register Grid<kt_int32u> with MetaClassManager
-   */
-  KARTO_TYPE(Grid<kt_int32u>);
-
-  /**
-   * Register Grid<kt_float> with MetaClassManager
-   */
-  KARTO_TYPE(Grid<kt_float>);
-
-  /**
-   * Register Grid<kt_double> with MetaClassManager
-   */
-  KARTO_TYPE(Grid<kt_double>);
 
   //@}
 

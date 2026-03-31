@@ -2,7 +2,7 @@
 
 #include <any>
 #include <string>
-#include <Types.h>
+#include <cstdint>
 
 // Phase 6: karto::Any (boost-derived) deleted. Verify std::any is available
 // as a C++17 replacement for any code that needs type-erased storage.
@@ -20,11 +20,11 @@ TEST(AnyRemoval, StdAnyWorksAsReplacement) {
 }
 
 TEST(AnyRemoval, StdAnyWithKartoTypes) {
-    std::any val = kt_double(3.14);
-    EXPECT_EQ(std::any_cast<kt_double>(val), 3.14);
+    std::any val = double(3.14);
+    EXPECT_EQ(std::any_cast<double>(val), 3.14);
 
-    val = kt_int32s(-99);
-    EXPECT_EQ(std::any_cast<kt_int32s>(val), -99);
+    val = int32_t(-99);
+    EXPECT_EQ(std::any_cast<int32_t>(val), -99);
 }
 
 TEST(AnyRemoval, StdAnyCastThrowsOnBadCast) {

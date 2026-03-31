@@ -17,12 +17,12 @@ namespace {
 karto::LaserRangeFinder* CreateTestLaser(const char* name) {
     karto::LaserRangeFinder* laser =
         karto::LaserRangeFinder::CreateLaserRangeFinder(
-            karto::LaserRangeFinder_Custom, karto::Identifier(name));
+            karto::LaserRangeFinder_Custom, name);
     laser->SetMinimumRange(0.1);
     laser->SetMaximumRange(50.0);
-    laser->SetMinimumAngle(-karto::KT_PI_2);
-    laser->SetMaximumAngle(karto::KT_PI_2);
-    laser->SetAngularResolution(karto::math::DegreesToRadians(1.0));
+    laser->SetMinimumAngle(-M_PI_2);
+    laser->SetMaximumAngle(M_PI_2);
+    laser->SetAngularResolution(karto::DegreesToRadians(1.0));
     laser->SetRangeThreshold(12.0);
     return laser;
 }
@@ -83,7 +83,7 @@ karto::RangeReadingsList GenerateRoomScan(
 TEST(MapperSmoke, CreateAndDestroyMapper) {
     karto::OpenMapper mapper("test_mapper");
     // Verify mapper exists and can be configured
-    EXPECT_FALSE(mapper.GetIdentifier().GetName().empty());
+    EXPECT_FALSE(mapper.GetName().empty());
 }
 
 TEST(MapperSmoke, ProcessSingleScan) {
@@ -94,15 +94,16 @@ TEST(MapperSmoke, ProcessSingleScan) {
     // Generate a scan at origin facing forward
     const karto::RangeReadingsList readings = GenerateRoomScan(
         0.0, 0.0, 0.0, 10.0, 10.0,
-        -karto::KT_PI_2, karto::KT_PI_2, karto::math::DegreesToRadians(1.0));
+        -M_PI_2, M_PI_2, karto::DegreesToRadians(1.0));
 
     karto::LocalizedRangeScan* scan =
-        new karto::LocalizedRangeScan(laser->GetIdentifier(), readings);
+        new karto::LocalizedRangeScan(laser->GetName(), readings);
+    scan->SetLaserRangeFinder(laser);
     scan->SetOdometricPose(karto::Pose2(0.0, 0.0, 0.0));
     scan->SetCorrectedPose(karto::Pose2(0.0, 0.0, 0.0));
 
     // First scan should always succeed
-    kt_bool result = mapper.Process(scan);
+    bool result = mapper.Process(scan);
     EXPECT_TRUE(result);
 
     // Corrected pose should be near origin
@@ -126,14 +127,15 @@ TEST(MapperSmoke, ProcessMultipleScans) {
         double x = i * step;
         const karto::RangeReadingsList readings = GenerateRoomScan(
             x, 0.0, 0.0, 10.0, 10.0,
-            -karto::KT_PI_2, karto::KT_PI_2, karto::math::DegreesToRadians(1.0));
+            -M_PI_2, M_PI_2, karto::DegreesToRadians(1.0));
 
         karto::LocalizedRangeScan* scan =
-            new karto::LocalizedRangeScan(laser->GetIdentifier(), readings);
+            new karto::LocalizedRangeScan(laser->GetName(), readings);
+        scan->SetLaserRangeFinder(laser);
         scan->SetOdometricPose(karto::Pose2(x, 0.0, 0.0));
         scan->SetCorrectedPose(karto::Pose2(x, 0.0, 0.0));
 
-        kt_bool result = mapper.Process(scan);
+        bool result = mapper.Process(scan);
         EXPECT_TRUE(result);
     }
 
@@ -148,18 +150,20 @@ TEST(MapperSmoke, CorrectedPosesAreReasonable) {
     // Feed two scans with a known displacement
     const karto::RangeReadingsList readings1 = GenerateRoomScan(
         0.0, 0.0, 0.0, 10.0, 10.0,
-        -karto::KT_PI_2, karto::KT_PI_2, karto::math::DegreesToRadians(1.0));
+        -M_PI_2, M_PI_2, karto::DegreesToRadians(1.0));
     karto::LocalizedRangeScan* scan1 =
-        new karto::LocalizedRangeScan(laser->GetIdentifier(), readings1);
+        new karto::LocalizedRangeScan(laser->GetName(), readings1);
+    scan1->SetLaserRangeFinder(laser);
     scan1->SetOdometricPose(karto::Pose2(0.0, 0.0, 0.0));
     scan1->SetCorrectedPose(karto::Pose2(0.0, 0.0, 0.0));
     mapper.Process(scan1);
 
     const karto::RangeReadingsList readings2 = GenerateRoomScan(
         1.0, 0.0, 0.0, 10.0, 10.0,
-        -karto::KT_PI_2, karto::KT_PI_2, karto::math::DegreesToRadians(1.0));
+        -M_PI_2, M_PI_2, karto::DegreesToRadians(1.0));
     karto::LocalizedRangeScan* scan2 =
-        new karto::LocalizedRangeScan(laser->GetIdentifier(), readings2);
+        new karto::LocalizedRangeScan(laser->GetName(), readings2);
+    scan2->SetLaserRangeFinder(laser);
     scan2->SetOdometricPose(karto::Pose2(1.0, 0.0, 0.0));
     scan2->SetCorrectedPose(karto::Pose2(1.0, 0.0, 0.0));
     mapper.Process(scan2);

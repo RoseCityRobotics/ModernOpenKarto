@@ -53,9 +53,8 @@ namespace karto
   /**
    * Occupancy grid definition. See GridStates for possible grid values.
    */
-  class KARTO_EXPORT OccupancyGrid : public Grid<kt_int8u>
+  class OccupancyGrid : public Grid<uint8_t>
   {
-    KARTO_RTTI();
 
   private:
     friend class CellUpdater;
@@ -69,7 +68,7 @@ namespace karto
      * @param rOffset offset
      * @param resolution resolution
      */
-    OccupancyGrid(kt_int32s width, kt_int32s height, const Vector2d& rOffset, kt_double resolution);
+    OccupancyGrid(int32_t width, int32_t height, const Vector2d& rOffset, double resolution);
     
   public:
     /**
@@ -85,18 +84,18 @@ namespace karto
      * @param resolution resolution
      * @return occupancy grid from the given scans using the given resolution
      */
-    [[nodiscard]] static OccupancyGrid* CreateFromScans(const LocalizedLaserScanList& rScans, kt_double resolution);
+    [[nodiscard]] static OccupancyGrid* CreateFromScans(const LocalizedLaserScanList& rScans, double resolution);
 
     /**
      * Occupancy grid from the given scans using the given resolution
      * @note Please assign the returned occupancy grid to an OccupancyGridPtr to avoid memory leaks.
      * @param rScans scans
      * @param resolution resolution
-     * @deprecated Please use CreateFromScans(const LocalizedLaserScanList& rScans, kt_double resolution)
+     * @deprecated Please use CreateFromScans(const LocalizedLaserScanList& rScans, double resolution)
      * @warning Throws exception in Windows
      * @return occupancy grid from the given scans using the given resolution
      */
-    [[deprecated, nodiscard]] static OccupancyGrid* CreateFromScans(const std::vector<std::shared_ptr<LocalizedRangeScan>>& rScans, kt_double resolution);
+    [[deprecated, nodiscard]] static OccupancyGrid* CreateFromScans(const std::vector<std::shared_ptr<LocalizedRangeScan>>& rScans, double resolution);
 
     /**
      * Occupancy grid from the scans in the given mapper using the given resolution
@@ -105,7 +104,7 @@ namespace karto
      * @param resolution resolution
      * @return occupancy grid from the given scans using the given resolution
      */
-    static OccupancyGrid* CreateFromMapper(OpenMapper* pMapper, kt_double resolution);
+    static OccupancyGrid* CreateFromMapper(OpenMapper* pMapper, double resolution);
 
   public:
     /**
@@ -119,9 +118,9 @@ namespace karto
      * @param rGridIndex grid index
      * @return whether the cell at the given grid index is free space
      */
-    inline kt_bool IsFree(const Vector2i& rGridIndex) const
+    inline bool IsFree(const Vector2i& rGridIndex) const
     {
-      kt_int8u* pOffsets = (kt_int8u*)GetDataPointer(rGridIndex);
+      uint8_t* pOffsets = (uint8_t*)GetDataPointer(rGridIndex);
       return (*pOffsets == GridStates_Free);
     }
     
@@ -132,14 +131,14 @@ namespace karto
      * @param maxRange maximum range
      * @return distance to closest obstacle
      */
-    kt_double RayCast(const Pose2& rPose2, kt_double maxRange) const;
+    double RayCast(const Pose2& rPose2, double maxRange) const;
 
   protected:
     /**
      * Gets grid of cell hit counts
      * @return grid of cell hit counts
      */
-    Grid<kt_int32u>* GetCellHitsCounts()
+    Grid<uint32_t>* GetCellHitsCounts()
     {
       return m_pCellHitsCnt.get();
     }
@@ -148,7 +147,7 @@ namespace karto
      * Get grid of cell pass counts
      * @return grid of cell pass counts
      */
-    Grid<kt_int32u>* GetCellPassCounts()
+    Grid<uint32_t>* GetCellPassCounts()
     {
       return m_pCellPassCnt.get();
     }
@@ -161,7 +160,7 @@ namespace karto
      * @param rHeight (output parameter) height
      * @param rOffset (output parameter) offset
      */
-    static void ComputeDimensions(const LocalizedLaserScanList& rScans, kt_double resolution, kt_int32s& rWidth, kt_int32s& rHeight, Vector2d& rOffset);
+    static void ComputeDimensions(const LocalizedLaserScanList& rScans, double resolution, int32_t& rWidth, int32_t& rHeight, Vector2d& rOffset);
     
     /**
      * Creates grid using scans 
@@ -176,7 +175,7 @@ namespace karto
      * @param doUpdate whether to update the grid's cell's occupancy status
      * @return returns false if an endpoint fell off the grid, otherwise true
      */
-    kt_bool AddScan(LocalizedLaserScan* pScan, kt_bool doUpdate = false);
+    bool AddScan(LocalizedLaserScan* pScan, bool doUpdate = false);
     
     /**
      * Traces a beam from the start position to the end position marking
@@ -187,7 +186,7 @@ namespace karto
      * @param doUpdate whether to update the cells' occupancy status immediately
      * @return returns false if an endpoint fell off the grid, otherwise true
      */
-    kt_bool RayTrace(const Vector2d& rWorldFrom, const Vector2d& rWorldTo, kt_bool isEndPointValid, kt_bool doUpdate = false);
+    bool RayTrace(const Vector2d& rWorldFrom, const Vector2d& rWorldTo, bool isEndPointValid, bool doUpdate = false);
     
     /**
      * Updates a single cell's value based on the given counters
@@ -195,7 +194,7 @@ namespace karto
      * @param cellPassCnt cell pass count
      * @param cellHitCnt cell hit count
      */
-    void UpdateCell(kt_int8u* pCell, kt_int32u cellPassCnt, kt_int32u cellHitCnt);
+    void UpdateCell(uint8_t* pCell, uint32_t cellPassCnt, uint32_t cellHitCnt);
     
     /**
      * Updates the grid based on the values in m_pCellHitsCnt and m_pCellPassCnt
@@ -207,18 +206,18 @@ namespace karto
      * @param width new width
      * @param height new height
      */
-    virtual void Resize(kt_int32s width, kt_int32s height);
+    virtual void Resize(int32_t width, int32_t height);
     
   protected:
     /**
      * Counters of number of times a beam passed through a cell
      */
-    std::shared_ptr<Grid<kt_int32u>> m_pCellPassCnt;
+    std::shared_ptr<Grid<uint32_t>> m_pCellPassCnt;
 
     /**
      * Counters of number of times a beam ended at a cell
      */
-    std::shared_ptr<Grid<kt_int32u>> m_pCellHitsCnt;
+    std::shared_ptr<Grid<uint32_t>> m_pCellHitsCnt;
 
   private:
     CellUpdater* m_pCellUpdater;
@@ -229,21 +228,16 @@ namespace karto
 
     // Number of beams that must pass through a cell before it will be considered to be occupied
     // or unoccupied.  This prevents stray beams from messing up the map.
-    std::shared_ptr<Parameter<kt_int32u>> m_pMinPassThrough;
+    uint32_t m_MinPassThrough;
 
     // Minimum ratio of beams hitting cell to beams passing through cell for cell to be marked as occupied
-    std::shared_ptr<Parameter<kt_double>> m_pOccupancyThreshold;
+    double m_OccupancyThreshold;
 
   private:
     // restrict the following functions
     OccupancyGrid(const OccupancyGrid&);
     const OccupancyGrid& operator=(const OccupancyGrid&);
   }; // OccupancyGrid
-
-  /**
-   * Register OccupancyGrid with MetaClassManager
-   */
-  KARTO_TYPE(OccupancyGrid);
 
   /**
    * Type declaration of OccupancyGrid managed by std::shared_ptr
@@ -257,7 +251,7 @@ namespace karto
   /**
    * Updates the cell at the given index based on the grid's hits and pass counters
    */    
-  class KARTO_EXPORT CellUpdater : public Functor
+  class CellUpdater : public Functor
   {
   public:
     /**
@@ -273,7 +267,7 @@ namespace karto
      * Updates the cell at the given index based on the grid's hits and pass counters
      * @param index index
      */    
-    virtual void operator() (kt_int32u index);
+    virtual void operator() (uint32_t index);
     
   private:
     OccupancyGrid* m_pOccupancyGrid;

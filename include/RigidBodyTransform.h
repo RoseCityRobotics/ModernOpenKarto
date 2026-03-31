@@ -24,8 +24,6 @@
 #ifndef __KARTO_RIGIDBODYTRANSFORM__
 #define __KARTO_RIGIDBODYTRANSFORM__
 
-#include <Types.h>
-#include <Macros.h>
 
 namespace karto
 {
@@ -33,7 +31,7 @@ namespace karto
    * \ingroup Karto
    * Implementation of a Pose2 rigid body transform
    */
-  class KARTO_EXPORT RigidBodyTransform
+  class RigidBodyTransform
   {
 	private:
 		karto::Pose2 m_Transform;

@@ -54,7 +54,7 @@ namespace karto
      * @param value value to scale
      * @return scaled value
      */
-    [[deprecated]] inline kt_double Transform(kt_double value)
+    [[deprecated]] inline double Transform(double value)
     {
       return value * m_Scale;
     }
@@ -65,10 +65,10 @@ namespace karto
      * @param flipY whether to flip the y-coordinate (useful for drawing applications with inverted y-coordinates)
      * @return equivalent grid coordinate of given world coordinate
      */
-    inline Vector2i WorldToGrid(const Vector2d& rWorld, kt_bool flipY = false) const
+    inline Vector2i WorldToGrid(const Vector2d& rWorld, bool flipY = false) const
     {
-      kt_double gridX = (rWorld.GetX() - m_Offset.GetX()) * m_Scale;
-      kt_double gridY = 0.0;
+      double gridX = (rWorld.GetX() - m_Offset.GetX()) * m_Scale;
+      double gridY = 0.0;
 
       if (flipY == false)
       {
@@ -79,7 +79,7 @@ namespace karto
         gridY = (m_Size.GetHeight() / m_Scale - rWorld.GetY() + m_Offset.GetY()) * m_Scale;
       }
 
-      return Vector2i(static_cast<kt_int32s>(math::Round(gridX)), static_cast<kt_int32s>(math::Round(gridY)));
+      return Vector2i(static_cast<int32_t>(std::round(gridX)), static_cast<int32_t>(std::round(gridY)));
     }
 
     /**
@@ -88,10 +88,10 @@ namespace karto
      * @param flipY whether to flip the y-coordinate (useful for drawing applications with inverted y-coordinates)
      * @return equivalent world coordinate of given grid coordinate
      */
-    inline Vector2d GridToWorld(const Vector2i& rGrid, kt_bool flipY = false) const
+    inline Vector2d GridToWorld(const Vector2i& rGrid, bool flipY = false) const
     {
-      kt_double worldX = m_Offset.GetX() + rGrid.GetX() / m_Scale;
-      kt_double worldY = 0.0;
+      double worldX = m_Offset.GetX() + rGrid.GetX() / m_Scale;
+      double worldY = 0.0;
       
       if (flipY == false)
       {
@@ -109,7 +109,7 @@ namespace karto
      * Gets the scale
      * @return scale
      */
-    inline kt_double GetScale() const
+    inline double GetScale() const
     {
       return m_Scale;
     }
@@ -118,7 +118,7 @@ namespace karto
      * Sets the scale
      * @param scale
      */
-    inline void SetScale(kt_double scale)
+    inline void SetScale(double scale)
     {
       m_Scale = scale;
     }
@@ -145,7 +145,7 @@ namespace karto
      * Sets the size
      * @param rSize new size
      */
-    inline void SetSize(const Size2<kt_int32s>& rSize)
+    inline void SetSize(const Size2<int32_t>& rSize)
     {
       m_Size = rSize;
     }
@@ -154,7 +154,7 @@ namespace karto
      * Gets the size
      * @return size
      */
-    inline const Size2<kt_int32s>& GetSize() const
+    inline const Size2<int32_t>& GetSize() const
     {
       return m_Size;
     }
@@ -163,7 +163,7 @@ namespace karto
      * Gets the resolution
      * @return resolution
      */
-    inline kt_double GetResolution() const
+    inline double GetResolution() const
     {
       return 1.0 / m_Scale;
     }
@@ -172,7 +172,7 @@ namespace karto
      * Sets the resolution
      * @param resolution new resolution
      */
-    inline void SetResolution(kt_double resolution)
+    inline void SetResolution(double resolution)
     {
       m_Scale = 1.0 / resolution;
     }
@@ -185,10 +185,10 @@ namespace karto
     {
       BoundingBox2 box;
       
-      kt_double minX = GetOffset().GetX();
-      kt_double minY = GetOffset().GetY();
-      kt_double maxX = minX + GetSize().GetWidth() * GetResolution();
-      kt_double maxY = minY + GetSize().GetHeight() * GetResolution();
+      double minX = GetOffset().GetX();
+      double minY = GetOffset().GetY();
+      double maxX = minX + GetSize().GetWidth() * GetResolution();
+      double maxY = minY + GetSize().GetHeight() * GetResolution();
       
       box.SetMinimum(GetOffset());
       box.SetMaximum(Vector2d(maxX, maxY));
@@ -196,8 +196,8 @@ namespace karto
     }
     
   private:
-    Size2<kt_int32s> m_Size;
-    kt_double m_Scale;
+    Size2<int32_t> m_Size;
+    double m_Scale;
 
     Vector2d m_Offset;
   }; // CoordinateConverter

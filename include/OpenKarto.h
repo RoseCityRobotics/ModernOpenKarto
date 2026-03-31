@@ -22,32 +22,14 @@
 
 #include <iostream>
 
-#include <AbstractGpsEstimationManager.h>
 #include <CoordinateConverter.h>
-#include <Event.h>
-#include <Exception.h>
 #include <Geometry.h>
-#include <Grid.h>
 #include <GridIndexLookup.h>
-#include <Identifier.h>
-#include <Logger.h>
-#include <Macros.h>
-#include <KartoMath.h>
-#include <Meta.h>
-#include <Module.h>
-#include <Object.h>
-#include <Objects.h>
 #include <OccupancyGrid.h>
 #include <OpenMapper.h>
-#include <Parameter.h>
 #include <PoseTransform.h>
-#include <RangeTransform.h>
 #include <RigidBodyTransform.h>
 #include <Sensor.h>
 #include <SensorData.h>
-#include <SensorRegistry.h>
-#include <StringHelper.h>
-#include <TypeCasts.h>
-#include <Types.h>
 
 #endif // __OpenKarto_h__

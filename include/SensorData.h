@@ -21,15 +21,12 @@
 #define __OpenKarto_SensorData_h__
 
 #include <vector>
+#include <string>
 
-#include <Object.h>
 #include <Geometry.h>
 #include <Sensor.h>
-#include <Objects.h>
 #include <PoseTransform.h>
 #include <RigidBodyTransform.h>
-#include <SensorRegistry.h>
-#include <AbstractGpsEstimationManager.h>
 
 namespace karto
 {
@@ -44,32 +41,29 @@ namespace karto
   /**
    * Type declaration of range readings List
    */
-  using RangeReadingsList = std::vector<kt_double>;
+  using RangeReadingsList = std::vector<double>;
 
   /**
-   * Type declaration of kt_double List
+   * Type declaration of double List
    */
-  using DoubleList = std::vector<kt_double>;
+  using DoubleList = std::vector<double>;
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
-
-  struct SensorDataPrivate;
 
   /**
    * Base class for all sensor data
    */
-  class KARTO_EXPORT SensorData : public Object
+  class SensorData
   {
-    KARTO_RTTI();
 
   protected:
     /**
-     * Sensor data from the sensor with the given identifier
-     * @param rSensorIdentifier sensor identifier
+     * Sensor data from the sensor with the given name
+     * @param rSensorName sensor name
      */
-    SensorData(const Identifier& rSensorIdentifier);
+    SensorData(const std::string& rSensorName);
 
     /**
      * Destructor
@@ -81,16 +75,16 @@ namespace karto
      * Gets sensor data id
      * @return sensor id
      */
-    inline kt_int32s GetStateId() const
+    inline int32_t GetStateId() const
     {
       return m_StateId;
     }
 
     /**
      * Sets sensor data id
-     * @param stateId new id 
+     * @param stateId new id
      */
-    inline void SetStateId(kt_int32s stateId)
+    inline void SetStateId(int32_t stateId)
     {
       m_StateId = stateId;
     }
@@ -99,7 +93,7 @@ namespace karto
      * Gets sensor data unique id
      * @return unique id
      */
-    inline kt_int32s GetUniqueId() const
+    inline int32_t GetUniqueId() const
     {
       return m_UniqueId;
     }
@@ -108,16 +102,16 @@ namespace karto
      * Sets sensor data unique id
      * @param uniqueId new unique id
      */
-    inline void SetUniqueId(kt_int32u uniqueId)
+    inline void SetUniqueId(uint32_t uniqueId)
     {
       m_UniqueId = uniqueId;
     }
-    
+
     /**
      * Gets sensor data time
      * @return time
      */
-    inline kt_int64s GetTime() const
+    inline int64_t GetTime() const
     {
       return m_Time;
     }
@@ -126,46 +120,28 @@ namespace karto
      * Sets sensor data time
      * @param time new time
      */
-    inline void SetTime(kt_int64s time)
+    inline void SetTime(int64_t time)
     {
       m_Time = time;
     }
 
     /**
-     * Gets the sensor identifier of the sensor that created this sensor data
-     * @return sensor identifier
+     * Gets the sensor name of the sensor that created this sensor data
+     * @return sensor name
      */
-    inline const Identifier& GetSensorIdentifier() const
+    inline const std::string& GetSensorName() const
     {
-      return m_SensorIdentifier;
+      return m_SensorName;
     }
 
     /**
      * Sets the name of the sensor that created this sensor data
-     * @param rSensorIdentifier sensor identifier
+     * @param rSensorName sensor name
      */
-    inline void SetSensorIdentifier(const Identifier& rSensorIdentifier)
+    inline void SetSensorName(const std::string& rSensorName)
     {
-      m_SensorIdentifier = rSensorIdentifier;
+      m_SensorName = rSensorName;
     }
-
-    /**
-     * Adds a custom item to this sensor data
-     * @param pCustomItem custom item
-     */
-    void AddCustomItem(CustomItem* pCustomItem);
-    
-    /**
-     * Gets all custom items assigned to this sensor data
-     * @return list of custom items
-     */
-    const CustomItemList& GetCustomItems() const;
-
-    /**
-     * Checks if there is a custom item attached to this sensor data
-     * @return true if there is one or more items attached, false otherwise
-     */
-     kt_bool HasCustomItem();
 
   private:
     // restrict the following functions
@@ -173,33 +149,26 @@ namespace karto
     const SensorData& operator=(const SensorData&);
 
   private:
-    SensorDataPrivate* m_pSensorDataPrivate;
-
     /**
      * ID unique to individual sensor
      */
-    kt_int32s m_StateId;
+    int32_t m_StateId;
 
     /**
      * ID unique across all sensor data
      */
-    kt_int32s m_UniqueId;
-    
+    int32_t m_UniqueId;
+
     /**
      * Name of sensor that created this sensor data
      */
-    Identifier m_SensorIdentifier;
+    std::string m_SensorName;
 
     /**
      * Time the sensor data was created
      */
-    kt_int64s m_Time;
+    int64_t m_Time;
   }; // SensorData
-
-  /**
-   * Register SensorData with MetaClassManager
-   */
-  KARTO_TYPE(SensorData);
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -208,23 +177,22 @@ namespace karto
   /**
    * LaserRangeScan representing the range readings from a laser range finder sensor.
    */
-  class KARTO_EXPORT LaserRangeScan : public SensorData
+  class LaserRangeScan : public SensorData
   {
-    KARTO_RTTI();
 
   public:
     /**
      * Laser range scan from the given sensor
-     * @param rSensorIdentifier sensor identifier
+     * @param rSensorName sensor name
      */
-    LaserRangeScan(const Identifier& rSensorIdentifier);
+    LaserRangeScan(const std::string& rSensorName);
 
     /**
      * Laser range scan from the given sensor with the given readings
-     * @param rSensorIdentifier sensor identifier
+     * @param rSensorName sensor name
      * @param rRangeReadings list of range readings
      */
-    LaserRangeScan(const Identifier& rSensorIdentifier, const RangeReadingsList& rRangeReadings);
+    LaserRangeScan(const std::string& rSensorName, const RangeReadingsList& rRangeReadings);
 
     /**
      * Destructor
@@ -240,7 +208,7 @@ namespace karto
     {
       return m_RangeReadings;
     }
-  
+
     /**
      * Sets the range readings of this scan
      * @param rRangeReadings range readings of this scan
@@ -256,14 +224,11 @@ namespace karto
      */
     inline LaserRangeFinder* GetLaserRangeFinder() const
     {
-      if (m_pLaserRangeFinder != nullptr)
-        return m_pLaserRangeFinder;
-      return SensorRegistry::GetInstance()->GetSensorByName<LaserRangeFinder>(GetSensorIdentifier());
+      return m_pLaserRangeFinder;
     }
 
     /**
-     * Sets the laser range finder sensor directly on this scan,
-     * bypassing the global SensorRegistry lookup.
+     * Sets the laser range finder sensor on this scan.
      * @param pLaser laser range finder
      */
     inline void SetLaserRangeFinder(LaserRangeFinder* pLaser)
@@ -281,11 +246,6 @@ namespace karto
     LaserRangeFinder* m_pLaserRangeFinder = nullptr;
   }; // LaserRangeScan
 
-  /**
-   * Register LaserRangeScan with MetaClassManager
-   */
-  KARTO_TYPE(LaserRangeScan);
-
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -295,15 +255,14 @@ namespace karto
    */
   class DrivePose : public SensorData
   {
-    KARTO_RTTI();
 
   public:
     /**
      * Pose of the given drive sensor
-     * @param rSensorIdentifier sensor identifier
+     * @param rSensorName sensor name
      */
-    DrivePose(const Identifier& rSensorIdentifier)
-      : SensorData(rSensorIdentifier)
+    DrivePose(const std::string& rSensorName)
+      : SensorData(rSensorName)
     {
     }
 
@@ -319,7 +278,7 @@ namespace karto
      * Gets the odometric pose of this scan
      * @return odometric pose of this scan
      */
-    inline const Pose2& GetOdometricPose() const 
+    inline const Pose2& GetOdometricPose() const
     {
       return m_OdometricPose;
     }
@@ -345,11 +304,6 @@ namespace karto
     Pose2 m_OdometricPose;
   }; // class DrivePose
 
-  /**
-   * Register DrivePose with MetaClassManager
-   */
-  KARTO_TYPE(DrivePose);
-
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -357,16 +311,15 @@ namespace karto
   /**
    * Base class for all localized sensor data
    */
-  class KARTO_EXPORT LocalizedObject : public SensorData
+  class LocalizedObject : public SensorData
   {
-    KARTO_RTTI();
 
   public:
     /**
      * Localized object from the given sensor
-     * @param rSensorIdentifier sensor identifier
+     * @param rSensorName sensor name
      */
-    LocalizedObject(const Identifier& rSensorIdentifier);
+    LocalizedObject(const std::string& rSensorName);
 
     /**
      * Destructor
@@ -378,11 +331,11 @@ namespace karto
      * Gets the odometric pose of this object
      * @return odometric pose of this object
      */
-    inline const Pose2& GetOdometricPose() const 
+    inline const Pose2& GetOdometricPose() const
     {
       return m_OdometricPose;
     }
-    
+
     /**
      * Sets the odometric pose of this object
      * @param rOdometricPose new odometric pose
@@ -391,7 +344,7 @@ namespace karto
     {
       m_OdometricPose = rOdometricPose;
     }
-    
+
     /**
      * Gets the (possibly corrected) robot pose at which this object was taken.  The corrected robot pose of the object
      * is usually set by an external module such as a localization or mapping module when it is determined
@@ -400,11 +353,11 @@ namespace karto
      * a call to this method returns the same pose as GetOdometricPose().
      * @return corrected pose
      */
-    inline const Pose2& GetCorrectedPose() const 
+    inline const Pose2& GetCorrectedPose() const
     {
       return m_CorrectedPose;
     }
-    
+
     /**
      * Moves the object by moving the robot pose to the given location.
      * @param rPose new pose of the robot of this scan
@@ -423,7 +376,7 @@ namespace karto
     {
       return m_GpsReading;
     }
-    
+
     /**
      * Sets the GPS reading of this scan
      * @param rGpsReading GPS reading of this scan
@@ -433,16 +386,16 @@ namespace karto
       m_GpsReading = rGpsReading;
       m_IsGpsReadingValid = true;
     }
-    
+
     /**
      * Whether the GPS reading is valid
      * @return whether the GPS reading is valid
      */
-    inline kt_bool IsGpsReadingValid() const
+    inline bool IsGpsReadingValid() const
     {
       return m_IsGpsReadingValid;
     }
-    
+
     /**
      * Gets the GPS estimate of this scan (return value is
      * meaningless if IsGpsEstimateValid() returns false).
@@ -450,56 +403,26 @@ namespace karto
      */
     inline gps::PointGps GetGpsEstimate() const
     {
-      if (m_pGpsEstimationManager != nullptr)
-      {
-        return m_pGpsEstimationManager->GetGpsEstimate(this);
-      }
-      else
-      {
-        return m_GpsEstimate;
-      }
+      return m_GpsEstimate;
     }
-    
+
     /**
      * Sets the GPS estimate of this scan
      * @param rGpsEstimate GPS estimate of this scan
      */
     inline void SetGpsEstimate(const gps::PointGps& rGpsEstimate)
     {
-      if (m_pGpsEstimationManager != nullptr)
-      {
-        m_pGpsEstimationManager->SetGpsEstimate(this, rGpsEstimate);
-      }
-      else
-      {
-        m_GpsEstimate = rGpsEstimate;
-        m_IsGpsEstimateValid = true;
-      }
+      m_GpsEstimate = rGpsEstimate;
+      m_IsGpsEstimateValid = true;
     }
-    
+
     /**
      * Whether the GPS estimate is valid
      * @return whether the GPS estimate is valid
      */
-    inline kt_bool IsGpsEstimateValid() const
+    inline bool IsGpsEstimateValid() const
     {
-      if (m_pGpsEstimationManager != nullptr)
-      {
-        return m_pGpsEstimationManager->IsGpsEstimateValid(this);
-      }
-      else
-      {
-        return m_IsGpsEstimateValid;
-      }
-    }
-    
-    /**
-     * Sets the manager for estimating this scan's GPS coordinate
-     * @param pGpsEstimationManager GPS estimation manager
-     */
-    inline void SetGpsEstimationManager(AbstractGpsEstimationManager* pGpsEstimationManager)
-    {
-      m_pGpsEstimationManager = pGpsEstimationManager;
+      return m_IsGpsEstimateValid;
     }
 
   private:
@@ -507,7 +430,7 @@ namespace karto
      * Odometric pose of object
      */
     Pose2 m_OdometricPose;
-    
+
     /**
      * Corrected pose of object calculated by mapper (or some other module)
      */
@@ -518,33 +441,23 @@ namespace karto
      * if m_IsGpsReadingValid is false).
      */
     gps::PointGps m_GpsReading;
-    
+
     /**
      * Whether the GPS reading is valid
      */
-    kt_bool m_IsGpsReadingValid;
+    bool m_IsGpsReadingValid;
 
     /**
      * GPS estimate of this object (value is meaningless
      * if m_IsGpsEstimateValid is false).
      */
     gps::PointGps m_GpsEstimate;
-    
+
     /**
      * Whether the GPS estimate is valid
      */
-    kt_bool m_IsGpsEstimateValid;
-
-    /**
-     * Manages the location of robot in GPS coordinates
-     */
-    AbstractGpsEstimationManager* m_pGpsEstimationManager;
+    bool m_IsGpsEstimateValid;
   }; // LocalizedObject
-
-  /**
-   * Register LocalizedObject with MetaClassManager
-   */
-  KARTO_TYPE(LocalizedObject);
 
   /**
    * Type declaration of LocalizedObject managed by std::shared_ptr
@@ -560,14 +473,11 @@ namespace karto
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
 
-  class AbstractGpsEstimationManager;
-
   /**
    * Base class for localized laser scans
    */
-  class KARTO_EXPORT LocalizedLaserScan : public LocalizedObject
-  {    
-    KARTO_RTTI();
+  class LocalizedLaserScan : public LocalizedObject
+  {
 
   public:
     /**
@@ -576,14 +486,11 @@ namespace karto
      */
     inline LaserRangeFinder* GetLaserRangeFinder() const
     {
-      if (m_pLaserRangeFinder != nullptr)
-        return m_pLaserRangeFinder;
-      return SensorRegistry::GetInstance()->GetSensorByName<LaserRangeFinder>(GetSensorIdentifier());
+      return m_pLaserRangeFinder;
     }
 
     /**
-     * Sets the laser range finder sensor directly on this scan,
-     * bypassing the global SensorRegistry lookup.
+     * Sets the laser range finder sensor on this scan.
      * @param pLaser laser range finder
      */
     inline void SetLaserRangeFinder(LaserRangeFinder* pLaser)
@@ -614,38 +521,38 @@ namespace karto
       m_IsDirty = true;
       Update();
     }
-    
+
     /**
      * Gets barycenter of point readings
      * @return barycenter of point readings
      */
-    inline const Pose2& GetBarycenterPose() const 
+    inline const Pose2& GetBarycenterPose() const
     {
       if (m_IsDirty)
       {
         // throw away constness and do an update!
         const_cast<LocalizedLaserScan*>(this)->Update();
       }
-      
+
       return m_BarycenterPose;
     }
-    
+
     /**
      * Gets barycenter if the given parameter is true, otherwise returns the scanner pose
      * @param useBarycenter whether to use the barycenter as the reference pose
      * @return barycenter if given parameter is true, otherwise scanner pose
      */
-    inline Pose2 GetReferencePose(kt_bool useBarycenter) const 
+    inline Pose2 GetReferencePose(bool useBarycenter) const
     {
       if (m_IsDirty)
       {
         // throw away constness and do an update!
         const_cast<LocalizedLaserScan*>(this)->Update();
       }
-      
+
       return useBarycenter ? GetBarycenterPose() : GetSensorPose();
-    }    
-    
+    }
+
     /**
      * Computes the position of the sensor
      * @return sensor pose
@@ -654,7 +561,7 @@ namespace karto
     {
       return GetSensorAt(GetCorrectedPose());
     }
-    
+
     /**
      * Computes the robot pose from the given sensor pose
      * @param rSensorPose new pose of the sensor
@@ -662,19 +569,19 @@ namespace karto
     void SetSensorPose(const Pose2& rSensorPose)
     {
       Pose2 deviceOffsetPose2 = GetLaserRangeFinder()->GetOffsetPose();
-      kt_double offsetLength = deviceOffsetPose2.GetPosition().Length();
-      kt_double offsetHeading = deviceOffsetPose2.GetHeading();
-      kt_double angleoffset = atan2(deviceOffsetPose2.GetY(), deviceOffsetPose2.GetX());
-      kt_double correctedHeading = math::NormalizeAngle(rSensorPose.GetHeading());
+      double offsetLength = deviceOffsetPose2.GetPosition().Length();
+      double offsetHeading = deviceOffsetPose2.GetHeading();
+      double angleoffset = atan2(deviceOffsetPose2.GetY(), deviceOffsetPose2.GetX());
+      double correctedHeading = NormalizeAngle(rSensorPose.GetHeading());
       Pose2 worldSensorOffset = Pose2(offsetLength * cos(correctedHeading + angleoffset - offsetHeading),
                                       offsetLength * sin(correctedHeading + angleoffset - offsetHeading),
                                       offsetHeading);
-      
+
       SetCorrectedPose(rSensorPose - worldSensorOffset);
-      
+
       Update();
     }
-    
+
     /**
      * Computes the position of the sensor if the robot were at the given pose
      * @param rPose hypothesized pose
@@ -694,10 +601,10 @@ namespace karto
     inline Pose2 GetCorrectedAt(const Pose2& rSensorPose) const
     {
       Pose2 deviceOffsetPose2 = GetLaserRangeFinder()->GetOffsetPose();
-      kt_double offsetLength = deviceOffsetPose2.GetPosition().Length();
-      kt_double offsetHeading = deviceOffsetPose2.GetHeading();
-      kt_double angleoffset = atan2(deviceOffsetPose2.GetY(), deviceOffsetPose2.GetX());
-      kt_double correctedHeading = math::NormalizeAngle(rSensorPose.GetHeading());
+      double offsetLength = deviceOffsetPose2.GetPosition().Length();
+      double offsetHeading = deviceOffsetPose2.GetHeading();
+      double angleoffset = atan2(deviceOffsetPose2.GetY(), deviceOffsetPose2.GetX());
+      double correctedHeading = NormalizeAngle(rSensorPose.GetHeading());
       Pose2 worldSensorOffset = Pose2(offsetLength * cos(correctedHeading + angleoffset - offsetHeading),
                                       offsetLength * sin(correctedHeading + angleoffset - offsetHeading),
                                       offsetHeading);
@@ -715,7 +622,7 @@ namespace karto
         // throw away constness and do an update!
         const_cast<LocalizedLaserScan*>(this)->Update();
       }
-      
+
       return m_BoundingBox;
     }
 
@@ -724,8 +631,8 @@ namespace karto
      * @param wantFiltered whether filtered points are to be included or not
      * @return list of point readings
      */
-    const Vector2dList& GetPointReadings(kt_bool wantFiltered = false) const;
-    
+    const Vector2dList& GetPointReadings(bool wantFiltered = false) const;
+
     /**
      * Gets the range readings of this scan
      * @return range readings of this scan
@@ -739,7 +646,7 @@ namespace karto
      * Gets the number of range readings
      * @return number of range readings
      */
-    inline kt_size_t GetNumberOfRangeReadings() const
+    inline size_t GetNumberOfRangeReadings() const
     {
       return m_RangeReadings.size();
     }
@@ -750,15 +657,15 @@ namespace karto
   protected:
     /**
      * Localized laser scan from the given sensor
-     * @param rSensorIdentifier sensor identifier
+     * @param rSensorName sensor name
      */
-    LocalizedLaserScan(const Identifier& rSensorIdentifier);
+    LocalizedLaserScan(const std::string& rSensorName);
 
     /**
      * Computes the point readings, bounding box, and barycenter of the scan
      */
     void Update();
-    
+
     /**
      * Computes point readings in global coordinates
      */
@@ -772,7 +679,7 @@ namespace karto
     {
       return m_FilteredPointReadings;
     }
-    
+
     /**
      * Gets raw points readings
      * @return raw point readings
@@ -787,50 +694,39 @@ namespace karto
      * List of filtered point readings
      */
     Vector2dList m_FilteredPointReadings;
-    
+
     /**
      * List of unfiltered point readings
      */
     Vector2dList m_UnfilteredPointReadings;
-    
+
     /**
      * List of unfiltered ranges
      */
     RangeReadingsList m_RangeReadings;
-    
+
   private:
-    /**
-     * Name of sensor that created this scan
-     */
-    Identifier m_SensorIdentifier;
-        
     /**
      * Average of all the point readings
      */
     Pose2 m_BarycenterPose;
-    
+
     /**
      * Bounding box of localized range scan
      */
     BoundingBox2 m_BoundingBox;
-    
+
     /**
      * Internal flag used to update point readings, barycenter and bounding box
      */
-    kt_bool m_IsDirty;
+    bool m_IsDirty;
 
     /**
-     * Direct pointer to the laser range finder, bypassing global SensorRegistry.
-     * When set, GetLaserRangeFinder() returns this pointer instead of doing a registry lookup.
+     * Pointer to the laser range finder sensor for this scan.
      */
     LaserRangeFinder* m_pLaserRangeFinder = nullptr;
 
   }; // LocalizedLaserScan
-  
-  /**
-   * Register LocalizedLaserScan with MetaClassManager
-   */
-  KARTO_TYPE(LocalizedLaserScan);
 
   /**
    * Type declaration of LocalizedLaserScan managed by std::shared_ptr
@@ -841,26 +737,25 @@ namespace karto
    * Type declaration of LocalizedLaserScan List (non-owning)
    */
   using LocalizedLaserScanList = std::vector<LocalizedLaserScan*>;
-  
+
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
-  
+
   /**
    * Scan that is defined by points
    */
-  class KARTO_EXPORT LocalizedPointScan : public LocalizedLaserScan
+  class LocalizedPointScan : public LocalizedLaserScan
   {
-    KARTO_RTTI();
-   
+
   public:
     /**
      * Point scan from the given points in local coordinates
-     * @param rSensorIdentifier identifier of sensor that generated this scan
+     * @param rSensorName name of sensor that generated this scan
      * @param rLocalPoints list of points in local coordinates
      */
-    LocalizedPointScan(const Identifier& rSensorIdentifier, const Vector2dList& rLocalPoints);
-    
+    LocalizedPointScan(const std::string& rSensorName, const Vector2dList& rLocalPoints);
+
     /**
      * Gets the (local) angles to the range readings of this scan
      * @return (local) angles to range readings of this scan
@@ -868,8 +763,8 @@ namespace karto
     inline const DoubleList& GetLocalAngles() const
     {
       return m_LocalAngles;
-    }    
-    
+    }
+
   public:
     /**
      * Destructor
@@ -885,67 +780,45 @@ namespace karto
   private:
     LocalizedPointScan(const LocalizedPointScan&);
     const LocalizedPointScan& operator=(const LocalizedPointScan&);
-    
+
   private:
     Vector2dList m_LocalPointReadings;
     DoubleList m_LocalAngles;
   }; // LocalizedPointScan
-  
-  /**
-   * Register LocalizedPointScan with MetaClassManager
-   */
-  KARTO_TYPE(LocalizedPointScan);
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
-  
+
   /**
    * The LocalizedRangeScan contains range data from a single sweep of a laser range finder sensor
-   * in a two-dimensional space and position information. The odometric position is the position 
+   * in a two-dimensional space and position information. The odometric position is the position
    * reported by the robot when the range data was recorded. The corrected position is the position
    * calculated by the mapper (or some other module)
-   *
-   * The following example code creates a LocalizedRangeScan 
-   * \code
-   *   karto::LaserRangeFinder* pLrf = karto::LaserRangeFinder::CreateLaserRangeFinder(karto::LaserRangeFinder_Sick_LMS100, "/laser0");
-   *   RangeReadingsList readings;
-   *   karto::LocalizedRangeScan* pLocalizedRangeScan = new karto::LocalizedRangeScan(pLrf->GetName(), readings);
-   *   pLocalizedRangeScan->SetTime(karto::Timestamp().GetUtcTime());
-   * \endcode
-   *
-   * Setting the time is important if any filtering or interpolation is required for the scan
-   * 
-   * Example of how to to get a human readable time from the scan time.
-   * \code
-   *   std::cout << "Scan Date: " << karto::LocalDateTime(karto::DateTime(karto::Timestamp::FromUtcTime(pLocalizedRangeScan->GetTime()))).ToString() << std::endl;
-   * \endcode
-   * The LocalDataTime automatically corrects for timezone.
    */
-  class KARTO_EXPORT LocalizedRangeScan : public LocalizedLaserScan
+  class LocalizedRangeScan : public LocalizedLaserScan
   {
-    KARTO_RTTI();
 
   public:
     /**
      * Range scan from the given range finder with the given readings
-     * @param rSensorIdentifier identifier of sensor that generated this scan
+     * @param rSensorName name of sensor that generated this scan
      * @param rReadings list of range readings
      */
-    LocalizedRangeScan(const Identifier& rSensorIdentifier, const RangeReadingsList& rReadings);
+    LocalizedRangeScan(const std::string& rSensorName, const RangeReadingsList& rReadings);
 
     /**
      * Range scan from the given range finder with the given readings
-     * @param rSensorIdentifier identifier of sensor that generated this scan
+     * @param rSensorName name of sensor that generated this scan
      * @param rRangeReadings vector of range readings
-     * @deprecated Please use LocalizedRangeScan(const Name& rSensorIdentifier, const RangeReadingsList& rReadings)
+     * @deprecated Please use LocalizedRangeScan(const std::string& rSensorName, const RangeReadingsList& rReadings)
      */
-    [[deprecated]] KARTO_FORCEINLINE LocalizedRangeScan(const Identifier& rSensorIdentifier, std::vector<kt_double>& rRangeReadings)
-      : LocalizedLaserScan(rSensorIdentifier)
+    [[deprecated]] inline LocalizedRangeScan(const std::string& rSensorName, std::vector<double>& rRangeReadings)
+      : LocalizedLaserScan(rSensorName)
     {
       m_RangeReadings = rRangeReadings;
     }
-  
+
   public:
     /**
      * Destructor
@@ -958,16 +831,11 @@ namespace karto
      * Only range readings within [minimum range; range threshold] are returned
      */
     virtual void ComputePointReadings();
-    
+
   private:
     LocalizedRangeScan(const LocalizedRangeScan&);
     const LocalizedRangeScan& operator=(const LocalizedRangeScan&);
   }; // LocalizedRangeScan
-
-  /**
-   * Register LocalizedRangeScan with MetaClassManager
-   */
-  KARTO_TYPE(LocalizedRangeScan);
 
   //@}
 

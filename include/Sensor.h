@@ -21,8 +21,10 @@
 #define __OpenKarto_Sensor_h__
 
 #include <vector>
-#include <Exception.h>
-#include <Object.h>
+#include <string>
+#include <memory>
+#include <stdexcept>
+#include <Geometry.h>
 
 namespace karto
 {
@@ -44,16 +46,15 @@ namespace karto
   /**
    * Abstract sensor base class
    */
-  class KARTO_EXPORT Sensor : public Object
+  class Sensor
   {
-    KARTO_RTTI();
 
   protected:
     /**
      * Constructs a sensor with the given name
      * @param rName sensor name
      */
-    Sensor(const Identifier& rName);
+    Sensor(const std::string& rName);
 
     /**
      * Destructor
@@ -62,21 +63,30 @@ namespace karto
 
   public:
     /**
+     * Gets the name of this sensor
+     * @return sensor name
+     */
+    inline const std::string& GetName() const
+    {
+      return m_Name;
+    }
+
+    /**
      * Gets this sensor's offset
      * @return offset pose
      */
     inline const Pose2& GetOffsetPose() const
     {
-      return m_pOffsetPose->GetValue();
+      return m_OffsetPose;
     }
-    
+
     /**
      * Sets this sensor's offset
      * @param rPose new offset pose
      */
     inline void SetOffsetPose(const Pose2& rPose)
     {
-      m_pOffsetPose->SetValue(rPose);
+      m_OffsetPose = rPose;
     }
 
     /**
@@ -97,21 +107,21 @@ namespace karto
 
   private:
     /**
+     * Sensor name
+     */
+    std::string m_Name;
+
+    /**
      * Sensor offset pose
      */
-    Parameter<Pose2>* m_pOffsetPose;
+    Pose2 m_OffsetPose;
   }; // Sensor
-
-  /**
-   * Register Sensor with MetaClassManager
-   */
-  KARTO_TYPE(Sensor);
 
   /**
    * Type declaration of Sensor managed by std::shared_ptr
    */
   using SensorPtr = std::shared_ptr<Sensor>;
-  
+
   /**
    * Type declaration of Sensor List
    */
@@ -129,14 +139,13 @@ namespace karto
    */
   class Drive : public Sensor
   {
-    KARTO_RTTI();
 
   public:
     /**
      * Drive object with the given name
      * @param rName name
      */
-    Drive(const Identifier& rName)
+    Drive(const std::string& rName)
       : Sensor(rName)
     {
     }
@@ -160,7 +169,7 @@ namespace karto
     {
       if (pSensorData == nullptr)
       {
-        throw Exception("SensorData == nullptr");
+        throw std::runtime_error("SensorData == nullptr");
       }
     }
 
@@ -169,11 +178,6 @@ namespace karto
     Drive(const Drive&);
     const Drive& operator=(const Drive&);
   }; // class Drive
-
-  /**
-   * Register Drive with MetaClassManager
-   */
-  KARTO_TYPE(Drive);
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -197,8 +201,6 @@ namespace karto
     LaserRangeFinder_Hokuyo_UTM_30LX = 4,
     LaserRangeFinder_Hokuyo_URG_04LX = 5
   };
-
-  KARTO_TYPE(LaserRangeFinderType);
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -226,15 +228,14 @@ namespace karto
    *
    * The following laser types are supported in CreateLaserRangeFinder
    *
-   *  LaserRangeFinder_Sick_LMS100 
+   *  LaserRangeFinder_Sick_LMS100
    *  LaserRangeFinder_Sick_LMS200
    *  LaserRangeFinder_Sick_LMS291
    *  LaserRangeFinder_Hokuyo_UTM_30LX
-   *  LaserRangeFinder_Hokuyo_URG_04LX   
+   *  LaserRangeFinder_Hokuyo_URG_04LX
    */
-  class KARTO_EXPORT LaserRangeFinder : public Sensor
+  class LaserRangeFinder : public Sensor
   {
-    KARTO_RTTI();
 
   public:
     /**
@@ -247,19 +248,19 @@ namespace karto
      * Gets this range finder sensor's minimum range
      * @return minimum range
      */
-    inline kt_double GetMinimumRange() const
+    inline double GetMinimumRange() const
     {
-      return m_pMinimumRange->GetValue();
+      return m_MinimumRange;
     }
 
     /**
      * Sets this range finder sensor's minimum range
      * @param minimumRange new minimum range
      */
-    inline void SetMinimumRange(kt_double minimumRange)
+    inline void SetMinimumRange(double minimumRange)
     {
-      m_pMinimumRange->SetValue(minimumRange);
-      
+      m_MinimumRange = minimumRange;
+
       SetRangeThreshold(GetRangeThreshold());
     }
 
@@ -267,18 +268,18 @@ namespace karto
      * Gets this range finder sensor's maximum range
      * @return maximum range
      */
-    inline kt_double GetMaximumRange() const
+    inline double GetMaximumRange() const
     {
-      return m_pMaximumRange->GetValue();
+      return m_MaximumRange;
     }
 
     /**
      * Sets this range finder sensor's maximum range
      * @param maximumRange new maximum range
      */
-    inline void SetMaximumRange(kt_double maximumRange)
+    inline void SetMaximumRange(double maximumRange)
     {
-      m_pMaximumRange->SetValue(maximumRange);
+      m_MaximumRange = maximumRange;
 
       SetRangeThreshold(GetRangeThreshold());
     }
@@ -287,33 +288,33 @@ namespace karto
      * Gets the range threshold
      * @return range threshold
      */
-    inline kt_double GetRangeThreshold() const
+    inline double GetRangeThreshold() const
     {
-      return m_pRangeThreshold->GetValue();
+      return m_RangeThreshold;
     }
 
     /**
      * Sets the range threshold
      * @param rangeThreshold new range threshold
      */
-    void SetRangeThreshold(kt_double rangeThreshold);
+    void SetRangeThreshold(double rangeThreshold);
 
     /**
      * Gets this range finder sensor's minimum angle
      * @return minimum angle
      */
-    inline kt_double GetMinimumAngle() const
+    inline double GetMinimumAngle() const
     {
-      return m_pMinimumAngle->GetValue();
+      return m_MinimumAngle;
     }
-    
+
     /**
      * Sets this range finder sensor's minimum angle
      * @param minimumAngle new minimum angle
      */
-    inline void SetMinimumAngle(kt_double minimumAngle)
+    inline void SetMinimumAngle(double minimumAngle)
     {
-      m_pMinimumAngle->SetValue(minimumAngle);
+      m_MinimumAngle = minimumAngle;
 
       Update();
     }
@@ -322,51 +323,51 @@ namespace karto
      * Gets this range finder sensor's maximum angle
      * @return maximum angle
      */
-    inline kt_double GetMaximumAngle() const
+    inline double GetMaximumAngle() const
     {
-      return m_pMaximumAngle->GetValue();
+      return m_MaximumAngle;
     }
-    
+
     /**
      * Sets this range finder sensor's maximum angle
      * @param maximumAngle new maximum angle
      */
-    inline void SetMaximumAngle(kt_double maximumAngle)
+    inline void SetMaximumAngle(double maximumAngle)
     {
-      m_pMaximumAngle->SetValue(maximumAngle);
+      m_MaximumAngle = maximumAngle;
 
       Update();
     }
-    
+
     /**
      * Gets this range finder sensor's angular resolution
      * @return angular resolution
      */
-    inline kt_double GetAngularResolution() const
+    inline double GetAngularResolution() const
     {
-      return m_pAngularResolution->GetValue();
+      return m_AngularResolution;
     }
-    
+
     /**
      * Sets this range finder sensor's angular resolution
      * @param angularResolution new angular resolution
      */
-    void SetAngularResolution(kt_double angularResolution);
+    void SetAngularResolution(double angularResolution);
 
     /**
      * Gets this range finder sensor's laser type
      * @return laser type of this range finder
      */
-    inline kt_int64s GetType()
+    inline LaserRangeFinderType GetType() const
     {
-      return m_pType->GetValue();
+      return m_Type;
     }
 
     /**
      * Gets the number of range readings each localized range scan must contain to be a valid scan.
      * @return number of range readings
      */
-    inline kt_int32u GetNumberOfRangeReadings() const
+    inline uint32_t GetNumberOfRangeReadings() const
     {
       return m_NumberOfRangeReadings;
     }
@@ -379,7 +380,7 @@ namespace karto
     /**
      * Validates sensor data
      * @param pSensorData sensor data
-     */    
+     */
     virtual void Validate(SensorData* pSensorData);
 
     /**
@@ -390,7 +391,7 @@ namespace karto
      * @param flipY whether to flip the y-coordinate (useful for drawing applications with inverted y-coordinates)
      * @return list of points from the given scan
      */
-    const Vector2dList GetPointReadings(LocalizedLaserScan* pLocalizedLaserScan, CoordinateConverter* pCoordinateConverter, kt_bool ignoreThresholdPoints = true, kt_bool flipY = false) const;
+    const Vector2dList GetPointReadings(LocalizedLaserScan* pLocalizedLaserScan, CoordinateConverter* pCoordinateConverter, bool ignoreThresholdPoints = true, bool flipY = false) const;
 
   public:
     /**
@@ -399,21 +400,21 @@ namespace karto
      * @param rName name of sensor
      * @return laser range finder
      */
-    [[nodiscard]] static LaserRangeFinder* CreateLaserRangeFinder(LaserRangeFinderType type, const Identifier& rName);
+    [[nodiscard]] static LaserRangeFinder* CreateLaserRangeFinder(LaserRangeFinderType type, const std::string& rName);
 
   private:
     /**
      * Laser range finder with given name
      * @param rName name
      */
-    LaserRangeFinder(const Identifier& rName);
-    
+    LaserRangeFinder(const std::string& rName);
+
     /**
      * Sets the number of range readings based on the minimum and maximum angles of the sensor and the angular resolution
      */
     void Update()
     {
-      m_NumberOfRangeReadings = static_cast<kt_int32u>(math::Round((GetMaximumAngle() - GetMinimumAngle()) / GetAngularResolution()) + 1);
+      m_NumberOfRangeReadings = static_cast<uint32_t>(std::round((GetMaximumAngle() - GetMinimumAngle()) / GetAngularResolution()) + 1);
     }
 
   private:
@@ -421,32 +422,27 @@ namespace karto
     const LaserRangeFinder& operator=(const LaserRangeFinder&);
 
   private:
-    // sensor m_Parameters
-    Parameter<kt_double>* m_pMinimumAngle;
-    Parameter<kt_double>* m_pMaximumAngle;
+    // sensor parameters
+    double m_MinimumAngle;
+    double m_MaximumAngle;
 
-    Parameter<kt_double>* m_pAngularResolution;
+    double m_AngularResolution;
 
-    Parameter<kt_double>* m_pMinimumRange;
-    Parameter<kt_double>* m_pMaximumRange;
+    double m_MinimumRange;
+    double m_MaximumRange;
 
-    Parameter<kt_double>* m_pRangeThreshold;
+    double m_RangeThreshold;
 
-    ParameterEnum* m_pType;
+    LaserRangeFinderType m_Type;
 
-    kt_int32u m_NumberOfRangeReadings;    
+    uint32_t m_NumberOfRangeReadings;
   }; // LaserRangeFinder
-
-  /**
-   * Register LaserRangeFinder with MetaClassManager
-   */
-  KARTO_TYPE(LaserRangeFinder);
 
   /**
    * Type declaration of LaserRangeFinder managed by std::shared_ptr
    */
   using LaserRangeFinderPtr = std::shared_ptr<LaserRangeFinder>;
-  
+
   //@}
 
 }

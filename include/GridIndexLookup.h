@@ -35,7 +35,7 @@ namespace karto
     
   /**
    * Resizable array whose contents are not preseved upon resizing.
-   * \todo Consider replacing with std::vector<kt_int32s>
+   * \todo Consider replacing with std::vector<int32_t>
    */
   class LookupArray
   {
@@ -60,20 +60,20 @@ namespace karto
      * Gets size of this array
      * @return size of this array
      */
-    kt_int32u GetSize() const;
+    uint32_t GetSize() const;
 
     /**
      * Sets size of this array (resize if not big enough)
      * @param size new size
      */
-    void SetSize(kt_int32u size);
+    void SetSize(uint32_t size);
 
     /**
      * Gets reference to value at given index
      * @param index index
      * @return reference to value at given index
      */
-    inline kt_int32s& operator[](kt_int32u index) 
+    inline int32_t& operator[](uint32_t index) 
     {
       assert(index < m_Size);
 
@@ -85,7 +85,7 @@ namespace karto
      * @param index index
      * @return value at given index
      */
-    inline kt_int32s operator[](kt_int32u index) const 
+    inline int32_t operator[](uint32_t index) const 
     {
       assert(index < m_Size);
 
@@ -96,7 +96,7 @@ namespace karto
      * Gets array pointer
      * @return array pointer
      */
-    inline kt_int32s* GetArrayPointer()
+    inline int32_t* GetArrayPointer()
     {
       return m_pArray;
     }
@@ -105,15 +105,15 @@ namespace karto
      * Gets array pointer (const version)
      * @return array pointer
      */
-    inline kt_int32s* GetArrayPointer() const
+    inline int32_t* GetArrayPointer() const
     {
       return m_pArray;
     }
 
   private:
-    kt_int32s* m_pArray;
-    kt_int32u m_Capacity;
-    kt_int32u m_Size;
+    int32_t* m_pArray;
+    uint32_t m_Capacity;
+    uint32_t m_Size;
   }; // LookupArray
 
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -162,9 +162,9 @@ namespace karto
      * @param index angle index
      * @return lookup array
      */
-    const LookupArray* GetLookupArray(kt_int32u index) const
+    const LookupArray* GetLookupArray(uint32_t index) const
     {
-      assert(math::IsUpTo(index, m_Size));
+      assert(IsUpTo(index, m_Size));
       
       return m_ppLookupArray[index];
     }
@@ -173,7 +173,7 @@ namespace karto
      * Gets list of angles 
      * @return list of angles
      */
-    const std::vector<kt_double>& GetAngles() const
+    const std::vector<double>& GetAngles() const
     {
       return m_Angles;
     }
@@ -185,12 +185,12 @@ namespace karto
      * @param angleOffset computes lookup arrays for the angles within this offset around angleCenter
      * @param angleResolution how fine a granularity to compute lookup arrays in the angular space
      */
-    void ComputeOffsets(LocalizedLaserScan* pScan, kt_double angleCenter, kt_double angleOffset, kt_double angleResolution)
+    void ComputeOffsets(LocalizedLaserScan* pScan, double angleCenter, double angleOffset, double angleResolution)
     {
       assert(angleOffset != 0.0);
       assert(angleResolution != 0.0);
  
-      kt_int32u nAngles = static_cast<kt_int32u>(math::Round(angleOffset * 2.0 / angleResolution) + 1);
+      uint32_t nAngles = static_cast<uint32_t>(std::round(angleOffset * 2.0 / angleResolution) + 1);
       SetSize(nAngles);
 
       //////////////////////////////////////////////////////
@@ -211,14 +211,14 @@ namespace karto
 
       //////////////////////////////////////////////////////
       // create lookup array for different angles
-      kt_double angle = 0.0;
-      kt_double startAngle = angleCenter - angleOffset;
-      for (kt_int32u angleIndex = 0; angleIndex < nAngles; angleIndex++)
+      double angle = 0.0;
+      double startAngle = angleCenter - angleOffset;
+      for (uint32_t angleIndex = 0; angleIndex < nAngles; angleIndex++)
       {
         angle = startAngle + angleIndex * angleResolution;
         ComputeOffsets(angleIndex, angle, localPoints);
       }
-      //assert(math::DoubleEqual(angle, angleCenter + angleOffset));
+      //assert(DoubleEqual(angle, angleCenter + angleOffset));
     }
 
   private:
@@ -228,9 +228,9 @@ namespace karto
      * @param angle angle
      * @param rLocalPoints points in local coordinates
      */
-    void ComputeOffsets(kt_int32u angleIndex, kt_double angle, const Pose2List& rLocalPoints)
+    void ComputeOffsets(uint32_t angleIndex, double angle, const Pose2List& rLocalPoints)
     {
-      m_ppLookupArray[angleIndex]->SetSize(static_cast<kt_int32u>(rLocalPoints.size()));
+      m_ppLookupArray[angleIndex]->SetSize(static_cast<uint32_t>(rLocalPoints.size()));
       m_Angles[angleIndex] = angle;
       
       // set up point array by computing relative offsets to points readings
@@ -238,12 +238,12 @@ namespace karto
       
       const Vector2d& rGridOffset = m_pGrid->GetCoordinateConverter()->GetOffset();
       
-      kt_double cosine = cos(angle);
-      kt_double sine = sin(angle);
+      double cosine = cos(angle);
+      double sine = sin(angle);
       
-      kt_int32u readingIndex = 0;
+      uint32_t readingIndex = 0;
 
-      kt_int32s* pAngleIndexPointer = m_ppLookupArray[angleIndex]->GetArrayPointer();
+      int32_t* pAngleIndexPointer = m_ppLookupArray[angleIndex]->GetArrayPointer();
 
       for (const auto& localPoint : rLocalPoints)
       {
@@ -258,7 +258,7 @@ namespace karto
         Vector2i gridPoint = m_pGrid->WorldToGrid(offset + rGridOffset);
         
         // use base GridIndex to ignore ROI 
-        kt_int32s lookupIndex = m_pGrid->Grid<T>::GridIndex(gridPoint, false);
+        int32_t lookupIndex = m_pGrid->Grid<T>::GridIndex(gridPoint, false);
 
         pAngleIndexPointer[readingIndex] = lookupIndex;
 
@@ -271,7 +271,7 @@ namespace karto
      * Sets size of lookup table (resize if not big enough)
      * @param size new size
      */
-    void SetSize(kt_int32u size)
+    void SetSize(uint32_t size)
     {
       assert(size != 0);
       
@@ -284,7 +284,7 @@ namespace karto
         
         m_Capacity = size;
         m_ppLookupArray = new LookupArray*[m_Capacity];
-        for (kt_int32u i = 0; i < m_Capacity; i++)
+        for (uint32_t i = 0; i < m_Capacity; i++)
         {
           m_ppLookupArray[i] = new LookupArray();
         }        
@@ -300,7 +300,7 @@ namespace karto
      */
     void DestroyArrays()
     {
-      for (kt_int32u i = 0; i < m_Capacity; i++)
+      for (uint32_t i = 0; i < m_Capacity; i++)
       {
         delete m_ppLookupArray[i];
       }
@@ -312,13 +312,13 @@ namespace karto
   private:
     Grid<T>* m_pGrid; 
 
-    kt_int32u m_Capacity;
-    kt_int32u m_Size;
+    uint32_t m_Capacity;
+    uint32_t m_Size;
     
     LookupArray **m_ppLookupArray;
 
     // for sanity check
-    std::vector<kt_double> m_Angles;
+    std::vector<double> m_Angles;
   }; // class GridIndexLookup
 
   //@}
