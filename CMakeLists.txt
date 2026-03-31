@@ -78,3 +78,9 @@ if(OPENKARTO_BUILD_TESTS)
   enable_testing()
   add_subdirectory(test)
 endif()
+
+# Examples
+option(OPENKARTO_BUILD_EXAMPLES "Build example programs" OFF)
+if(OPENKARTO_BUILD_EXAMPLES)
+  add_subdirectory(examples)
+endif()
